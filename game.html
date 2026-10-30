@@ -1,275 +1,446 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Wormate 3D - By Osama</title>
-    <style>
-        body { margin: 0; overflow: hidden; background-color: #050510; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; touch-action: none; }
-        
-        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; display: flex; flex-direction: column; justify-content: space-between; padding: 20px; box-sizing: border-box; }
-
-        #score-board { color: #fff; font-size: 28px; font-weight: 900; text-shadow: 0 0 15px #00ffcc; }
-        #score-board span { color: #00ffcc; }
-
-        #credit { align-self: flex-end; color: rgba(255,255,255,0.4); font-size: 14px; font-weight: bold; }
-        #credit strong { color: #00ffcc; }
-
-        .overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(5, 5, 16, 0.85); backdrop-filter: blur(8px);
-            display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 20;
-        }
-        .overlay h1 { margin: 0 0 10px 0; font-size: 42px; font-weight: 900; }
-        .overlay p { margin: 0 0 30px 0; color: #ccc; font-size: 18px; }
-        button { padding: 12px 30px; font-size: 18px; font-weight: bold; background: #00ffcc; color: #000; border: none; border-radius: 30px; cursor: pointer; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>الهروب من الليزر</title>
+<style>
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+body {
+    margin: 0;
+    background: #050816;
+    color: white;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    overflow: hidden;
+    user-select: none;
+}
+header {
+    padding: 18px 10px 8px;
+}
+h1 {
+    margin: 0;
+    color: #00f7ff;
+    font-size: 28px;
+    text-shadow: 0 0 15px #00f7ff;
+}
+.subtitle {
+    color: #8291ad;
+    font-size: 13px;
+    margin-top: 8px;
+}
+.stats {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin: 15px auto;
+    padding: 0 10px;
+}
+.stat {
+    background: #10172c;
+    border: 1px solid #243453;
+    border-radius: 12px;
+    padding: 10px 20px;
+    min-width: 95px;
+}
+.stat small {
+    display: block;
+    color: #8192b5;
+    margin-bottom: 5px;
+}
+.stat strong {
+    font-size: 22px;
+    color: #00f7ff;
+}
+.game-container {
+    position: relative;
+    width: min(92vw, 440px);
+    margin: 0 auto;
+    border: 2px solid #00eaff;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 0 20px #00eaff35;
+}
+canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    background: #080d20;
+    touch-action: none;
+}
+.overlay {
+    position: absolute;
+    inset: 0;
+    background: #030718df;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 20px;
+}
+.overlay h2 {
+    font-size: 30px;
+    color: #00f7ff;
+    margin: 0 0 12px;
+}
+.overlay p {
+    color: #b3c5e8;
+    line-height: 1.8;
+}
+button {
+    border: 0;
+    border-radius: 12px;
+    padding: 13px 25px;
+    background: #00eaff;
+    color: #04101b;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+button:active {
+    transform: scale(.95);
+}
+.controls {
+    display: grid;
+    grid-template-columns: repeat(3, 58px);
+    grid-template-rows: repeat(2, 48px);
+    gap: 8px;
+    justify-content: center;
+    margin: 15px auto 8px;
+    direction: ltr;
+}
+.controls button {
+    padding: 5px;
+    font-size: 23px;
+    background: #111d36;
+    border: 1px solid #00eaff80;
+    color: #00eaff;
+}
+.up { grid-column: 2; grid-row: 1; }
+.left { grid-column: 1; grid-row: 2; }
+.down { grid-column: 2; grid-row: 2; }
+.right { grid-column: 3; grid-row: 2; }
+.hint {
+    font-size: 12px;
+    color: #6e7d9d;
+    margin: 8px;
+}
+</style>
 </head>
 <body>
-
-    <div id="ui-layer">
-        <div id="score-board">SIZE: <span id="score-val">10</span></div>
-        <div id="credit">Programmed by <strong>Osama</strong></div>
+<header>
+    <h1>⚡ الهروب من الليزر</h1>
+    <div class="subtitle">تحرك بذكاء... لا تلمس الليزر!</div>
+</header>
+<div class="stats">
+    <div class="stat">
+        <small>النقاط</small>
+        <strong id="score">0</strong>
     </div>
-
-    <div id="win-screen" class="overlay">
-        <h1 style="color:#00ffcc;">VICTORY!</h1>
-        <p>You are the biggest worm.</p>
-        <button onclick="location.reload()">PLAY AGAIN</button>
+    <div class="stat">
+        <small>أفضل نتيجة</small>
+        <strong id="best">0</strong>
     </div>
-
-    <div id="lose-screen" class="overlay">
-        <h1 style="color:#ff3333;">GAME OVER</h1>
-        <p>You crashed or hit the wall.</p>
-        <button onclick="location.reload()">TRY AGAIN</button>
+    <div class="stat">
+        <small>المستوى</small>
+        <strong id="level">1</strong>
     </div>
-
-    <script type="importmap">
-        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
-    </script>
-
-    <script type="module">
-        import * as THREE from 'three';
-
-        // إعدادات المشهد
-        const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x050510, 0.008); // ضباب في الأفق
-
-        // الكاميرا
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 20, 20);
-        camera.lookAt(0, 0, 0);
-
-        // الريندرر
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.shadowMap.enabled = true;
-        document.body.appendChild(renderer.domElement);
-
-        // الإضاءة
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-        scene.add(ambientLight);
-
-        const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
-        dirLight.position.set(10, 20, 10);
-        dirLight.castShadow = true;
-        scene.add(dirLight);
-
-        // أضواء ملونة للخلفية
-        const pointLight1 = new THREE.PointLight(0x00ffcc, 50, 100);
-        pointLight1.position.set(-20, 10, -20);
-        scene.add(pointLight1);
-
-        const pointLight2 = new THREE.PointLight(0xff00ff, 50, 100);
-        pointLight2.position.set(20, 10, 20);
-        scene.add(pointLight2);
-
-        // الأرضية (شبكة)
-        const gridHelper = new THREE.GridHelper(200, 100, 0x00ffcc, 0x111122);
-        gridHelper.position.y = -5;
-        scene.add(gridHelper);
-
-        // --------------------
-        // إعدادات اللعبة
-        // --------------------
-        const wormSegments = [];
-        const foods = [];
-        let score = 10;
-        let gameOver = false;
-        let gameSpeed = 0.3; // سرعة أبطأ
-        let targetRotation = 0;
-        let currentRotation = 0;
-        let isMoving = true;
-
-        const segmentGeo = new THREE.SphereGeometry(1, 16, 16); // جسم الدودة
-        const foodGeo = new THREE.IcosahedronGeometry(0.6, 0); // شكل الأكل
-
-        const snakeHeadMat = new THREE.MeshStandardMaterial({ color: 0x00ffcc, emissive: 0x00aa88, roughness: 0.2 });
-        const snakeBodyMat = new THREE.MeshStandardMaterial({ color: 0x00ccaa, roughness: 0.4 });
-
-        // إنشاء الدودة
-        for (let i = 0; i < 15; i++) {
-            let mat = i === 0 ? snakeHeadMat : snakeBodyMat;
-            let seg = new THREE.Mesh(segmentGeo, mat);
-            seg.castShadow = true;
-            seg.position.set(0, 0, i * 1.5);
-            scene.add(seg);
-            wormSegments.push(seg);
-        }
-
-        // إنشاء الأكل
-        function createFood() {
-            let colors = [0xff3333, 0x33ff33, 0x3333ff, 0xffff33, 0xff33ff];
-            let color = colors[Math.floor(Math.random() * colors.length)];
-            let mat = new THREE.MeshStandardMaterial({ color: color, emissive: color, emissiveIntensity: 0.5 });
-            let food = new THREE.Mesh(foodGeo, mat);
-            
-            food.position.set(
-                (Math.random() - 0.5) * 100,
-                (Math.random() - 0.5) * 100,
-                (Math.random() - 0.5) * 100
-            );
-            food.castShadow = true;
-            food.userData = { color: color };
-            scene.add(food);
-            foods.push(food);
-        }
-
-        for (let i = 0; i < 50; i++) createFood();
-
-        // التحكم بالسحب
-        let touchStart = {x: 0, y: 0};
-        document.addEventListener('touchstart', (e) => {
-            touchStart.x = e.changedTouches[0].screenX;
-            touchStart.y = e.changedTouches[0].screenY;
-        }, {passive: false});
-
-        document.addEventListener('touchmove', (e) => {
-            if (gameOver) return;
-            let touchEndX = e.changedTouches[0].screenX;
-            let touchEndY = e.changedTouches[0].screenY;
-
-            let dx = touchEndX - touchStart.x;
-            let dy = touchEndY - touchStart.y;
-
-            if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
-                targetRotation = Math.atan2(dy, dx); // تحديد الاتجاه
-            }
-        }, {passive: false});
-
-        // للكمبيوتر (الماوس)
-        document.addEventListener('mousemove', (e) => {
-            if (gameOver) return;
-            let dx = e.clientX - window.innerWidth / 2;
-            let dy = e.clientY - window.innerHeight / 2;
-            if (Math.abs(dx) > 20 || Math.abs(dy) > 20) {
-                targetRotation = Math.atan2(dy, dx);
-            }
+</div>
+<div class="game-container">
+    <canvas id="game" width="400" height="520"></canvas>
+    <div class="overlay" id="overlay">
+        <h2 id="overlayTitle">مستعد؟ ⚡</h2>
+        <p id="overlayText">
+            تفادَ أشعة الليزر الحمراء.<br>
+            اجمع الشظايا الزرقاء لزيادة نقاطك.<br>
+            كلما صمدت أكثر، زادت الصعوبة!
+        </p>
+        <button id="startBtn">ابدأ اللعب</button>
+    </div>
+</div>
+<div class="controls">
+    <button class="up" data-dir="up">▲</button>
+    <button class="left" data-dir="left">◀</button>
+    <button class="down" data-dir="down">▼</button>
+    <button class="right" data-dir="right">▶</button>
+</div>
+<div class="hint">الكمبيوتر: الأسهم أو WASD — الجوال: أزرار الاتجاهات</div>
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const scoreEl = document.getElementById("score");
+const bestEl = document.getElementById("best");
+const levelEl = document.getElementById("level");
+const overlay = document.getElementById("overlay");
+const startBtn = document.getElementById("startBtn");
+let best = Number(localStorage.getItem("laserBest") || 0);
+bestEl.textContent = best;
+let player, lasers, shards, particles;
+let score = 0;
+let level = 1;
+let running = false;
+let lastTime = 0;
+let laserTimer = 0;
+let shardTimer = 0;
+let elapsed = 0;
+const keys = {};
+const activeTouch = {};
+function resetGame() {
+    player = { x: 190, y: 440, size: 16, speed: 230 };
+    lasers = [];
+    shards = [];
+    particles = [];
+    score = 0;
+    level = 1;
+    elapsed = 0;
+    laserTimer = 0;
+    shardTimer = 0;
+    updateStats();
+}
+function updateStats() {
+    scoreEl.textContent = score;
+    levelEl.textContent = level;
+    bestEl.textContent = best;
+}
+function startGame() {
+    resetGame();
+    running = true;
+    lastTime = performance.now();
+    overlay.style.display = "none";
+    requestAnimationFrame(loop);
+}
+function endGame() {
+    running = false;
+    if (score > best) {
+        best = score;
+        localStorage.setItem("laserBest", best);
+    }
+    updateStats();
+    document.getElementById("overlayTitle").textContent = "انتهت اللعبة 💥";
+    document.getElementById("overlayText").innerHTML =
+        `جمعت <b>${score}</b> نقطة!<br>وصلت إلى المستوى ${level}.<br>هل تستطيع تحقيق نتيجة أفضل؟`;
+    startBtn.textContent = "العب مرة أخرى";
+    overlay.style.display = "flex";
+}
+startBtn.addEventListener("click", startGame);
+document.addEventListener("keydown", e => {
+    const key = e.key.toLowerCase();
+    if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(key)) {
+        e.preventDefault();
+    }
+    keys[key] = true;
+    if (!running && (key === "enter" || key === " ")) {
+        startGame();
+    }
+});
+document.addEventListener("keyup", e => {
+    keys[e.key.toLowerCase()] = false;
+});
+document.querySelectorAll("[data-dir]").forEach(button => {
+    const dir = button.dataset.dir;
+    button.addEventListener("pointerdown", e => {
+        e.preventDefault();
+        activeTouch[dir] = true;
+        button.setPointerCapture(e.pointerId);
+    });
+    function release(e) {
+        activeTouch[dir] = false;
+    }
+    button.addEventListener("pointerup", release);
+    button.addEventListener("pointercancel", release);
+    button.addEventListener("lostpointercapture", release);
+});
+function hit(a, b) {
+    return a.x < b.x + b.w &&
+           a.x + a.size > b.x &&
+           a.y < b.y + b.h &&
+           a.y + a.size > b.y;
+}
+function spawnLaser() {
+    const horizontal = Math.random() < 0.7;
+    if (horizontal) {
+        lasers.push({
+            x: -100,
+            y: 35 + Math.random() * 410,
+            w: 75 + Math.random() * 70,
+            h: 5,
+            vx: 180 + level * 24,
+            type: "horizontal"
         });
-
-        // --------------------
-        // حلقة اللعبة (Game Loop)
-        // --------------------
-        function animate() {
-            requestAnimationFrame(animate);
-            if (gameOver) return;
-
-            // تدوير الدودة بسلاسة
-            let diff = targetRotation - currentRotation;
-            while (diff > Math.PI) diff -= Math.PI * 2;
-            while (diff < -Math.PI) diff += Math.PI * 2;
-            currentRotation += diff * 0.1; // سرعة اللف
-
-            // تحريك الرأس
-            let head = wormSegments[0];
-            let dirX = Math.cos(currentRotation);
-            let dirZ = Math.sin(currentRotation);
-            
-            head.position.x += dirX * gameSpeed;
-            head.position.z += dirZ * gameSpeed;
-            
-            head.rotation.y = -currentRotation + Math.PI / 2;
-
-            // تحريك باقي الجسم (يتبع الرأس)
-            for (let i = 1; i < wormSegments.length; i++) {
-                let prevSeg = wormSegments[i - 1];
-                let seg = wormSegments[i];
-                
-                let dx = prevSeg.position.x - seg.position.x;
-                let dz = prevSeg.position.z - seg.position.z;
-                let dist = Math.sqrt(dx*dx + dz*dz);
-
-                if (dist > 1.5) { // المسافة بين كل قطعة
-                    seg.position.x += (dx / dist) * gameSpeed * 1.5;
-                    seg.position.z += (dz / dist) * gameSpeed * 1.5;
-                }
-            }
-
-            // فحص اصطدام الرأس بالجسم
-            for (let i = 5; i < wormSegments.length; i++) {
-                let dist = head.position.distanceTo(wormSegments[i].position);
-                if (dist < 1.2) {
-                    return endGame(false);
-                }
-            }
-
-            // فحص اصطدام الرأس بالأكل
-            for (let i = foods.length - 1; i >= 0; i--) {
-                let food = foods[i];
-                if (head.position.distanceTo(food.position) < 2) {
-                    scene.remove(food);
-                    foods.splice(i, 1);
-                    createFood(); // توليد أكل جديد
-                    
-                    score += 2;
-                    document.getElementById('score-val').innerText = score;
-                    
-                    // إضافة قطعة جديدة للدودة
-                    let newSeg = new THREE.Mesh(segmentGeo, snakeBodyMat);
-                    let tail = wormSegments[wormSegments.length - 1];
-                    newSeg.position.copy(tail.position);
-                    newSeg.castShadow = true;
-                    scene.add(newSeg);
-                    wormSegments.push(newSeg);
-
-                    // تصغير الكاميرا (Zoom Out) كل ما كبرت الدودة
-                    if (score % 10 === 0) {
-                        camera.position.y += 2;
-                        camera.position.z += 2;
-                    }
-
-                    if (score >= 100) return endGame(true);
-                }
-            }
-
-            // الكاميرا تتبع الدودة
-            camera.position.x += (head.position.x - camera.position.x) * 0.05;
-            camera.position.z += (head.position.z - camera.position.z) * 0.05;
-            camera.lookAt(head.position.x, head.position.y, head.position.z);
-
-            // تدوير الأكل
-            foods.forEach(f => {
-                f.rotation.x += 0.02;
-                f.rotation.y += 0.02;
-            });
-
-            renderer.render(scene, camera);
-        }
-
-        function endGame(isWin) {
-            gameOver = true;
-            if (isWin) document.getElementById('win-screen').style.display = 'flex';
-            else document.getElementById('lose-screen').style.display = 'flex';
-        }
-
-        animate();
-
-        // تحديث حجم الشاشة
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+    } else {
+        lasers.push({
+            x: 20 + Math.random() * 350,
+            y: -100,
+            w: 5,
+            h: 65 + Math.random() * 65,
+            vy: 170 + level * 22,
+            type: "vertical"
         });
-    </script>
+    }
+}
+function spawnShard() {
+    shards.push({
+        x: 20 + Math.random() * 350,
+        y: 40 + Math.random() * 400,
+        size: 12,
+        phase: Math.random() * 6
+    });
+}
+function burst(x, y, color) {
+    for (let i = 0; i < 10; i++) {
+        particles.push({
+            x, y,
+            vx: (Math.random() - .5) * 180,
+            vy: (Math.random() - .5) * 180,
+            life: .45,
+            color
+        });
+    }
+}
+function update(dt) {
+    elapsed += dt;
+    level = Math.min(20, 1 + Math.floor(elapsed / 12));
+    score += Math.floor(dt * 10);
+    let dx = 0;
+    let dy = 0;
+    if (keys["arrowleft"] || keys["a"] || activeTouch.left) dx--;
+    if (keys["arrowright"] || keys["d"] || activeTouch.right) dx++;
+    if (keys["arrowup"] || keys["w"] || activeTouch.up) dy--;
+    if (keys["arrowdown"] || keys["s"] || activeTouch.down) dy++;
+    if (dx && dy) {
+        dx *= Math.SQRT1_2;
+        dy *= Math.SQRT1_2;
+    }
+    player.x += dx * player.speed * dt;
+    player.y += dy * player.speed * dt;
+    player.x = Math.max(5, Math.min(395 - player.size, player.x));
+    player.y = Math.max(5, Math.min(515 - player.size, player.y));
+    laserTimer += dt;
+    shardTimer += dt;
+    if (laserTimer > Math.max(.3, 1.05 - level * .035)) {
+        spawnLaser();
+        laserTimer = 0;
+    }
+    if (shardTimer > 2.4) {
+        spawnShard();
+        shardTimer = 0;
+    }
+    for (let i = lasers.length - 1; i >= 0; i--) {
+        const l = lasers[i];
+        if (l.type === "horizontal") l.x += l.vx * dt;
+        else l.y += l.vy * dt;
+        if (
+            player.x < l.x + l.w &&
+            player.x + player.size > l.x &&
+            player.y < l.y + l.h &&
+            player.y + player.size > l.y
+        ) {
+            burst(player.x + 8, player.y + 8, "#ff1744");
+            endGame();
+            return;
+        }
+        if (l.x > 450 || l.y > 560) lasers.splice(i, 1);
+    }
+    for (let i = shards.length - 1; i >= 0; i--) {
+        const s = shards[i];
+        const dx = player.x + 8 - s.x;
+        const dy = player.y + 8 - s.y;
+        if (Math.hypot(dx, dy) < 23) {
+            score += 50;
+            burst(s.x, s.y, "#00f7ff");
+            shards.splice(i, 1);
+        } else {
+            s.phase += dt * 4;
+        }
+    }
+    for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.life -= dt;
+        if (p.life <= 0) particles.splice(i, 1);
+    }
+    updateStats();
+}
+function drawGrid() {
+    ctx.strokeStyle = "#14203b";
+    ctx.lineWidth = 1;
+    for (let x = 0; x <= 400; x += 40) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, 520);
+        ctx.stroke();
+    }
+    for (let y = 0; y <= 520; y += 40) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(400, y);
+        ctx.stroke();
+    }
+}
+function draw() {
+    ctx.clearRect(0, 0, 400, 520);
+    const bg = ctx.createLinearGradient(0, 0, 400, 520);
+    bg.addColorStop(0, "#080d20");
+    bg.addColorStop(1, "#10102b");
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, 400, 520);
+    drawGrid();
+    lasers.forEach(l => {
+        ctx.save();
+        ctx.shadowColor = "#ff1744";
+        ctx.shadowBlur = 18;
+        ctx.fillStyle = "#ff1744";
+        ctx.fillRect(l.x, l.y, l.w, l.h);
+        ctx.restore();
+    });
+    shards.forEach(s => {
+        const pulse = 1 + Math.sin(s.phase) * .15;
+        ctx.save();
+        ctx.translate(s.x, s.y);
+        ctx.rotate(Math.PI / 4);
+        ctx.scale(pulse, pulse);
+        ctx.shadowColor = "#00f7ff";
+        ctx.shadowBlur = 18;
+        ctx.fillStyle = "#00f7ff";
+        ctx.fillRect(-s.size / 2, -s.size / 2, s.size, s.size);
+        ctx.restore();
+    });
+    if (player) {
+        ctx.save();
+        ctx.shadowColor = "#00f7ff";
+        ctx.shadowBlur = 20;
+        ctx.fillStyle = "#00f7ff";
+        ctx.beginPath();
+        ctx.roundRect(player.x, player.y, player.size, player.size, 5);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(player.x + 5, player.y + 5, 3, 3);
+        ctx.fillRect(player.x + 11, player.y + 5, 3, 3);
+        ctx.restore();
+    }
+    particles.forEach(p => {
+        ctx.globalAlpha = Math.max(0, p.life / .45);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x, p.y, 4, 4);
+        ctx.globalAlpha = 1;
+    });
+}
+function loop(now) {
+    if (!running) return;
+    const dt = Math.min((now - lastTime) / 1000, .035);
+    lastTime = now;
+    update(dt);
+    draw();
+    if (running) requestAnimationFrame(loop);
+}
+resetGame();
+draw();
+</script>
 </body>
 </html>
