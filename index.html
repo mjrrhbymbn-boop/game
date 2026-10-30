@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>لعبة تدمير الطوب - Brick Breaker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="game-container">
+        <div class="header">
+            <div class="score-board">النقاط: <span id="score">0</span></div>
+            <div class="high-score">أعلى نتيجة: <span id="highScore">0</span></div>
+        </div>
+
+        <canvas id="gameCanvas" width="480" height="600"></canvas>
+
+        <div class="controls-hint">
+            <p>💡 استعمل الأسهم ⬅️ ➡️ أو اسحب بإصبعك على الشاشة للتحريك</p>
+        </div>
+    </div>
+
+    <!-- واجهة الخسارة / الفوز -->
+    <div id="overlay" class="overlay hidden">
+        <h1 id="overlayTitle">انتهت اللعبة!</h1>
+        <p id="finalScore">نقاطك: 0</p>
+        <button id="restartBtn">العب مجدداً 🔄</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
