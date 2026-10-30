@@ -3,330 +3,273 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Wormate Clone - By Osama</title>
+    <title>Wormate 3D - By Osama</title>
     <style>
-        body { 
-            margin: 0; padding: 0; overflow: hidden; 
-            background: #111; /* خلفية غامقة */
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            height: 100vh; color: white; touch-action: none;
-        }
+        body { margin: 0; overflow: hidden; background-color: #050510; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; touch-action: none; }
         
-        #game-container { position: relative; box-shadow: 0 0 40px rgba(0,0,0,0.9); border-radius: 50% 50% 0 0; overflow: hidden; border-top: 4px solid #333;}
-        canvas { background-color: #1c1c24; display: block; }
+        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; display: flex; flex-direction: column; justify-content: space-between; padding: 20px; box-sizing: border-box; }
 
-        /* مؤشر النقاط */
-        #score-board {
-            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-            color: #fff; font-size: 24px; font-weight: 900; text-shadow: 0 0 10px #000;
-            z-index: 10; pointer-events: none;
-        }
-        #score-board span { color: #ffcc00; }
+        #score-board { color: #fff; font-size: 28px; font-weight: 900; text-shadow: 0 0 15px #00ffcc; }
+        #score-board span { color: #00ffcc; }
 
-        #credit {
-            position: absolute; bottom: 10px; right: 15px; color: rgba(255,255,255,0.3); font-size: 12px; font-weight: bold; z-index: 10;
-        }
+        #credit { align-self: flex-end; color: rgba(255,255,255,0.4); font-size: 14px; font-weight: bold; }
         #credit strong { color: #00ffcc; }
 
-        /* شاشات الخسارة والفوز */
         .overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px);
+            background: rgba(5, 5, 16, 0.85); backdrop-filter: blur(8px);
             display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 20;
         }
-        .overlay h1 { margin: 0 0 10px 0; font-size: 40px; font-weight: 900; color: #ff3333; }
+        .overlay h1 { margin: 0 0 10px 0; font-size: 42px; font-weight: 900; }
         .overlay p { margin: 0 0 30px 0; color: #ccc; font-size: 18px; }
-        button {
-            padding: 12px 30px; font-size: 18px; font-weight: bold; 
-            background: #00ffcc; color: #000; border: none; border-radius: 30px; cursor: pointer;
-        }
-
-        /* عصا التحكم (Joystick) */
-        #joystick-zone {
-            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
-            width: 130px; height: 130px; z-index: 15; display: flex; justify-content: center; align-items: center;
-        }
-        #joystick-base {
-            width: 110px; height: 110px; background: rgba(255, 255, 255, 0.05);
-            border: 2px solid rgba(255, 255, 255, 0.1); border-radius: 50%;
-            position: absolute; pointer-events: none;
-        }
-        #joystick-knob {
-            width: 50px; height: 50px; background: rgba(0, 255, 204, 0.6);
-            box-shadow: 0 0 15px rgba(0, 255, 204, 0.4); border-radius: 50%;
-            position: absolute; pointer-events: none; transition: transform 0.1s;
-        }
+        button { padding: 12px 30px; font-size: 18px; font-weight: bold; background: #00ffcc; color: #000; border: none; border-radius: 30px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div id="game-container">
-        <canvas id="gameCanvas" width="400" height="600"></canvas>
-        
+    <div id="ui-layer">
         <div id="score-board">SIZE: <span id="score-val">10</span></div>
         <div id="credit">Programmed by <strong>Osama</strong></div>
-
-        <div id="win-screen" class="overlay">
-            <h1 style="color:#00ffcc;">VICTORY!</h1>
-            <p>You are the biggest worm.</p>
-            <button onclick="location.reload()">PLAY AGAIN</button>
-        </div>
-
-        <div id="lose-screen" class="overlay">
-            <h1>GAME OVER</h1>
-            <p>You crashed into yourself or a wall.</p>
-            <button onclick="location.reload()">TRY AGAIN</button>
-        </div>
-
-        <div id="joystick-zone">
-            <div id="joystick-base"></div>
-            <div id="joystick-knob"></div>
-        </div>
     </div>
 
-    <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const scoreVal = document.getElementById('score-val');
-        const loseScreen = document.getElementById('lose-screen');
-        const winScreen = document.getElementById('win-screen');
+    <div id="win-screen" class="overlay">
+        <h1 style="color:#00ffcc;">VICTORY!</h1>
+        <p>You are the biggest worm.</p>
+        <button onclick="location.reload()">PLAY AGAIN</button>
+    </div>
 
-        // المتغيرات الأساسية
-        let worm = []; // مصفوفة نقاط الدودة
-        let foods = [];
-        let score = 10; // الحجم المبدئي
+    <div id="lose-screen" class="overlay">
+        <h1 style="color:#ff3333;">GAME OVER</h1>
+        <p>You crashed or hit the wall.</p>
+        <button onclick="location.reload()">TRY AGAIN</button>
+    </div>
+
+    <script type="importmap">
+        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+
+        // إعدادات المشهد
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x050510, 0.008); // ضباب في الأفق
+
+        // الكاميرا
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 20, 20);
+        camera.lookAt(0, 0, 0);
+
+        // الريندرر
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        document.body.appendChild(renderer.domElement);
+
+        // الإضاءة
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        dirLight.position.set(10, 20, 10);
+        dirLight.castShadow = true;
+        scene.add(dirLight);
+
+        // أضواء ملونة للخلفية
+        const pointLight1 = new THREE.PointLight(0x00ffcc, 50, 100);
+        pointLight1.position.set(-20, 10, -20);
+        scene.add(pointLight1);
+
+        const pointLight2 = new THREE.PointLight(0xff00ff, 50, 100);
+        pointLight2.position.set(20, 10, 20);
+        scene.add(pointLight2);
+
+        // الأرضية (شبكة)
+        const gridHelper = new THREE.GridHelper(200, 100, 0x00ffcc, 0x111122);
+        gridHelper.position.y = -5;
+        scene.add(gridHelper);
+
+        // --------------------
+        // إعدادات اللعبة
+        // --------------------
+        const wormSegments = [];
+        const foods = [];
+        let score = 10;
         let gameOver = false;
-        let gameLoop;
+        let gameSpeed = 0.3; // سرعة أبطأ
+        let targetRotation = 0;
+        let currentRotation = 0;
+        let isMoving = true;
 
-        // زاوية وحركة الدودة
-        let targetAngle = 0; // الاتجاه اللي يتجه له الإصبع
-        let currentAngle = 0; // الاتجاه الحالي للدودة
-        const speed = 3.5; // سرعة الدودة
-        const maxTurnSpeed = 0.08; // سرعة اللف (عشان ما تكون فجائية)
-        const segmentSpacing = 12; // المسافة بين كل قطعة في جسم الدودة
+        const segmentGeo = new THREE.SphereGeometry(1, 16, 16); // جسم الدودة
+        const foodGeo = new THREE.IcosahedronGeometry(0.6, 0); // شكل الأكل
 
-        // إعدادات عصا التحكم
-        const joystickZone = document.getElementById('joystick-zone');
-        const joystickKnob = document.getElementById('joystick-knob');
-        let joystickActive = false;
-        let joystickStart = {x: 0, y: 0};
+        const snakeHeadMat = new THREE.MeshStandardMaterial({ color: 0x00ffcc, emissive: 0x00aa88, roughness: 0.2 });
+        const snakeBodyMat = new THREE.MeshStandardMaterial({ color: 0x00ccaa, roughness: 0.4 });
 
-        function initGame() {
-            // إعداد الدودة في البداية
-            worm = [];
-            let startX = canvas.width / 2;
-            let startY = canvas.height / 2;
-            for (let i = 0; i < 15; i++) {
-                worm.push({ x: startX - (i * segmentSpacing), y: startY });
-            }
+        // إنشاء الدودة
+        for (let i = 0; i < 15; i++) {
+            let mat = i === 0 ? snakeHeadMat : snakeBodyMat;
+            let seg = new THREE.Mesh(segmentGeo, mat);
+            seg.castShadow = true;
+            seg.position.set(0, 0, i * 1.5);
+            scene.add(seg);
+            wormSegments.push(seg);
+        }
+
+        // إنشاء الأكل
+        function createFood() {
+            let colors = [0xff3333, 0x33ff33, 0x3333ff, 0xffff33, 0xff33ff];
+            let color = colors[Math.floor(Math.random() * colors.length)];
+            let mat = new THREE.MeshStandardMaterial({ color: color, emissive: color, emissiveIntensity: 0.5 });
+            let food = new THREE.Mesh(foodGeo, mat);
             
-            score = 10;
-            scoreVal.innerText = score;
-            gameOver = false;
-            loseScreen.style.display = 'none';
-            winScreen.style.display = 'none';
-            
-            // توليد أكل مبدئي
-            foods = [];
-            for (let i = 0; i < 40; i++) generateFood();
-
-            // تشغيل حلقة اللعبة
-            clearInterval(gameLoop);
-            gameLoop = requestAnimationFrame(update);
+            food.position.set(
+                (Math.random() - 0.5) * 100,
+                (Math.random() - 0.5) * 100,
+                (Math.random() - 0.5) * 100
+            );
+            food.castShadow = true;
+            food.userData = { color: color };
+            scene.add(food);
+            foods.push(food);
         }
 
-        function generateFood() {
-            let colors = ['#ff3333', '#33ff33', '#3333ff', '#ffff33', '#ff33ff', '#33ffff'];
-            foods.push({
-                x: Math.random() * (canvas.width - 20) + 10,
-                y: Math.random() * (canvas.height - 20) + 10,
-                r: Math.random() * 4 + 3,
-                color: colors[Math.floor(Math.random() * colors.length)]
-            });
-        }
+        for (let i = 0; i < 50; i++) createFood();
 
-        // حساب زاوية الدوران
-        function lerpAngle(a, b, t) {
-            let diff = b - a;
-            while (diff > Math.PI) diff -= Math.PI * 2;
-            while (diff < -Math.PI) diff += Math.PI * 2;
-            return a + diff * t;
-        }
+        // التحكم بالسحب
+        let touchStart = {x: 0, y: 0};
+        document.addEventListener('touchstart', (e) => {
+            touchStart.x = e.changedTouches[0].screenX;
+            touchStart.y = e.changedTouches[0].screenY;
+        }, {passive: false});
 
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        document.addEventListener('touchmove', (e) => {
+            if (gameOver) return;
+            let touchEndX = e.changedTouches[0].screenX;
+            let touchEndY = e.changedTouches[0].screenY;
 
-            // رسم شبكة خفيفة في الخلفية (زي اللعبة الأصلية)
-            ctx.strokeStyle = "rgba(255,255,255,0.03)";
-            ctx.lineWidth = 1;
-            for(let i=0; i<canvas.width; i+=40) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke(); }
-            for(let i=0; i<canvas.height; i+=40) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke(); }
+            let dx = touchEndX - touchStart.x;
+            let dy = touchEndY - touchStart.y;
 
-            // رسم الأكل
-            foods.forEach(f => {
-                ctx.beginPath();
-                ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
-                ctx.fillStyle = f.color;
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = f.color;
-                ctx.fill();
-            });
-            ctx.shadowBlur = 0;
-
-            // رسم الدودة (من الذيل للرأس)
-            for (let i = worm.length - 1; i >= 0; i--) {
-                let seg = worm[i];
-                let radius = score / 10 + (i === 0 ? 2 : 0); // الرأس أكبر شوي
-
-                ctx.beginPath();
-                ctx.arc(seg.x, seg.y, radius, 0, Math.PI * 2);
-                
-                // تدرج لوني
-                if (i === 0) {
-                    ctx.fillStyle = '#00ffcc'; // لون الرأس
-                    ctx.shadowBlur = 15; ctx.shadowColor = '#00ffcc';
-                } else {
-                    ctx.fillStyle = '#00cc99';
-                }
-                ctx.fill();
-
-                // رسم العيون للرأس
-                if (i === 0) {
-                    ctx.shadowBlur = 0;
-                    ctx.fillStyle = '#fff';
-                    // مكان العيون بناءً على اتجاه الحركة
-                    let eyeOffset = radius * 0.5;
-                    let ex1 = seg.x + Math.cos(currentAngle + 0.5) * eyeOffset;
-                    let ey1 = seg.y + Math.sin(currentAngle + 0.5) * eyeOffset;
-                    let ex2 = seg.x + Math.cos(currentAngle - 0.5) * eyeOffset;
-                    let ey2 = seg.y + Math.sin(currentAngle - 0.5) * eyeOffset;
-
-                    ctx.beginPath(); ctx.arc(ex1, ey1, radius*0.4, 0, Math.PI*2); ctx.fill();
-                    ctx.beginPath(); ctx.arc(ex2, ey2, radius*0.4, 0, Math.PI*2); ctx.fill();
-                    
-                    // بؤبؤ العين
-                    ctx.fillStyle = '#000';
-                    ctx.beginPath(); ctx.arc(ex1, ey1, radius*0.2, 0, Math.PI*2); ctx.fill();
-                    ctx.beginPath(); ctx.arc(ex2, ey2, radius*0.2, 0, Math.PI*2); ctx.fill();
-                }
+            if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+                targetRotation = Math.atan2(dy, dx); // تحديد الاتجاه
             }
-            ctx.shadowBlur = 0;
-        }
+        }, {passive: false});
 
-        function update() {
+        // للكمبيوتر (الماوس)
+        document.addEventListener('mousemove', (e) => {
+            if (gameOver) return;
+            let dx = e.clientX - window.innerWidth / 2;
+            let dy = e.clientY - window.innerHeight / 2;
+            if (Math.abs(dx) > 20 || Math.abs(dy) > 20) {
+                targetRotation = Math.atan2(dy, dx);
+            }
+        });
+
+        // --------------------
+        // حلقة اللعبة (Game Loop)
+        // --------------------
+        function animate() {
+            requestAnimationFrame(animate);
             if (gameOver) return;
 
-            // لف الدودة بسلاسة نحو الاتجاه المطلوب
-            currentAngle = lerpAngle(currentAngle, targetAngle, maxTurnSpeed);
+            // تدوير الدودة بسلاسة
+            let diff = targetRotation - currentRotation;
+            while (diff > Math.PI) diff -= Math.PI * 2;
+            while (diff < -Math.PI) diff += Math.PI * 2;
+            currentRotation += diff * 0.1; // سرعة اللف
 
             // تحريك الرأس
-            let head = worm[0];
-            let nextHeadX = head.x + Math.cos(currentAngle) * speed;
-            let nextHeadY = head.y + Math.sin(currentAngle) * speed;
+            let head = wormSegments[0];
+            let dirX = Math.cos(currentRotation);
+            let dirZ = Math.sin(currentRotation);
+            
+            head.position.x += dirX * gameSpeed;
+            head.position.z += dirZ * gameSpeed;
+            
+            head.rotation.y = -currentRotation + Math.PI / 2;
 
-            // فحص اصطدام الحواف (خسارة)
-            if (nextHeadX < 0 || nextHeadX > canvas.width || nextHeadY < 0 || nextHeadY > canvas.height) {
-                return endGame(false);
+            // تحريك باقي الجسم (يتبع الرأس)
+            for (let i = 1; i < wormSegments.length; i++) {
+                let prevSeg = wormSegments[i - 1];
+                let seg = wormSegments[i];
+                
+                let dx = prevSeg.position.x - seg.position.x;
+                let dz = prevSeg.position.z - seg.position.z;
+                let dist = Math.sqrt(dx*dx + dz*dz);
+
+                if (dist > 1.5) { // المسافة بين كل قطعة
+                    seg.position.x += (dx / dist) * gameSpeed * 1.5;
+                    seg.position.z += (dz / dist) * gameSpeed * 1.5;
+                }
             }
 
-            // تحديث موقع الرأس
-            head = { x: nextHeadX, y: nextHeadY };
-            worm.unshift(head);
-
-            // فحص اصطدام الرأس بالجسم (خسارة)
-            for (let i = 5; i < worm.length; i++) { // نبدأ من 5 عشان ما يلمس نفسه فوراً
-                let dx = head.x - worm[i].x;
-                let dy = head.y - worm[i].y;
-                let dist = Math.sqrt(dx*dx + dy*dy);
-                if (dist < (score / 10)) {
+            // فحص اصطدام الرأس بالجسم
+            for (let i = 5; i < wormSegments.length; i++) {
+                let dist = head.position.distanceTo(wormSegments[i].position);
+                if (dist < 1.2) {
                     return endGame(false);
                 }
             }
 
-            // فحص أكل الأكل
-            let ate = false;
+            // فحص اصطدام الرأس بالأكل
             for (let i = foods.length - 1; i >= 0; i--) {
-                let f = foods[i];
-                let dx = head.x - f.x;
-                let dy = head.y - f.y;
-                let dist = Math.sqrt(dx*dx + dy*dy);
-                
-                if (dist < (score / 10) + f.r) {
-                    score += 2; // زيادة الحجم
-                    scoreVal.innerText = score;
-                    foods.splice(i, 1); // حذف الأكل
-                    generateFood(); // توليد أكل جديد
-                    ate = true;
+                let food = foods[i];
+                if (head.position.distanceTo(food.position) < 2) {
+                    scene.remove(food);
+                    foods.splice(i, 1);
+                    createFood(); // توليد أكل جديد
+                    
+                    score += 2;
+                    document.getElementById('score-val').innerText = score;
+                    
+                    // إضافة قطعة جديدة للدودة
+                    let newSeg = new THREE.Mesh(segmentGeo, snakeBodyMat);
+                    let tail = wormSegments[wormSegments.length - 1];
+                    newSeg.position.copy(tail.position);
+                    newSeg.castShadow = true;
+                    scene.add(newSeg);
+                    wormSegments.push(newSeg);
 
-                    // شرط الفوز
+                    // تصغير الكاميرا (Zoom Out) كل ما كبرت الدودة
+                    if (score % 10 === 0) {
+                        camera.position.y += 2;
+                        camera.position.z += 2;
+                    }
+
                     if (score >= 100) return endGame(true);
                 }
             }
 
-            // إزالة الذيل إذا ما أكل
-            if (!ate) {
-                worm.pop();
-            } else {
-                // إذا أكل، نخلي الذيل يطول شوي
-                worm.pop(); 
-                worm.push({x: worm[worm.length-1].x, y: worm[worm.length-1].y}); 
-            }
+            // الكاميرا تتبع الدودة
+            camera.position.x += (head.position.x - camera.position.x) * 0.05;
+            camera.position.z += (head.position.z - camera.position.z) * 0.05;
+            camera.lookAt(head.position.x, head.position.y, head.position.z);
 
-            draw();
-            gameLoop = requestAnimationFrame(update);
+            // تدوير الأكل
+            foods.forEach(f => {
+                f.rotation.x += 0.02;
+                f.rotation.y += 0.02;
+            });
+
+            renderer.render(scene, camera);
         }
 
         function endGame(isWin) {
             gameOver = true;
-            cancelAnimationFrame(gameLoop);
-            if (isWin) winScreen.style.display = 'flex'; else loseScreen.style.display = 'flex';
+            if (isWin) document.getElementById('win-screen').style.display = 'flex';
+            else document.getElementById('lose-screen').style.display = 'flex';
         }
 
-        // --- التحكم بعصا التحكم ---
-        function handleJoystickStart(e) {
-            joystickActive = true;
-            let rect = joystickZone.getBoundingClientRect();
-            joystickStart.x = rect.left + rect.width / 2;
-            joystickStart.y = rect.top + rect.height / 2;
-            handleJoystickMove(e);
-        }
+        animate();
 
-        function handleJoystickMove(e) {
-            if (!joystickActive) return;
-            let touch = e.touches ? e.touches[0] : e;
-            let dx = touch.clientX - joystickStart.x;
-            let dy = touch.clientY - joystickStart.y;
-            
-            let maxDist = 40;
-            let dist = Math.sqrt(dx*dx + dy*dy);
-            if (dist > maxDist) {
-                dx = (dx / dist) * maxDist;
-                dy = (dy / dist) * maxDist;
-            }
-
-            joystickKnob.style.transform = `translate(${dx}px, ${dy}px)`;
-
-            // تغيير الاتجاه بناءً على حركة العصا (أي زاوية 360)
-            if (dist > 10) {
-                targetAngle = Math.atan2(dy, dx);
-            }
-        }
-
-        function handleJoystickEnd() {
-            joystickActive = false;
-            joystickKnob.style.transform = 'translate(0px, 0px)';
-        }
-
-        joystickZone.addEventListener('touchstart', handleJoystickStart, {passive: false});
-        document.addEventListener('touchmove', handleJoystickMove, {passive: false});
-        document.addEventListener('touchend', handleJoystickEnd);
-
-        joystickZone.addEventListener('mousedown', handleJoystickStart);
-        document.addEventListener('mousemove', handleJoystickMove);
-        document.addEventListener('mouseup', handleJoystickEnd);
-
-        initGame();
+        // تحديث حجم الشاشة
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
     </script>
 </body>
 </html>
