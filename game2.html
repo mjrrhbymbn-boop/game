@@ -1,289 +1,389 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>المتاهة العمياء</title>
-<style>
-*{box-sizing:border-box}
-body{
- margin:0;background:#080b18;color:white;
- font-family:Arial,sans-serif;text-align:center;
- padding:20px 10px;
-}
-h1{color:#53f5e8;text-shadow:0 0 15px #53f5e8}
-p{color:#91a0bd}
-.stats{display:flex;justify-content:center;gap:10px;margin:15px}
-.stat{background:#11182b;border:1px solid #263553;padding:10px;border-radius:12px;min-width:90px}
-.stat small{display:block;color:#91a0bd}
-.stat strong{display:block;color:#53f5e8;font-size:22px;margin-top:5px}
-.board{
- position:relative;width:min(92vw,420px);
- margin:auto;background:#050817;
- border:2px solid #53f5e8;border-radius:12px;
- overflow:hidden;
-}
-canvas{width:100%;display:block;touch-action:none}
-.overlay{
- position:absolute;inset:0;background:#050817ed;
- display:flex;align-items:center;justify-content:center;
- flex-direction:column;padding:20px;
-}
-.overlay.hidden{display:none}
-button{
- background:#53f5e8;color:#07121c;
- border:0;border-radius:10px;padding:12px 22px;
- font-size:16px;font-weight:bold;cursor:pointer;
-}
-.controls{
- display:grid;grid-template-columns:60px 60px 60px;
- grid-template-rows:50px 50px;gap:8px;
- justify-content:center;margin:20px auto;
- direction:ltr;
-}
-.controls button{
- background:#15233a;color:#53f5e8;
- border:1px solid #53f5e8;font-size:22px;
- padding:5px;
-}
-.up{grid-column:2;grid-row:1}
-.left{grid-column:1;grid-row:2}
-.down{grid-column:2;grid-row:2}
-.right{grid-column:3;grid-row:2}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>لعبة تدمير الطوب - Brick Breaker</title>
+    
+    <!-- 1. كود التنسيق والتصميم (CSS) -->
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+            max-width: 500px;
+            padding: 10px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            font-size: 1.1rem;
+            font-weight: bold;
+            background: #1e293b;
+            padding: 12px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        #gameCanvas {
+            background: #1e293b;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 2px solid #334155;
+            touch-action: none; /* لمنع التمرير أثناء اللعب باللمس على الجوال */
+        }
+
+        .controls-hint {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            text-align: center;
+        }
+
+        /* واجهة الخسارة والفوز */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(8px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            z-index: 10;
+            transition: opacity 0.3s ease;
+        }
+
+        .overlay.hidden {
+            display: none;
+        }
+
+        .overlay h1 {
+            font-size: 2.5rem;
+            color: #38bdf8;
+        }
+
+        .overlay p {
+            font-size: 1.5rem;
+        }
+
+        .overlay button {
+            background: #38bdf8;
+            color: #0f172a;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .overlay button:hover {
+            transform: scale(1.05);
+            background: #7dd3fc;
+        }
+    </style>
 </head>
 <body>
 
-<h1>◉ المتاهة العمياء</h1>
-<p>الطريق مخفي... اكتشفه خطوة بخطوة</p>
+    <div class="game-container">
+        <div class="header">
+            <div class="score-board">النقاط: <span id="score">0</span></div>
+            <div class="high-score">أعلى نتيجة: <span id="highScore">0</span></div>
+        </div>
 
-<div class="stats">
- <div class="stat"><small>الخطوات</small><strong id="steps">0</strong></div>
- <div class="stat"><small>المرحلة</small><strong id="level">1</strong></div>
- <div class="stat"><small>أفضل نتيجة</small><strong id="best">0</strong></div>
-</div>
+        <canvas id="gameCanvas" width="480" height="600"></canvas>
 
-<div class="board">
- <canvas id="game" width="420" height="420"></canvas>
- <div class="overlay" id="overlay">
-  <h2 id="title">هل تثق بذاكرتك؟</h2>
-  <p id="message">اكتشف طريقك إلى المخرج الأخضر.<br>انتبه، الرؤية محدودة!</p>
-  <button id="start">ابدأ اللعب</button>
- </div>
-</div>
+        <div class="controls-hint">
+            <p>💡 استعمل الأسهم ⬅️ ➡️ أو اسحب بإصبعك على الشاشة للتحريك</p>
+        </div>
+    </div>
 
-<div class="controls">
- <button class="up" data-dir="0">▲</button>
- <button class="left" data-dir="3">◀</button>
- <button class="down" data-dir="2">▼</button>
- <button class="right" data-dir="1">▶</button>
-</div>
+    <!-- واجهة الخسارة / الفوز -->
+    <div id="overlay" class="overlay hidden">
+        <h1 id="overlayTitle">انتهت اللعبة!</h1>
+        <p id="finalScore">نقاطك: 0</p>
+        <button id="restartBtn">العب مجدداً 🔄</button>
+    </div>
 
-<button onclick="hint()">💡 تلميح</button>
-<button onclick="restart()" style="background:#263653;color:white">إعادة المرحلة</button>
+    <!-- 2. كود البرمجة والمنطق (JavaScript) -->
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
 
-<script>
-const canvas=document.getElementById("game");
-const ctx=canvas.getContext("2d");
-const N=15,CELL=28;
-const dirs=[
- {x:0,y:-1},{x:1,y:0},
- {x:0,y:1},{x:-1,y:0}
-];
+        const scoreEl = document.getElementById('score');
+        const highScoreEl = document.getElementById('highScore');
+        const overlay = document.getElementById('overlay');
+        const overlayTitle = document.getElementById('overlayTitle');
+        const finalScoreEl = document.getElementById('finalScore');
+        const restartBtn = document.getElementById('restartBtn');
 
-let maze,player,goal,steps=0,level=1;
-let running=false;
-let best=Number(localStorage.getItem("mazeBest")||0);
-document.getElementById("best").textContent=best;
+        let score = 0;
+        let highScore = localStorage.getItem('brick_breaker_highscore') || 0;
+        highScoreEl.innerText = highScore;
 
-function generateMaze(){
- maze=Array.from({length:N},()=>Array.from(
- {length:N},()=>({walls:[1,1,1,1]})));
- let visited=Array.from({length:N},()=>Array(N).fill(false));
- let stack=[{x:0,y:0}];
- visited[0][0]=true;
+        let gameOver = false;
+        let gameWon = false;
 
- while(stack.length){
-  let c=stack[stack.length-1],options=[];
-  dirs.forEach((d,i)=>{
-   let x=c.x+d.x,y=c.y+d.y;
-   if(x>=0&&x<N&&y>=0&&y<N&&!visited[y][x])
-    options.push({x,y,i});
-  });
-  if(!options.length){stack.pop();continue}
-  let o=options[Math.floor(Math.random()*options.length)];
-  maze[c.y][c.x].walls[o.i]=0;
-  maze[o.y][o.x].walls[(o.i+2)%4]=0;
-  visited[o.y][o.x]=true;
-  stack.push({x:o.x,y:o.y});
- }
- player={x:0,y:0};
- goal={x:N-1,y:N-1};
- steps=0;
- draw();
- update();
-}
+        // إعدادات المضرب
+        const paddle = {
+            width: 100,
+            height: 15,
+            x: canvas.width / 2 - 50,
+            y: canvas.height - 30,
+            speed: 7,
+            dx: 0
+        };
 
-function update(){
- document.getElementById("steps").textContent=steps;
- document.getElementById("level").textContent=level;
- document.getElementById("best").textContent=best;
-}
+        // إعدادات الكرة
+        const ball = {
+            x: canvas.width / 2,
+            y: canvas.height - 45,
+            radius: 8,
+            speed: 5,
+            dx: 4,
+            dy: -4
+        };
 
-function draw(){
- ctx.fillStyle="#070d1d";
- ctx.fillRect(0,0,420,420);
+        // إعدادات الطوب
+        const brickRowCount = 5;
+        const brickColumnCount = 6;
+        const brickPadding = 10;
+        const brickOffsetTop = 40;
+        const brickOffsetLeft = 20;
+        const brickWidth = (canvas.width - (brickOffsetLeft * 2) - (brickPadding * (brickColumnCount - 1))) / brickColumnCount;
+        const brickHeight = 20;
 
- for(let y=0;y<N;y++){
-  for(let x=0;x<N;x++){
-   let distance=Math.max(
-    Math.abs(x-player.x),
-    Math.abs(y-player.y)
-   );
-   let visible=distance<=2;
-   let px=x*CELL,py=y*CELL;
+        const brickColors = ['#f43f5e', '#fb923c', '#facc15', '#4ade80', '#38bdf8'];
 
-   if(visible){
-    ctx.fillStyle="#10283a";
-    ctx.fillRect(px+1,py+1,26,26);
-    ctx.strokeStyle="#53a8b7";
-    ctx.lineWidth=2;
-    let w=maze[y][x].walls;
-    if(w[0])line(px,py,px+CELL,py);
-    if(w[1])line(px+CELL,py,px+CELL,py+CELL);
-    if(w[2])line(px,py+CELL,px+CELL,py+CELL);
-    if(w[3])line(px,py,px,py+CELL);
-   }else{
-    ctx.fillStyle="#090f20";
-    ctx.fillRect(px+1,py+1,26,26);
-   }
-  }
- }
+        let bricks = [];
 
- if(Math.max(
-  Math.abs(goal.x-player.x),
-  Math.abs(goal.y-player.y)
- )<=2){
-  ctx.fillStyle="#5dff9a";
-  ctx.shadowColor="#5dff9a";
-  ctx.shadowBlur=18;
-  ctx.beginPath();
-  ctx.arc(goal.x*CELL+14,goal.y*CELL+14,7,0,Math.PI*2);
-  ctx.fill();
-  ctx.shadowBlur=0;
- }
+        function createBricks() {
+            bricks = [];
+            for (let c = 0; c < brickColumnCount; c++) {
+                bricks[c] = [];
+                for (let r = 0; r < brickRowCount; r++) {
+                    bricks[c][r] = { x: 0, y: 0, status: 1, color: brickColors[r] };
+                }
+            }
+        }
 
- ctx.fillStyle="#53f5e8";
- ctx.shadowColor="#53f5e8";
- ctx.shadowBlur=18;
- ctx.beginPath();
- ctx.arc(player.x*CELL+14,player.y*CELL+14,7,0,Math.PI*2);
- ctx.fill();
- ctx.shadowBlur=0;
-}
+        // تحكم الكيبورد
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === 'Right') paddle.dx = paddle.speed;
+            else if (e.key === 'ArrowLeft' || e.key === 'Left') paddle.dx = -paddle.speed;
+        });
 
-function line(x1,y1,x2,y2){
- ctx.beginPath();
- ctx.moveTo(x1,y1);
- ctx.lineTo(x2,y2);
- ctx.stroke();
-}
+        document.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowRight' || e.key === 'Right' || e.key === 'ArrowLeft' || e.key === 'Left') {
+                paddle.dx = 0;
+            }
+        });
 
-function move(d){
- if(!running)return;
- let cell=maze[player.y][player.x];
- if(cell.walls[d])return;
+        // تحكم الماوس واللمس للجوال
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const relativeX = e.clientX - rect.left;
+            if (relativeX > 0 && relativeX < canvas.width) {
+                paddle.x = relativeX - paddle.width / 2;
+            }
+        });
 
- player.x+=dirs[d].x;
- player.y+=dirs[d].y;
- steps++;
- update();
- draw();
+        canvas.addEventListener('touchmove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const relativeX = e.touches[0].clientX - rect.left;
+            if (relativeX > 0 && relativeX < canvas.width) {
+                paddle.x = relativeX - paddle.width / 2;
+            }
+            e.preventDefault();
+        }, { passive: false });
 
- if(player.x===goal.x&&player.y===goal.y){
-  running=false;
-  if(!best||steps<best){
-   best=steps;
-   localStorage.setItem("mazeBest",best);
-  }
-  update();
-  document.getElementById("title").textContent=
-   level===5?"🏆 فزت بجميع المراحل!":"أحسنت! وجدت المخرج";
-  document.getElementById("message").textContent=
-   "أنهيت المرحلة في "+steps+" خطوة";
-  document.getElementById("start").textContent=
-   level===5?"العب من جديد":"المرحلة التالية";
-  document.getElementById("overlay").classList.remove("hidden");
- }
-}
+        // رسم المضرب
+        function drawPaddle() {
+            ctx.beginPath();
+            ctx.roundRect(paddle.x, paddle.y, paddle.width, paddle.height, 8);
+            ctx.fillStyle = '#38bdf8';
+            ctx.fill();
+            ctx.closePath();
+        }
 
-function start(){
- if(level>5)level=1;
- generateMaze();
- running=true;
- document.getElementById("overlay").classList.add("hidden");
-}
+        // رسم الكرة
+        function drawBall() {
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fillStyle = '#f8fafc';
+            ctx.fill();
+            ctx.closePath();
+        }
 
-function restart(){
- generateMaze();
- running=true;
- document.getElementById("overlay").classList.add("hidden");
-}
+        // رسم الطوب
+        function drawBricks() {
+            for (let c = 0; c < brickColumnCount; c++) {
+                for (let r = 0; r < brickRowCount; r++) {
+                    if (bricks[c][r].status === 1) {
+                        const brickX = c * (brickWidth + brickPadding) + brickOffsetLeft;
+                        const brickY = r * (brickHeight + brickPadding) + brickOffsetTop;
+                        bricks[c][r].x = brickX;
+                        bricks[c][r].y = brickY;
 
-document.getElementById("start").onclick=()=>{
- if(!running&&player&&player.x===goal.x&&player.y===goal.y)
-  level=level>=5?1:level+1;
- start();
-};
+                        ctx.beginPath();
+                        ctx.roundRect(brickX, brickY, brickWidth, brickHeight, 4);
+                        ctx.fillStyle = bricks[c][r].color;
+                        ctx.fill();
+                        ctx.closePath();
+                    }
+                }
+            }
+        }
 
-document.querySelectorAll("[data-dir]").forEach(b=>{
- b.addEventListener("pointerdown",e=>{
-  e.preventDefault();
-  move(Number(b.dataset.dir));
- });
-});
+        // فحص تصادم الكرة بالطوب
+        function collisionDetection() {
+            let activeBricks = 0;
+            for (let c = 0; c < brickColumnCount; c++) {
+                for (let r = 0; r < brickRowCount; r++) {
+                    const b = bricks[c][r];
+                    if (b.status === 1) {
+                        activeBricks++;
+                        if (
+                            ball.x > b.x &&
+                            ball.x < b.x + brickWidth &&
+                            ball.y > b.y &&
+                            ball.y < b.y + brickHeight
+                        ) {
+                            ball.dy = -ball.dy;
+                            b.status = 0;
+                            score += 10;
+                            scoreEl.innerText = score;
 
-document.addEventListener("keydown",e=>{
- const keys={
-  ArrowUp:0,ArrowRight:1,ArrowDown:2,ArrowLeft:3,
-  w:0,d:1,s:2,a:3
- };
- if(keys[e.key]!==undefined){
-  e.preventDefault();
-  move(keys[e.key]);
- }
-});
+                            if (score > highScore) {
+                                highScore = score;
+                                highScoreEl.innerText = highScore;
+                                localStorage.setItem('brick_breaker_highscore', highScore);
+                            }
+                        }
+                    }
+                }
+            }
 
-function hint(){
- if(!running)return;
- let q=[{x:player.x,y:player.y,first:-1}];
- let seen=Array.from({length:N},()=>Array(N).fill(false));
- seen[player.y][player.x]=true;
- let answer=-1;
+            if (activeBricks === 0 && !gameWon) {
+                gameWon = true;
+                endGame(true);
+            }
+        }
 
- for(let i=0;i<q.length;i++){
-  let c=q[i];
-  if(c.x===goal.x&&c.y===goal.y){
-   answer=c.first;break;
-  }
-  dirs.forEach((d,k)=>{
-   let x=c.x+d.x,y=c.y+d.y;
-   if(x>=0&&x<N&&y>=0&&y<N&&
-   !seen[y][x]&&!maze[c.y][c.x].walls[k]){
-    seen[y][x]=true;
-    q.push({x,y,first:c.first<0?k:c.first});
-   }
-  });
- }
- if(answer>=0){
-  alert("التلميح: تحرك "+["أعلى","يمين","أسفل","يسار"][answer]);
-  steps+=5;
-  update();
- }
-}
+        // تحريك الحركة
+        function move() {
+            paddle.x += paddle.dx;
+            if (paddle.x < 0) paddle.x = 0;
+            if (paddle.x + paddle.width > canvas.width) paddle.x = canvas.width - paddle.width;
 
-generateMaze();
-</script>
+            ball.x += ball.dx;
+            ball.y += ball.dy;
+
+            // التصادم مع الأطراف
+            if (ball.x + ball.radius > canvas.width || ball.x - ball.radius < 0) {
+                ball.dx = -ball.dx;
+            }
+
+            // التصادم مع السقف
+            if (ball.y - ball.radius < 0) {
+                ball.dy = -ball.dy;
+            }
+
+            // التصادم مع المضرب
+            if (
+                ball.y + ball.radius > paddle.y &&
+                ball.x > paddle.x &&
+                ball.x < paddle.x + paddle.width
+            ) {
+                ball.dy = -ball.speed;
+                let collidePoint = ball.x - (paddle.x + paddle.width / 2);
+                ball.dx = collidePoint * 0.15;
+            }
+
+            // الخسارة عند سقوط الكرة
+            if (ball.y + ball.radius > canvas.height) {
+                endGame(false);
+            }
+        }
+
+        // إنهاء اللعبة
+        function endGame(isWin) {
+            gameOver = true;
+            overlay.classList.remove('hidden');
+            if (isWin) {
+                overlayTitle.innerText = "🎉 مبروك! فزت باللعبة";
+                overlayTitle.style.color = "#4ade80";
+            } else {
+                overlayTitle.innerText = "💥 انتهت اللعبة!";
+                overlayTitle.style.color = "#f43f5e";
+            }
+            finalScoreEl.innerText = `مجموع نقاطك: ${score}`;
+        }
+
+        // إعادة التشغيل
+        function resetGame() {
+            score = 0;
+            scoreEl.innerText = score;
+            gameOver = false;
+            gameWon = false;
+            paddle.x = canvas.width / 2 - 50;
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height - 45;
+            ball.dx = 4;
+            ball.dy = -4;
+            createBricks();
+            overlay.classList.add('hidden');
+            draw();
+        }
+
+        // الحلقة الرئيسية (Game Loop)
+        function draw() {
+            if (gameOver) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawBricks();
+            drawBall();
+            drawPaddle();
+            collisionDetection();
+            move();
+
+            requestAnimationFrame(draw);
+        }
+
+        restartBtn.addEventListener('click', resetGame);
+
+        // بدء اللعبة
+        createBricks();
+        draw();
+    </script>
 </body>
 </html>
