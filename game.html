@@ -3,55 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Gem Collector 3D - By Osama</title>
+    <title>Snake Classic - By Osama</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #111; font-family: Arial, sans-serif; touch-action: none; }
+        body { 
+            margin: 0; overflow: hidden; background-color: #111; 
+            font-family: 'Courier New', Courier, monospace; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100vh; color: white; touch-action: none;
+        }
         
-        #ui-container {
-            position: absolute; top: 20px; left: 20px; color: white;
-            font-size: 20px; font-weight: bold; background: rgba(0,0,0,0.6);
-            padding: 10px 20px; border-radius: 8px; pointer-events: none;
-            border: 1px solid #333; z-index: 10;
+        #game-container { position: relative; }
+        canvas { background-color: #1a1a1a; border: 2px solid #333; border-radius: 8px; box-shadow: 0 0 20px rgba(0,255,0,0.1); }
+
+        #score-board {
+            position: absolute; top: -40px; left: 0; color: #00ff00;
+            font-size: 24px; font-weight: bold; text-shadow: 0 0 5px #00ff00;
         }
 
         #credit {
-            position: absolute; bottom: 20px; right: 20px; color: #aaa;
-            font-size: 16px; font-weight: bold; background: rgba(0,0,0,0.5);
-            padding: 8px 15px; border-radius: 8px; pointer-events: none;
-            border: 1px solid #333; text-align: right; line-height: 1.4; z-index: 10;
+            position: absolute; bottom: -40px; right: 0; color: #666; font-size: 14px;
         }
-        
-        #credit span { color: #ffcc00; font-size: 18px; }
+        #credit span { color: #00ff00; font-weight: bold; }
 
         .overlay {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            color: #fff; font-size: 40px; font-weight: bold; display: none;
-            text-shadow: 0 0 20px #ff0000; text-align: center;
-            background: rgba(0,0,0,0.85); padding: 30px; border-radius: 15px; border: 2px solid #ff0000; z-index: 20;
-            width: 80%; max-width: 400px;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); display: none; flex-direction: column;
+            align-items: center; justify-content: center; border-radius: 8px; z-index: 10;
         }
-
-        #win-screen { text-shadow: 0 0 20px #ffcc00; border: 2px solid #ffcc00; }
-
+        .overlay h1 { margin: 0 0 10px 0; font-size: 36px; }
+        .overlay p { margin: 0 0 20px 0; color: #ccc; font-size: 18px; }
         button {
-            margin-top: 20px; padding: 10px 20px; font-size: 20px; font-weight: bold;
-            background: #ffcc00; color: #000; border: none; border-radius: 8px; cursor: pointer;
+            padding: 10px 25px; font-size: 18px; font-weight: bold; background: #00ff00;
+            color: #000; border: none; border-radius: 5px; cursor: pointer; font-family: inherit;
         }
 
+        /* أزرار التحكم للجوال */
         #controls {
-            position: absolute; bottom: 30px; left: 30px;
+            position: absolute; bottom: -130px; left: 50%; transform: translateX(-50%);
             display: grid; grid-template-columns: 60px 60px 60px; grid-template-rows: 60px 60px;
             gap: 10px; z-index: 15;
         }
-
-        .control-btn {
-            background: rgba(255, 255, 255, 0.15); border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 12px; color: white; font-size: 28px;
+        .btn {
+            background: rgba(255, 255, 255, 0.1); border: 1px solid #555;
+            border-radius: 10px; color: #00ff00; font-size: 24px;
             display: flex; justify-content: center; align-items: center;
-            user-select: none; -webkit-user-select: none; cursor: pointer; touch-action: none;
+            user-select: none; touch-action: none;
         }
-        
-        .control-btn:active { background: rgba(255, 255, 255, 0.4); }
+        .btn:active { background: rgba(0, 255, 0, 0.2); }
         #btn-up { grid-column: 2; grid-row: 1; }
         #btn-left { grid-column: 1; grid-row: 2; }
         #btn-down { grid-column: 2; grid-row: 2; }
@@ -62,229 +60,193 @@
 </head>
 <body>
 
-    <div id="ui-container">
-        Level: 1<br>
-        Gems: 0 / 5
-    </div>
-    
-    <div id="credit">Programmed by<br><span>Osama</span></div>
-
-    <div id="controls">
-        <div class="control-btn" id="btn-up">▲</div>
-        <div class="control-btn" id="btn-left">◀</div>
-        <div class="control-btn" id="btn-down">▼</div>
-        <div class="control-btn" id="btn-right">▶</div>
-    </div>
-
-    <!-- شاشة الخسارة -->
-    <div id="lose-screen" class="overlay">
-        YOU DIED!<br>
-        <span style="font-size: 20px; color: #ccc;">You hit an obstacle.</span><br>
-        <button onclick="location.reload()">TRY AGAIN</button>
-    </div>
-
-    <!-- شاشة الفوز -->
-    <div id="win-screen" class="overlay">
-        YOU WIN!<br>
-        <span style="font-size: 20px; color: #ccc;">All levels completed.</span><br>
-        <button onclick="location.reload()">PLAY AGAIN</button>
-    </div>
-
-    <script type="importmap">
-        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
-    </script>
-
-    <script type="module">
-        import * as THREE from 'three';
-
-        // إعدادات المشهد
-        const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x111111, 0.02);
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 10, 15);
-        camera.lookAt(0, 0, 0);
-
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.shadowMap.enabled = true;
-        document.body.appendChild(renderer.domElement);
-
-        // الإضاءة
-        scene.add(new THREE.AmbientLight(0x404040, 2)); 
-        const dirLight = new THREE.DirectionalLight(0xffffff, 2);
-        dirLight.position.set(5, 10, 5);
-        dirLight.castShadow = true;
-        scene.add(dirLight);
-
-        // الأرضية
-        const floorGeo = new THREE.CylinderGeometry(12, 12, 0.5, 32);
-        const floorMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.1, metalness: 0.8 });
-        const floor = new THREE.Mesh(floorGeo, floorMat);
-        floor.receiveShadow = true;
-        scene.add(floor);
-
-        // اللاعب
-        const playerGeo = new THREE.SphereGeometry(0.8, 32, 32);
-        const playerMat = new THREE.MeshStandardMaterial({ color: 0xff3333, roughness: 0.2, metalness: 0.5 });
-        const player = new THREE.Mesh(playerGeo, playerMat);
-        player.position.set(0, 0.8, 0);
-        player.castShadow = true;
-        scene.add(player);
-
-        // متغيرات اللعبة
-        let currentLevel = 1;
-        let score = 0;
-        let isGameOver = false;
-        const totalLevels = 3;
-        const speed = 0.15;
+    <div id="game-container">
+        <div id="score-board">SCORE: 0</div>
+        <canvas id="gameCanvas" width="320" height="320"></canvas>
         
-        let gems = [];
-        let obstacles = [];
+        <div id="credit">Programmed by <span>Osama</span></div>
 
-        const uiElement = document.getElementById('ui-container');
+        <div id="win-screen" class="overlay">
+            <h1 style="color:#00ff00;">YOU WIN!</h1>
+            <p>Max Score Reached.</p>
+            <button onclick="location.reload()">PLAY AGAIN</button>
+        </div>
+
+        <div id="lose-screen" class="overlay">
+            <h1 style="color:#ff3333;">GAME OVER</h1>
+            <p>You hit the wall or yourself.</p>
+            <button onclick="location.reload()">TRY AGAIN</button>
+        </div>
+
+        <div id="controls">
+            <div class="btn" id="btn-up">▲</div>
+            <div class="btn" id="btn-left">◀</div>
+            <div class="btn" id="btn-down">▼</div>
+            <div class="btn" id="btn-right">▶</div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score-board');
         const loseScreen = document.getElementById('lose-screen');
         const winScreen = document.getElementById('win-screen');
 
-        function updateUI() {
-            uiElement.innerHTML = `Level: ${currentLevel}<br>Gems: ${score} / 5`;
-        }
+        const gridSize = 20; // حجم المربع
+        const tileCount = canvas.width / gridSize; // عدد المربعات في الشاشة
 
-        // دالة توليد المرحلة
-        function loadLevel(level) {
-            // مسح العناصر القديمة
-            gems.forEach(g => scene.remove(g));
-            obstacles.forEach(o => scene.remove(o));
-            gems = [];
-            obstacles = [];
+        let snake = [];
+        let food = { x: 10, y: 10 };
+        let dx = 0;
+        let dy = 0;
+        let score = 0;
+        let gameOver = false;
+        let gameLoop;
+
+        // إعداد اللعبة
+        function initGame() {
+            snake = [
+                { x: 10, y: 10 },
+                { x: 9, y: 10 },
+                { x: 8, y: 10 }
+            ];
+            dx = 1; dy = 0;
             score = 0;
-            updateUI();
-
-            // زيادة صعوبة العوائق حسب المرحلة
-            const numGems = 5;
-            const numObstacles = level * 3; // المرحلة 1 فيها 3، المرحلة 2 فيها 6، المرحلة 3 فيها 9
-
-            // إنشاء الجواهر
-            const gemGeo = new THREE.OctahedronGeometry(0.6);
-            const gemMat = new THREE.MeshStandardMaterial({ color: 0xffcc00, roughness: 0.1, metalness: 0.9, emissive: 0x442200 });
+            gameOver = false;
+            scoreElement.innerText = "SCORE: 0";
+            loseScreen.style.display = 'none';
+            winScreen.style.display = 'none';
+            generateFood();
             
-            for (let i = 0; i < numGems; i++) {
-                const gem = new THREE.Mesh(gemGeo, gemMat);
-                gem.position.set((Math.random() - 0.5) * 18, 0.6, (Math.random() - 0.5) * 18);
-                gem.castShadow = true;
-                scene.add(gem);
-                gems.push(gem);
-            }
-
-            // إنشاء العوائق (كرات سوداء)
-            const obsGeo = new THREE.SphereGeometry(1.2, 16, 16);
-            const obsMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.8, metalness: 0.2 });
-            
-            for (let i = 0; i < numObstacles; i++) {
-                const obs = new THREE.Mesh(obsGeo, obsMat);
-                obs.position.set((Math.random() - 0.5) * 18, 1.2, (Math.random() - 0.5) * 18);
-                obs.castShadow = true;
-                scene.add(obs);
-                obstacles.push(obs);
-            }
+            clearInterval(gameLoop);
+            gameLoop = setInterval(update, 100); // سرعة اللعبة (كل 100 مللي ثانية)
         }
 
-        // التحكم
-        const keys = { w: false, a: false, s: false, d: false };
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'w' || e.key === 'ArrowUp') keys.w = true;
-            if (e.key === 's' || e.key === 'ArrowDown') keys.s = true;
-            if (e.key === 'a' || e.key === 'ArrowLeft') keys.a = true;
-            if (e.key === 'd' || e.key === 'ArrowRight') keys.d = true;
-        });
-        document.addEventListener('keyup', (e) => {
-            if (e.key === 'w' || e.key === 'ArrowUp') keys.w = false;
-            if (e.key === 's' || e.key === 'ArrowDown') keys.s = false;
-            if (e.key === 'a' || e.key === 'ArrowLeft') keys.a = false;
-            if (e.key === 'd' || e.key === 'ArrowRight') keys.d = false;
-        });
+        // رسم اللعبة
+        function draw() {
+            // خلفية اللعبة
+            ctx.fillStyle = '#1a1a1a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        function setupMobileControls() {
-            const bindBtn = (id, keyName) => {
-                const btn = document.getElementById(id);
-                btn.addEventListener('touchstart', (e) => { e.preventDefault(); keys[keyName] = true; });
-                btn.addEventListener('touchend', (e) => { e.preventDefault(); keys[keyName] = false; });
-                btn.addEventListener('touchcancel', (e) => { e.preventDefault(); keys[keyName] = false; });
-            };
-            bindBtn('btn-up', 'w'); bindBtn('btn-down', 's');
-            bindBtn('btn-left', 'a'); bindBtn('btn-right', 'd');
+            // الثعبان
+            for (let i = 0; i < snake.length; i++) {
+                ctx.fillStyle = i === 0 ? '#00ff00' : '#00aa00'; // الرأس أخضر فاتح
+                ctx.shadowBlur = i === 0 ? 10 : 0;
+                ctx.shadowColor = '#00ff00';
+                ctx.fillRect(snake[i].x * gridSize, snake[i].y * gridSize, gridSize - 2, gridSize - 2);
+            }
+            ctx.shadowBlur = 0; // إيقاف التوهج
+
+            // الكرة (الأكل)
+            ctx.fillStyle = '#ff3333';
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#ff3333';
+            ctx.beginPath();
+            ctx.arc(
+                food.x * gridSize + gridSize / 2, 
+                food.y * gridSize + gridSize / 2, 
+                gridSize / 2 - 2, 
+                0, 
+                Math.PI * 2
+            );
+            ctx.fill();
+            ctx.shadowBlur = 0;
         }
-        setupMobileControls();
 
-        // تشغيل المستوى الأول
-        loadLevel(currentLevel);
+        // تحديث حالة اللعبة
+        function update() {
+            if (gameOver) return;
 
-        const clock = new THREE.Clock();
+            const head = { x: snake[0].x + dx, y: snake[0].y + dy };
 
-        function animate() {
-            requestAnimationFrame(animate);
-            if (isGameOver) return; // إيقاف الحركة إذا خسر
+            // اصطدام بالحوائط (خسارة)
+            if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+                return endGame(false);
+            }
 
-            const time = clock.getElapsedTime();
+            // اصطدام بالنفس (خسارة)
+            for (let i = 0; i < snake.length; i++) {
+                if (head.x === snake[i].x && head.y === snake[i].y) {
+                    return endGame(false);
+                }
+            }
 
-            // حركة اللاعب
-            if (keys.w) player.position.z -= speed;
-            if (keys.s) player.position.z += speed;
-            if (keys.a) player.position.x -= speed;
-            if (keys.d) player.position.x += speed;
+            snake.unshift(head);
 
-            // حدود الأرضية
-            if (player.position.x > 11.5) player.position.x = 11.5;
-            if (player.position.x < -11.5) player.position.x = -11.5;
-            if (player.position.z > 11.5) player.position.z = 11.5;
-            if (player.position.z < -11.5) player.position.z = -11.5;
+            // أكل الكرة
+            if (head.x === food.x && head.y === food.y) {
+                score += 10;
+                scoreElement.innerText = "SCORE: " + score;
+                generateFood();
+                
+                // شرط الفوز (مثلاً توصل 100 نقطة أو يطول الثعبان)
+                if (score >= 100) {
+                    endGame(true);
+                }
+            } else {
+                snake.pop(); // إزالة الذيل إذا ما أكل
+            }
 
-            // متابعة الكاميرا
-            camera.position.x += (player.position.x - camera.position.x) * 0.05;
-            camera.position.z += (player.position.z + 15 - camera.position.z) * 0.05;
-            camera.lookAt(player.position);
+            draw();
+        }
 
-            // تدوير الجواهر وفحص التصادم
-            gems.forEach((gem, index) => {
-                gem.rotation.y += 0.02;
-                gem.position.y = 0.6 + Math.sin(time * 3 + index) * 0.2;
-
-                if (player.position.distanceTo(gem.position) < 1.5) {
-                    scene.remove(gem);
-                    gems.splice(index, 1);
-                    score++;
-                    updateUI();
-
-                    // الانتقال للمرحلة التالية أو الفوز
-                    if (score === 5) {
-                        if (currentLevel < totalLevels) {
-                            currentLevel++;
-                            loadLevel(currentLevel);
-                        } else {
-                            isGameOver = true;
-                            winScreen.style.display = 'block';
-                        }
+        // توليد الأكل في مكان فاضي
+        function generateFood() {
+            let newFood;
+            while (true) {
+                newFood = {
+                    x: Math.floor(Math.random() * tileCount),
+                    y: Math.floor(Math.random() * tileCount)
+                };
+                let isOnSnake = false;
+                for (let segment of snake) {
+                    if (segment.x === newFood.x && segment.y === newFood.y) {
+                        isOnSnake = true; break;
                     }
                 }
-            });
-
-            // فحص تصادم العوائق
-            obstacles.forEach(obs => {
-                if (player.position.distanceTo(obs.position) < 1.8) { // 1.8 = مجموع أنصاف الأقطار تقريباً
-                    isGameOver = true;
-                    loseScreen.style.display = 'block';
-                }
-            });
-
-            renderer.render(scene, camera);
+                if (!isOnSnake) break;
+            }
+            food = newFood;
         }
 
-        animate();
+        // نهاية اللعبة
+        function endGame(isWin) {
+            gameOver = true;
+            clearInterval(gameLoop);
+            if (isWin) {
+                winScreen.style.display = 'flex';
+            } else {
+                loseScreen.style.display = 'flex';
+            }
+        }
 
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+        // التحكم بالكيبورد
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp' || e.key === 'w') { if (dy !== 1) { dx = 0; dy = -1; } }
+            if (e.key === 'ArrowDown' || e.key === 's') { if (dy !== -1) { dx = 0; dy = 1; } }
+            if (e.key === 'ArrowLeft' || e.key === 'a') { if (dx !== 1) { dx = -1; dy = 0; } }
+            if (e.key === 'ArrowRight' || e.key === 'd') { if (dx !== -1) { dx = 1; dy = 0; } }
         });
+
+        // التحكم باللمس للجوال
+        function bindMobileControls() {
+            const bind = (id, newDx, newDy) => {
+                document.getElementById(id).addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    if (newDx !== 0 && dx !== -newDx) { dx = newDx; dy = 0; }
+                    if (newDy !== 0 && dy !== -newDy) { dx = 0; dy = newDy; }
+                });
+            };
+            bind('btn-up', 0, -1);
+            bind('btn-down', 0, 1);
+            bind('btn-left', -1, 0);
+            bind('btn-right', 1, 0);
+        }
+
+        // بدء اللعبة
+        bindMobileControls();
+        initGame();
     </script>
 </body>
 </html>
