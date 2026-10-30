@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Realistic Snake - By Osama</title>
+    <title>Snake Master - By Osama</title>
     <style>
         body { 
             margin: 0; padding: 0; overflow: hidden; 
@@ -24,13 +24,12 @@
 
         #score-board {
             color: #fff; font-size: 28px; font-weight: 900;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.8); display: flex; justify-content: space-between; align-items: center;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.8); display: flex; justify-content: space-between;
         }
-        #score-board span { color: #4ade80; } /* لون أخضر فاتح */
+        #score-board span { color: #4ade80; }
 
         #credit {
-            align-self: flex-end; color: rgba(255,255,255,0.4); font-size: 14px;
-            font-weight: bold; letter-spacing: 1px;
+            position: absolute; bottom: 10px; right: 15px; color: rgba(255,255,255,0.4); font-size: 14px; font-weight: bold;
         }
         #credit strong { color: #4ade80; }
 
@@ -41,26 +40,40 @@
         }
         .overlay h1 { margin: 0 0 10px 0; font-size: 42px; font-weight: 900; }
         .overlay p { margin: 0 0 30px 0; color: #aaa; font-size: 18px; }
-        
         button {
             padding: 12px 30px; font-size: 18px; font-weight: bold; 
-            background: #4ade80; color: #000; border: none; border-radius: 30px; 
-            cursor: pointer; transition: transform 0.2s, background 0.2s; pointer-events: auto;
+            background: #4ade80; color: #000; border: none; border-radius: 30px; cursor: pointer; pointer-events: auto;
         }
-        button:hover { background: #22c55e; transform: scale(1.05); }
+
+        /* تصميم عصا التحكم (Joystick) */
+        #joystick-zone {
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+            width: 120px; height: 120px; z-index: 15; display: flex; justify-content: center; align-items: center;
+        }
+        #joystick-base {
+            width: 100px; height: 100px; background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%;
+            position: absolute; pointer-events: none;
+        }
+        #joystick-knob {
+            width: 50px; height: 50px; background: rgba(74, 222, 128, 0.8);
+            box-shadow: 0 0 15px rgba(74, 222, 128, 0.5); border-radius: 50%;
+            position: absolute; pointer-events: none; transition: transform 0.1s;
+        }
+
+        @media (min-width: 800px) { #joystick-zone { display: none; } } /* إخفاء في الكمبيوتر */
     </style>
 </head>
 <body>
 
     <div id="game-container">
-        <canvas id="gameCanvas" width="350" height="500"></canvas>
+        <canvas id="gameCanvas" width="360" height="600"></canvas>
         
         <div id="ui-layer">
-            <div id="score-board">
-                SCORE: <span id="score-val">0</span>
-            </div>
-            <div id="credit">Programmed by <strong>Osama</strong></div>
+            <div id="score-board">SCORE: <span id="score-val">0</span></div>
         </div>
+
+        <div id="credit">Programmed by <strong>Osama</strong></div>
 
         <div id="win-screen" class="overlay">
             <h1 style="color:#4ade80;">VICTORY!</h1>
@@ -70,8 +83,14 @@
 
         <div id="lose-screen" class="overlay">
             <h1 style="color:#ef4444;">GAME OVER</h1>
-            <p>Swipe to move. Don't hit walls or yourself.</p>
+            <p>Don't hit the walls or yourself.</p>
             <button onclick="location.reload()">TRY AGAIN</button>
+        </div>
+
+        <!-- عصا التحكم -->
+        <div id="joystick-zone">
+            <div id="joystick-base"></div>
+            <div id="joystick-knob"></div>
         </div>
     </div>
 
@@ -82,21 +101,21 @@
         const loseScreen = document.getElementById('lose-screen');
         const winScreen = document.getElementById('win-screen');
 
-        // إعدادات اللعبة
-        const gridSize = 25;
+        const gridSize = 20; // تصغير الحجم لزيادة المرونة
         const cols = canvas.width / gridSize;
         const rows = canvas.height / gridSize;
         
         let snake, food, dir, nextDir, score, gameOver, gameLoop;
-        let particles = []; // تأثيرات بصرية
+        let particles = [];
 
-        // الألوان
-        const snakeColorHead = '#4ade80';
-        const snakeColorBody = '#22c55e';
-        const foodColor = '#ef4444';
+        // إعدادات عصا التحكم
+        const joystickZone = document.getElementById('joystick-zone');
+        const joystickKnob = document.getElementById('joystick-knob');
+        let joystickActive = false;
+        let joystickStart = {x: 0, y: 0};
 
         function initGame() {
-            snake = [{x: 5, y: 10}, {x: 4, y: 10}, {x: 3, y: 10}];
+            snake = [{x: 8, y: 10}, {x: 7, y: 10}, {x: 6, y: 10}];
             dir = {x: 1, y: 0};
             nextDir = {x: 1, y: 0};
             score = 0;
@@ -108,89 +127,86 @@
             
             generateFood();
             clearInterval(gameLoop);
-            gameLoop = setInterval(update, 85); // سرعة أفضل
+            gameLoop = setInterval(update, 100); // سرعة متوازنة
         }
 
         function generateFood() {
             while (true) {
-                let newFood = {
-                    x: Math.floor(Math.random() * cols),
-                    y: Math.floor(Math.random() * rows)
-                };
+                let newFood = { x: Math.floor(Math.random() * cols), y: Math.floor(Math.random() * rows) };
                 if (!snake.some(s => s.x === newFood.x && s.y === newFood.y)) {
-                    food = newFood;
-                    break;
+                    food = newFood; break;
                 }
             }
         }
 
-        // رسم الأفعى بشكل انسيابي
         function drawSnake() {
-            for (let i = 0; i < snake.length; i++) {
-                const segment = snake[i];
-                const cx = segment.x * gridSize + gridSize / 2;
-                const cy = segment.y * gridSize + gridSize / 2;
-                const radius = gridSize / 2;
+            for (let i = snake.length - 1; i >= 0; i--) {
+                const seg = snake[i];
+                const cx = seg.x * gridSize + gridSize / 2;
+                const cy = seg.y * gridSize + gridSize / 2;
+                const radius = gridSize / 2 - 1; // ترك مسافة بسيطة
 
                 ctx.beginPath();
                 ctx.arc(cx, cy, radius, 0, Math.PI * 2);
                 
                 if (i === 0) {
-                    // الرأس
-                    ctx.fillStyle = snakeColorHead;
-                    ctx.shadowBlur = 15;
-                    ctx.shadowColor = snakeColorHead;
+                    ctx.fillStyle = '#4ade80'; // لون الرأس
+                    ctx.shadowBlur = 15; ctx.shadowColor = '#4ade80';
                 } else {
-                    // الجسم (يتدرج باللون)
-                    ctx.fillStyle = snakeColorBody;
+                    // تدرج لوني للجسم
+                    let opacity = 1 - (i / snake.length) * 0.5;
+                    ctx.fillStyle = `rgba(34, 197, 94, ${opacity})`;
                     ctx.shadowBlur = 0;
                 }
                 ctx.fill();
 
-                // إضافة عيون للرأس
+                // رسم العيون والسهم على الرأس
                 if (i === 0) {
-                    ctx.fillStyle = '#000';
                     ctx.shadowBlur = 0;
-                    let eyeOffset = 5;
-                    let eyeSize = 3;
                     
-                    // تحديد مكان العيون حسب اتجاه الحركة
-                    let ex1 = cx, ey1 = cy, ex2 = cx, ey2 = cy;
-                    if (dir.x === 1) { ex1 += eyeOffset; ey1 -= eyeOffset; ex2 += eyeOffset; ey2 += eyeOffset; }
-                    else if (dir.x === -1) { ex1 -= eyeOffset; ey1 -= eyeOffset; ex2 -= eyeOffset; ey2 += eyeOffset; }
-                    else if (dir.y === 1) { ex1 -= eyeOffset; ey1 += eyeOffset; ex2 += eyeOffset; ey2 += eyeOffset; }
-                    else if (dir.y === -1) { ex1 -= eyeOffset; ey1 -= eyeOffset; ex2 += eyeOffset; ey2 -= eyeOffset; }
+                    // رسم لسان/سهم يوضح الاتجاه
+                    ctx.fillStyle = '#ff3333'; // لون اللسان
+                    let tipX = cx + dir.x * (gridSize/2);
+                    let tipY = cy + dir.y * (gridSize/2);
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(cx, cy);
+                    ctx.lineTo(tipX, tipY);
+                    ctx.lineWidth = 3;
+                    ctx.strokeStyle = '#ff3333';
+                    ctx.stroke();
 
-                    ctx.beginPath(); ctx.arc(ex1, ey1, eyeSize, 0, Math.PI*2); ctx.fill();
-                    ctx.beginPath(); ctx.arc(ex2, ey2, eyeSize, 0, Math.PI*2); ctx.fill();
+                    // العيون
+                    ctx.fillStyle = '#000';
+                    let eyeX = cx, eyeY = cy;
+                    if (dir.x !== 0) { eyeX += dir.x * 4; eyeY -= 4; }
+                    else { eyeY += dir.y * 4; eyeX -= 4; }
+                    
+                    ctx.beginPath(); ctx.arc(eyeX, eyeY, 2.5, 0, Math.PI*2); ctx.fill();
+                    
+                    if (dir.x !== 0) eyeY += 8; else eyeX += 8;
+                    ctx.beginPath(); ctx.arc(eyeX, eyeY, 2.5, 0, Math.PI*2); ctx.fill();
                 }
             }
-            ctx.shadowBlur = 0; // تصفير التوهج
+            ctx.shadowBlur = 0;
         }
 
-        // رسم الأكل
         function drawFood() {
             const cx = food.x * gridSize + gridSize / 2;
             const cy = food.y * gridSize + gridSize / 2;
-            
             ctx.beginPath();
             ctx.arc(cx, cy, gridSize / 2 - 2, 0, Math.PI * 2);
-            ctx.fillStyle = foodColor;
-            ctx.shadowBlur = 20;
-            ctx.shadowColor = foodColor;
+            ctx.fillStyle = '#ef4444';
+            ctx.shadowBlur = 20; ctx.shadowColor = '#ef4444';
             ctx.fill();
             ctx.shadowBlur = 0;
         }
 
-        // تأثيرات الجزيئات عند الأكل
-        function createParticles(x, y, color) {
-            for (let i = 0; i < 10; i++) {
+        function createParticles(x, y) {
+            for (let i = 0; i < 8; i++) {
                 particles.push({
-                    x: x, y: y,
-                    vx: (Math.random() - 0.5) * 4,
-                    vy: (Math.random() - 0.5) * 4,
-                    life: 1,
-                    color: color
+                    x: x, y: y, vx: (Math.random() - 0.5) * 4, vy: (Math.random() - 0.5) * 4,
+                    life: 1, color: '#ef4444'
                 });
             }
         }
@@ -198,95 +214,97 @@
         function drawParticles() {
             for (let i = particles.length - 1; i >= 0; i--) {
                 let p = particles[i];
-                p.x += p.vx; p.y += p.vy;
-                p.life -= 0.05;
-                
-                if (p.life <= 0) {
-                    particles.splice(i, 1);
-                    continue;
-                }
-
+                p.x += p.vx; p.y += p.vy; p.life -= 0.05;
+                if (p.life <= 0) { particles.splice(i, 1); continue; }
                 ctx.globalAlpha = p.life;
                 ctx.fillStyle = p.color;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
-                ctx.fill();
+                ctx.beginPath(); ctx.arc(p.x, p.y, 2, 0, Math.PI * 2); ctx.fill();
             }
             ctx.globalAlpha = 1;
         }
 
         function update() {
             if (gameOver) return;
-
             dir = nextDir;
             const head = {x: snake[0].x + dir.x, y: snake[0].y + dir.y};
 
-            // اصطدام بالجدار
-            if (head.x < 0 || head.x >= cols || head.y < 0 || head.y >= rows) {
-                return endGame(false);
-            }
-            // اصطدام بالنفس
+            if (head.x < 0 || head.x >= cols || head.y < 0 || head.y >= rows) return endGame(false);
             for (let i = 0; i < snake.length; i++) {
-                if (head.x === snake[i].x && head.y === snake[i].y) {
-                    return endGame(false);
-                }
+                if (head.x === snake[i].x && head.y === snake[i].y) return endGame(false);
             }
 
             snake.unshift(head);
-
             if (head.x === food.x && head.y === food.y) {
-                score += 10;
-                scoreVal.innerText = score;
-                createParticles(food.x * gridSize + gridSize/2, food.y * gridSize + gridSize/2, foodColor);
+                score += 10; scoreVal.innerText = score;
+                createParticles(food.x * gridSize + gridSize/2, food.y * gridSize + gridSize/2);
                 generateFood();
                 if (score >= 100) endGame(true);
             } else {
                 snake.pop();
             }
 
-            // الرسم
-            ctx.clearRect(0, 0, canvas.width, canvas.height); // مسح الشاشة
-            drawFood();
-            drawSnake();
-            drawParticles();
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawFood(); drawSnake(); drawParticles();
         }
 
         function endGame(isWin) {
-            gameOver = true;
-            clearInterval(gameLoop);
-            if (isWin) winScreen.style.display = 'flex';
-            else loseScreen.style.display = 'flex';
+            gameOver = true; clearInterval(gameLoop);
+            if (isWin) winScreen.style.display = 'flex'; else loseScreen.style.display = 'flex';
         }
 
-        // --- التحكم بالسحب (Swipe) للجوال ---
-        let touchStartX = 0;
-        let touchStartY = 0;
+        // --- التحكم بعصا التحكم (Joystick) ---
+        function handleJoystickStart(e) {
+            joystickActive = true;
+            let rect = joystickZone.getBoundingClientRect();
+            // حساب مركز عصا التحكم
+            joystickStart.x = rect.left + rect.width / 2;
+            joystickStart.y = rect.top + rect.height / 2;
+            handleJoystickMove(e);
+        }
 
-        document.addEventListener('touchstart', (e) => {
-            touchStartX = e.changedTouches[0].screenX;
-            touchStartY = e.changedTouches[0].screenY;
-        }, {passive: false});
-
-        document.addEventListener('touchend', (e) => {
-            let touchEndX = e.changedTouches[0].screenX;
-            let touchEndY = e.changedTouches[0].screenY;
-
-            let dx = touchEndX - touchStartX;
-            let dy = touchEndY - touchStartY;
-
-            // تحديد اتجاه السحب
-            if (Math.abs(dx) > Math.abs(dy)) {
-                // حركة أفقية
-                if (dx > 30 && dir.x !== -1) nextDir = {x: 1, y: 0}; // يمين
-                else if (dx < -30 && dir.x !== 1) nextDir = {x: -1, y: 0}; // يسار
-            } else {
-                // حركة عمودية
-                if (dy > 30 && dir.y !== -1) nextDir = {x: 0, y: 1}; // تحت
-                else if (dy < -30 && dir.y !== 1) nextDir = {x: 0, y: -1}; // فوق
+        function handleJoystickMove(e) {
+            if (!joystickActive) return;
+            let touch = e.touches ? e.touches[0] : e;
+            let dx = touch.clientX - joystickStart.x;
+            let dy = touch.clientY - joystickStart.y;
+            
+            // تحديد أقصى مسافة للعصا
+            let maxDist = 40;
+            let dist = Math.sqrt(dx*dx + dy*dy);
+            if (dist > maxDist) {
+                dx = (dx / dist) * maxDist;
+                dy = (dy / dist) * maxDist;
             }
-        }, {passive: false});
 
-        // للكمبيوتر
+            // تحريك المقبض (الزر الأخضر)
+            joystickKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+
+            // تحديد اتجاه الحركة بناءً على السحب
+            if (Math.abs(dx) > Math.abs(dy)) {
+                if (dx > 10 && dir.x !== -1) nextDir = {x: 1, y: 0}; // يمين
+                else if (dx < -10 && dir.x !== 1) nextDir = {x: -1, y: 0}; // يسار
+            } else {
+                if (dy > 10 && dir.y !== -1) nextDir = {x: 0, y: 1}; // تحت
+                else if (dy < -10 && dir.y !== 1) nextDir = {x: 0, y: -1}; // فوق
+            }
+        }
+
+        function handleJoystickEnd() {
+            joystickActive = false;
+            joystickKnob.style.transform = 'translate(0px, 0px)'; // إرجاع المقبض للمركز
+        }
+
+        // ربط الأحداث للجوال
+        joystickZone.addEventListener('touchstart', handleJoystickStart, {passive: false});
+        document.addEventListener('touchmove', handleJoystickMove, {passive: false});
+        document.addEventListener('touchend', handleJoystickEnd);
+
+        // ربط الأحداث للكمبيوتر (ماوس)
+        joystickZone.addEventListener('mousedown', handleJoystickStart);
+        document.addEventListener('mousemove', handleJoystickMove);
+        document.addEventListener('mouseup', handleJoystickEnd);
+
+        // الكيبورد للكمبيوتر
         document.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowUp' || e.key === 'w') { if (dir.y !== 1) nextDir = {x: 0, y: -1}; }
             if (e.key === 'ArrowDown' || e.key === 's') { if (dir.y !== -1) nextDir = {x: 0, y: 1}; }
