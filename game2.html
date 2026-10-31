@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>لعبة تدمير الطوب - Pro Edition</title>
+    <title>لعبة تدمير الطوب - Ultimate Edition</title>
     
     <style>
         * {
@@ -40,14 +40,14 @@
             border-bottom-left-radius: 16px;
             border-bottom-right-radius: 16px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             font-weight: 600;
             z-index: 5;
         }
 
         .score-box {
             display: flex;
-            gap: 12px;
+            gap: 10px;
         }
 
         .highlight {
@@ -72,15 +72,15 @@
             border: 2px solid #334155;
             width: 100%;
             height: 100%;
-            max-height: 70vh;
+            max-height: 68vh;
         }
 
         .mobile-controls {
             display: flex;
             width: 100%;
             max-width: 480px;
-            height: 70px;
-            padding: 8px 16px;
+            height: 65px;
+            padding: 5px 16px;
             gap: 15px;
             z-index: 5;
         }
@@ -104,17 +104,20 @@
             transform: scale(0.98);
         }
 
+        /* واجهة القوائم (البداية واختيار الصعوبة والنهاية) */
         .overlay {
             position: fixed;
             inset: 0;
-            background: rgba(15, 23, 42, 0.9);
-            backdrop-filter: blur(10px);
+            background: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(12px);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             gap: 20px;
             z-index: 10;
+            padding: 20px;
+            text-align: center;
         }
 
         .overlay.hidden {
@@ -127,19 +130,38 @@
         }
 
         .overlay p {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
+            color: #94a3b8;
         }
 
-        .overlay button {
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            max-width: 260px;
+        }
+
+        .menu-btn {
+            background: #334155;
+            color: #f8fafc;
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 12px 24px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .menu-btn.primary {
             background: #38bdf8;
             color: #0f172a;
-            border: none;
-            padding: 14px 36px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            border-radius: 30px;
-            cursor: pointer;
             box-shadow: 0 4px 15px rgba(56, 189, 248, 0.4);
+        }
+
+        .menu-btn:hover {
+            transform: scale(1.03);
         }
     </style>
 </head>
@@ -147,10 +169,10 @@
 
     <div class="header">
         <div class="score-box">
-            <div>النقاط: <span id="score" class="highlight">0</span></div>
-            <div>المستوى: <span id="level" class="highlight">1</span></div>
+            <div>نقاط: <span id="score" class="highlight">0</span></div>
+            <div>ارواح: <span id="lives" class="highlight">❤️❤️❤️</span></div>
         </div>
-        <div>أعلى نتيجة: <span id="highScore" class="highlight">0</span></div>
+        <div>أعلى: <span id="highScore" class="highlight">0</span></div>
     </div>
 
     <div class="game-wrapper">
@@ -162,60 +184,65 @@
         <button class="btn-control" id="btnRight">➡️</button>
     </div>
 
-    <div id="overlay" class="overlay hidden">
-        <h1 id="overlayTitle">انتهت اللعبة!</h1>
-        <p id="finalScore">نقاطك: 0</p>
-        <button id="restartBtn">العب مجدداً 🔄</button>
+    <!-- شاشة البداية واختيار الصعوبة -->
+    <div id="menuOverlay" class="overlay">
+        <h1>🧱 Brick Breaker Pro</h1>
+        <p>اختر مستوى الصعوبة للبدء:</p>
+        <div class="btn-group">
+            <button class="menu-btn" onclick="startGame('easy')">🟢 سهل (مضرب عريض)</button>
+            <button class="menu-btn primary" onclick="startGame('medium')">🟡 متوسط (توازن)</button>
+            <button class="menu-btn" onclick="startGame('hard')">🔴 صعب (سرعة وتحدي)</button>
+        </div>
+    </div>
+
+    <!-- شاشة الخسارة / الفوز -->
+    <div id="endOverlay" class="overlay hidden">
+        <h1 id="endTitle">انتهت اللعبة!</h1>
+        <p id="finalScore">مجموع نقاطك: 0</p>
+        <button class="menu-btn primary" onclick="returnToMenu()">القائمة الرئيسية 🏠</button>
     </div>
 
     <script>
-        // نظام المؤثرات الصوتية (Web Audio API)
+        // نظام أصوات محسن (Soft Audio Frequencies)
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
         function playSound(type) {
             if (!audioCtx) return;
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
+            if (audioCtx.state === 'suspended') audioCtx.resume();
             const osc = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
             osc.connect(gainNode);
             gainNode.connect(audioCtx.destination);
-
             let now = audioCtx.currentTime;
 
             if (type === 'hit') {
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(150, now);
-                osc.frequency.exponentialRampToValueAtTime(40, now + 0.08);
-                gainNode.gain.setValueAtTime(0.15, now);
-                gainNode.gain.linearRampToValueAtTime(0.01, now + 0.08);
-                osc.start(now);
-                osc.stop(now + 0.08);
-            } else if (type === 'brick') {
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(300, now);
-                osc.frequency.exponentialRampToValueAtTime(600, now + 0.1);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.exponentialRampToValueAtTime(110, now + 0.06);
                 gainNode.gain.setValueAtTime(0.1, now);
-                gainNode.gain.linearRampToValueAtTime(0.01, now + 0.1);
-                osc.start(now);
-                osc.stop(now + 0.1);
+                gainNode.gain.linearRampToValueAtTime(0.01, now + 0.06);
+                osc.start(now); osc.stop(now + 0.06);
+            } else if (type === 'brick') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(440, now);
+                osc.frequency.exponentialRampToValueAtTime(880, now + 0.08);
+                gainNode.gain.setValueAtTime(0.12, now);
+                gainNode.gain.linearRampToValueAtTime(0.01, now + 0.08);
+                osc.start(now); osc.stop(now + 0.08);
             } else if (type === 'powerup') {
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(400, now);
-                osc.frequency.exponentialRampToValueAtTime(800, now + 0.15);
-                gainNode.gain.setValueAtTime(0.2, now);
-                gainNode.gain.linearRampToValueAtTime(0.01, now + 0.15);
-                osc.start(now);
-                osc.stop(now + 0.15);
+                osc.frequency.setValueAtTime(523.25, now);
+                osc.frequency.exponentialRampToValueAtTime(1046.5, now + 0.12);
+                gainNode.gain.setValueAtTime(0.15, now);
+                gainNode.gain.linearRampToValueAtTime(0.01, now + 0.12);
+                osc.start(now); osc.stop(now + 0.12);
             } else if (type === 'danger') {
                 osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(120, now);
-                osc.frequency.linearRampToValueAtTime(50, now + 0.2);
-                gainNode.gain.setValueAtTime(0.2, now);
-                gainNode.gain.linearRampToValueAtTime(0.01, now + 0.2);
-                osc.start(now);
-                osc.stop(now + 0.2);
+                osc.frequency.setValueAtTime(100, now);
+                osc.frequency.linearRampToValueAtTime(40, now + 0.15);
+                gainNode.gain.setValueAtTime(0.15, now);
+                gainNode.gain.linearRampToValueAtTime(0.01, now + 0.15);
+                osc.start(now); osc.stop(now + 0.15);
             }
         }
 
@@ -223,19 +250,20 @@
         const ctx = canvas.getContext('2d');
 
         const scoreEl = document.getElementById('score');
-        const levelEl = document.getElementById('level');
+        const livesEl = document.getElementById('lives');
         const highScoreEl = document.getElementById('highScore');
-        const overlay = document.getElementById('overlay');
-        const overlayTitle = document.getElementById('overlayTitle');
+        const menuOverlay = document.getElementById('menuOverlay');
+        const endOverlay = document.getElementById('endOverlay');
+        const endTitle = document.getElementById('endTitle');
         const finalScoreEl = document.getElementById('finalScore');
-        const restartBtn = document.getElementById('restartBtn');
 
         let score = 0;
-        let level = 1;
-        let highScore = localStorage.getItem('brick_breaker_highscore_pro') || 0;
+        let lives = 3;
+        let difficulty = 'medium';
+        let highScore = localStorage.getItem('brick_breaker_ultimate_hs') || 0;
         highScoreEl.innerText = highScore;
 
-        let gameOver = false;
+        let gameStarted = false;
 
         function resizeCanvas() {
             const rect = canvas.parentElement.getBoundingClientRect();
@@ -244,28 +272,8 @@
         }
         resizeCanvas();
 
-        const paddle = {
-            width: 90,
-            height: 14,
-            x: 0,
-            y: 0,
-            speed: 8,
-            dx: 0
-        };
-
-        // مصفوفة الكرات لدعم ميزة (تضاعف الكور)
+        const paddle = { width: 90, height: 14, x: 0, y: 0, speed: 8, dx: 0 };
         let balls = [];
-
-        function resetBall() {
-            balls = [{
-                x: canvas.width / 2,
-                y: paddle.y - 15,
-                radius: 7,
-                dx: (Math.random() > 0.5 ? 1 : -1) * 3,
-                dy: -4
-            }];
-        }
-
         let powerUps = [];
         let particles = [];
 
@@ -276,9 +284,40 @@
         let brickPadding = 8;
         let brickOffsetTop = 30;
         let brickOffsetLeft = 10;
-
         const brickColors = ['#f43f5e', '#fb923c', '#facc15', '#4ade80', '#38bdf8'];
         let bricks = [];
+
+        function initSettings(diff) {
+            difficulty = diff;
+            if (diff === 'easy') {
+                paddle.width = 110;
+                ballSpeed = 3.5;
+                lives = 4;
+            } else if (diff === 'medium') {
+                paddle.width = 90;
+                ballSpeed = 4.5;
+                lives = 3;
+            } else if (diff === 'hard') {
+                paddle.width = 75;
+                ballSpeed = 6;
+                lives = 2;
+            }
+            updateLivesUI();
+        }
+
+        function updateLivesUI() {
+            livesEl.innerText = '❤️'.repeat(Math.max(0, lives));
+        }
+
+        function resetBall() {
+            balls = [{
+                x: canvas.width / 2,
+                y: paddle.y - 15,
+                radius: 7,
+                dx: (Math.random() > 0.5 ? 1 : -1) * 3,
+                dy: -ballSpeed
+            }];
+        }
 
         function initPositions() {
             paddle.x = (canvas.width - paddle.width) / 2;
@@ -292,15 +331,12 @@
             for (let c = 0; c < brickColumnCount; c++) {
                 bricks[c] = [];
                 for (let r = 0; r < brickRowCount; r++) {
-                    bricks[c][r] = { 
-                        x: 0, y: 0, status: 1, 
-                        color: brickColors[(r + level - 1) % brickColors.length] 
-                    };
+                    bricks[c][r] = { x: 0, y: 0, status: 1, color: brickColors[r] };
                 }
             }
         }
 
-        // التحكم
+        // تحكم الأزرار
         const btnLeft = document.getElementById('btnLeft');
         const btnRight = document.getElementById('btnRight');
 
@@ -330,21 +366,20 @@
         }, { passive: false });
 
         function createParticles(x, y, color) {
-            for (let i = 0; i < 6; i++) {
+            for (let i = 0; i < 5; i++) {
                 particles.push({
                     x: x + brickWidth / 2, y: y + brickHeight / 2,
-                    dx: (Math.random() - 0.5) * 5, dy: (Math.random() - 0.5) * 5,
+                    dx: (Math.random() - 0.5) * 4, dy: (Math.random() - 0.5) * 4,
                     radius: Math.random() * 3 + 1, color: color, alpha: 1
                 });
             }
         }
 
-        // إنشاء جوائز أو قنابل تتساقط
         function spawnPowerUp(x, y) {
             if (Math.random() < 0.3) {
                 const types = ['multiball', 'expand', 'bonus', 'danger'];
                 const type = types[Math.floor(Math.random() * types.length)];
-                powerUps.push({ x: x + brickWidth / 2, y: y, type: type, dy: 2.5 });
+                powerUps.push({ x: x + brickWidth / 2, y: y, type: type, dy: 2.2 });
             }
         }
 
@@ -374,7 +409,6 @@
                         const brickX = c * (brickWidth + brickPadding) + brickOffsetLeft;
                         const brickY = r * (brickHeight + brickPadding) + brickOffsetTop;
                         b.x = brickX; b.y = brickY;
-
                         ctx.beginPath();
                         ctx.roundRect(brickX, brickY, brickWidth, brickHeight, 4);
                         ctx.fillStyle = b.color;
@@ -390,28 +424,19 @@
                 p.y += p.dy;
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, 10, 0, Math.PI * 2);
-                
-                // تحديد شكل وألوان الجوائز أو القنابل
-                if (p.type === 'multiball') ctx.fillStyle = '#10b981'; // أخضر لتضاعف الكور
-                else if (p.type === 'expand') ctx.fillStyle = '#3b82f6'; // أزرق لتوسيع المضرب
-                else if (p.type === 'bonus') ctx.fillStyle = '#f59e0b'; // أصفر للنقاط
-                else ctx.fillStyle = '#ef4444'; // أحمر (قنبلة/خطر تخسر إذا لمستها)
-
+                ctx.fillStyle = p.type === 'multiball' ? '#10b981' : p.type === 'expand' ? '#3b82f6' : p.type === 'bonus' ? '#f59e0b' : '#ef4444';
                 ctx.fill();
                 ctx.closePath();
 
-                // رسم رمز مصغر داخل الكرة الساقطة
                 ctx.fillStyle = '#fff';
                 ctx.font = '10px sans-serif';
                 ctx.textAlign = 'center';
                 let icon = p.type === 'multiball' ? '⚽' : p.type === 'expand' ? '↔️' : p.type === 'bonus' ? '$' : '❌';
                 ctx.fillText(icon, p.x, p.y + 3);
 
-                // التقاط الجائزة أو الاصطدام بها
                 if (p.y + 10 >= paddle.y && p.x >= paddle.x && p.x <= paddle.x + paddle.width) {
                     if (p.type === 'multiball') {
                         playSound('powerup');
-                        // تضاعف الكور الحالية
                         let newBalls = [];
                         balls.forEach(b => {
                             newBalls.push(b);
@@ -427,7 +452,9 @@
                         scoreEl.innerText = score;
                     } else if (p.type === 'danger') {
                         playSound('danger');
-                        endGame(); // صدمت القنبلة وتخسر!
+                        lives--;
+                        updateLivesUI();
+                        if (lives <= 0) endGame();
                     }
                     powerUps.splice(index, 1);
                 } else if (p.y > canvas.height) {
@@ -439,9 +466,8 @@
         function drawParticles() {
             particles.forEach((p, index) => {
                 p.x += p.dx; p.y += p.dy; p.alpha -= 0.03;
-                if (p.alpha <= 0) {
-                    particles.splice(index, 1);
-                } else {
+                if (p.alpha <= 0) particles.splice(index, 1);
+                else {
                     ctx.save();
                     ctx.globalAlpha = p.alpha;
                     ctx.beginPath();
@@ -461,23 +487,19 @@
                     if (b.status === 1) {
                         activeBricks++;
                         balls.forEach(ball => {
-                            if (
-                                ball.x > b.x && ball.x < b.x + brickWidth &&
-                                ball.y > b.y && ball.y < b.y + brickHeight
-                            ) {
+                            if (ball.x > b.x && ball.x < b.x + brickWidth && ball.y > b.y && ball.y < b.y + brickHeight) {
                                 ball.dy = -ball.dy;
                                 b.status = 0;
                                 score += 10;
                                 scoreEl.innerText = score;
                                 playSound('brick');
-
                                 createParticles(b.x, b.y, b.color);
                                 spawnPowerUp(b.x, b.y);
 
                                 if (score > highScore) {
                                     highScore = score;
                                     highScoreEl.innerText = highScore;
-                                    localStorage.setItem('brick_breaker_highscore_pro', highScore);
+                                    localStorage.setItem('brick_breaker_ultimate_hs', highScore);
                                 }
                             }
                         });
@@ -486,10 +508,8 @@
             }
 
             if (activeBricks === 0) {
-                level++;
-                levelEl.innerText = level;
-                initPositions();
                 createBricks();
+                resetBall();
             }
         }
 
@@ -512,55 +532,59 @@
                     playSound('hit');
                 }
 
-                // اصطدام الكرة بالمضرب
-                if (
-                    ball.y + ball.radius >= paddle.y &&
-                    ball.x >= paddle.x &&
-                    ball.x <= paddle.x + paddle.width
-                ) {
+                if (ball.y + ball.radius >= paddle.y && ball.x >= paddle.x && ball.x <= paddle.x + paddle.width) {
                     ball.dy = -Math.abs(ball.dy);
                     let collidePoint = ball.x - (paddle.x + paddle.width / 2);
                     ball.dx = collidePoint * 0.15;
                     playSound('hit');
                 }
 
-                // إذا سقطت الكرة تحسيب الخسارة لهذه الكرة
                 if (ball.y + ball.radius > canvas.height) {
                     balls.splice(i, 1);
                 }
             }
 
-            // إذا انتهت كل الكرات الموجودة على الشاشة، تخسر اللعبة
             if (balls.length === 0) {
-                endGame();
+                lives--;
+                updateLivesUI();
+                if (lives <= 0) {
+                    endGame();
+                } else {
+                    resetBall();
+                }
             }
         }
 
-        function endGame() {
-            gameOver = true;
-            overlay.classList.remove('hidden');
-            overlayTitle.innerText = "💥 انتهت اللعبة!";
-            overlayTitle.style.color = "#f43f5e";
-            finalScoreEl.innerText = `النقاط: ${score} | المستوى: ${level}`;
-        }
-
-        function resetGame() {
+        function startGame(diff) {
+            initSettings(diff);
             score = 0;
-            level = 1;
             scoreEl.innerText = score;
-            levelEl.innerText = level;
-            gameOver = false;
-            paddle.width = 90;
             powerUps = [];
             particles = [];
+            menuOverlay.classList.add('hidden');
+            endOverlay.classList.add('hidden');
+            gameStarted = true;
             initPositions();
             createBricks();
-            overlay.classList.add('hidden');
             draw();
         }
 
+        function endGame() {
+            gameStarted = false;
+            endOverlay.classList.remove('hidden');
+            endTitle.innerText = "💥 انتهت اللعبة!";
+            finalScoreEl.innerText = `مجموع نقاطك: ${score}`;
+        }
+
+        function returnToMenu() {
+            endOverlay.classList.add('hidden');
+            menuOverlay.classList.remove('hidden');
+        }
+
+        let ballSpeed = 4.5;
+
         function draw() {
-            if (gameOver) return;
+            if (!gameStarted) return;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -575,17 +599,6 @@
 
             requestAnimationFrame(draw);
         }
-
-        window.addEventListener('resize', () => {
-            resizeCanvas();
-            initPositions();
-        });
-
-        restartBtn.addEventListener('click', resetGame);
-
-        initPositions();
-        createBricks();
-        draw();
     </script>
 </body>
 </html>
