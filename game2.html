@@ -1,8 +1,8 @@
 
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#080d1b">
 <title>Brick Breaker Ultimate</title>
@@ -30,7 +30,7 @@ canvas{display:block;width:100%;height:auto;aspect-ratio:9/14;touch-action:none}
 .secondary{background:#1b2b47;color:white;border:1px solid #385174}
 .gold{background:linear-gradient(90deg,#ffca58,#fff0a5)}
 .actions{display:grid;gap:7px}
-.toolbar{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:9px 0}
+.toolbar{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:9px 0}
 .toolbar .btn{font-size:11px;padding:10px 3px}
 .below{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .card h3{font-size:14px;margin:0 0 8px}
@@ -44,7 +44,7 @@ canvas{display:block;width:100%;height:auto;aspect-ratio:9/14;touch-action:none}
 .item button{width:100%;padding:7px;font-size:11px}
 .toast{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:#102542ed;border:1px solid #4b6b91;border-radius:20px;padding:8px 12px;font-size:12px;opacity:0;pointer-events:none;transition:.2s;white-space:nowrap}
 .toast.show{opacity:1}
-@media(max-width:430px){.below{grid-template-columns:1fr}.stats{gap:3px}.stat b{font-size:14px}}
+@media(max-width:430px){.below{grid-template-columns:1fr}.stats{gap:3px}.stat b{font-size:14px}.toolbar{gap:4px}.toolbar .btn{font-size:10px}}
 </style>
 </head>
 <body>
@@ -87,6 +87,7 @@ canvas{display:block;width:100%;height:auto;aspect-ratio:9/14;touch-action:none}
 <button class="btn secondary" id="pauseBtn">⏸ إيقاف</button>
 <button class="btn secondary" id="shopBtn">🛒 المتجر</button>
 <button class="btn secondary" id="abilityBtn">⚡ قدرة</button>
+<button class="btn secondary" id="soundBtn">🔊 الصوت</button>
 <button class="btn secondary" id="saveBtn">💾 حفظ</button>
 </div>
 
@@ -116,6 +117,7 @@ canvas{display:block;width:100%;height:auto;aspect-ratio:9/14;touch-action:none}
 const $=id=>document.getElementById(id);
 const c=$('game'),x=c.getContext('2d'),W=540,H=840;
 const KEY='brickBreakerUltimate_v2';
+const SOUND_KEY='brickBreakerSound';
 
 const worlds=[
 ['🌌 عالم الفضاء','#0a1730','#050a16',195],
@@ -144,6 +146,163 @@ const goals=[
 ['traveler','رحّالة المراحل','clears',15,200],
 ['rich','ثري اللعبة','earned',500,150]
 ];
+
+// =========================
+// نظام الصوت والمؤثرات
+// =========================
+
+let audioCtx=null;
+let soundEnabled=true;
+let lastWallSound=0;
+
+try{
+soundEnabled=localStorage.getItem(SOUND_KEY)!=='off';
+}catch(e){}
+
+function initAudio(){
+try{
+const AudioClass=window.AudioContext||window.webkitAudioContext;
+if(!AudioClass)return false;
+
+if(!audioCtx)audioCtx=new AudioClass();
+
+if(audioCtx.state==='suspended'){
+audioCtx.resume().catch(()=>{});
+}
+return true;
+}catch(e){
+return false;
+}
+}
+
+function tone(freq,duration=.1,type='sine',volume=.09,endFreq=null,delay=0){
+if(!soundEnabled)return;
+if(!initAudio())return;
+
+try{
+const start=audioCtx.currentTime+delay;
+const osc=audioCtx.createOscillator();
+const gain=audioCtx.createGain();
+
+osc.type=type;
+osc.frequency.setValueAtTime(freq,start);
+
+if(endFreq){
+osc.frequency.exponentialRampToValueAtTime(
+Math.max(1,endFreq),start+duration
+);
+}
+
+gain.gain.setValueAtTime(.001,start);
+gain.gain.linearRampToValueAtTime(volume,start+.012);
+gain.gain.exponentialRampToValueAtTime(.001,start+duration);
+
+osc.connect(gain);
+gain.connect(audioCtx.destination);
+
+osc.start(start);
+osc.stop(start+duration+.02);
+}catch(e){}
+}
+
+function sound(name){
+if(!soundEnabled)return;
+
+switch(name){
+case 'button':
+tone(620,.07,'sine',.055,760);
+break;
+
+case 'launch':
+tone(280,.12,'triangle',.08,620);
+break;
+
+case 'wall':
+if(Date.now()-lastWallSound<90)return;
+lastWallSound=Date.now();
+tone(300,.045,'sine',.035,240);
+break;
+
+case 'paddle':
+tone(380,.09,'triangle',.075,600);
+break;
+
+case 'hit':
+tone(480,.065,'square',.045,360);
+break;
+
+case 'break':
+tone(720,.09,'triangle',.075,1050);
+tone(1050,.08,'sine',.035,700,.045);
+break;
+
+case 'coin':
+tone(880,.09,'sine',.07,1250);
+tone(1250,.13,'sine',.05,1550,.08);
+break;
+
+case 'power':
+tone(430,.12,'sine',.07,780);
+tone(780,.16,'triangle',.065,1100,.11);
+break;
+
+case 'bomb':
+tone(180,.28,'sawtooth',.09,45);
+tone(90,.24,'triangle',.08,35,.12);
+break;
+
+case 'laser':
+tone(1100,.07,'square',.045,350);
+break;
+
+case 'bossHit':
+tone(150,.1,'sawtooth',.075,90);
+break;
+
+case 'bossDown':
+tone(440,.15,'triangle',.08,660);
+tone(660,.15,'triangle',.08,880,.16);
+tone(880,.3,'triangle',.09,1300,.32);
+break;
+
+case 'lose':
+tone(280,.25,'sawtooth',.075,100);
+tone(150,.35,'triangle',.065,65,.2);
+break;
+
+case 'win':
+tone(523,.16,'sine',.08,600);
+tone(659,.16,'sine',.08,740,.15);
+tone(784,.2,'sine',.09,900,.3);
+tone(1046,.3,'sine',.08,1250,.48);
+break;
+
+case 'pause':
+tone(500,.08,'sine',.06,350);
+break;
+
+case 'catch':
+tone(650,.1,'triangle',.07,950);
+break;
+}
+}
+
+// تفعيل الصوت بعد أول لمسة من المستخدم على الآيفون
+document.addEventListener('pointerdown',()=>{
+initAudio();
+},{once:true});
+
+document.addEventListener('touchstart',()=>{
+initAudio();
+},{once:true,passive:true});
+
+// صوت عام عند الضغط على أزرار اللعبة
+document.addEventListener('click',e=>{
+if(e.target.closest('button')){
+initAudio();
+if(e.target.id!=='soundBtn')sound('button');
+}
+});
 
 let save={
 score:0,best:0,level:1,coins:0,owned:[],claimed:[],
@@ -197,30 +356,36 @@ function earn(n){
 save.coins+=n;
 save.stats.earned+=n;
 persist();
+sound('coin');
 }
 
 function achievements(){
 let el=$('achievements');
 el.innerHTML='';
+
 goals.forEach(a=>{
 let n=a[2]==='score'?score:(save.stats[a[2]]||0);
 let done=n>=a[3],claimed=save.claimed.includes(a[0]);
 let d=document.createElement('div');
+
 d.innerHTML=`
 <div class="mission"><span>${done?'🏅':'🔒'} ${a[1]}</span><b>${Math.min(n,a[3])}/${a[3]}</b></div>
 <div class="track"><i style="width:${Math.min(100,n/a[3]*100)}%"></i></div>
 <div class="mission"><span>مكافأة ${a[4]} 🪙</span><span>${claimed?'مستلم':done?'جاهز':'مقفل'}</span></div>`;
+
 if(done&&!claimed){
 let b=document.createElement('button');
 b.className='btn secondary';
 b.style.cssText='width:100%;padding:6px;margin-bottom:6px';
 b.textContent='استلام المكافأة';
+
 b.onclick=()=>{
 save.claimed.push(a[0]);
 earn(a[4]);
 achievements();
 toast('🏆 استلمت المكافأة');
 };
+
 d.append(b);
 }
 el.append(d);
@@ -235,7 +400,9 @@ $('continueBtn').style.display=cont?'block':'none';
 $('overlay').classList.remove('hidden');
 }
 
-function hide(){$('overlay').classList.add('hidden')}
+function hide(){
+$('overlay').classList.add('hidden');
+}
 
 function ball(x0=W/2,y0=H-110,vx=rnd(-2,2),vy=-5){
 return{x:x0,y:y0,vx,vy,r:9,trail:[],fire:0};
@@ -251,6 +418,7 @@ wide=0;
 paddle.w=100;
 paddle.x=(W-100)/2;
 shots=[];
+
 let isBoss=level%5===0;
 let rows=Math.min(4+Math.floor((level-1)/2),8);
 let top=isBoss?190:115;
@@ -258,7 +426,9 @@ let top=isBoss?190:115;
 for(let r=0;r<rows;r++){
 for(let col=0;col<8;col++){
 if(Math.random()<Math.min(.08+level*.006,.22))continue;
+
 let hp=1+(level>=3&&Math.random()<.25?1:0)+(level>=8&&Math.random()<.12?1:0);
+
 bricks.push({
 x:22+col*62,y:top+r*34,w:54,h:22,
 hp,max:hp,hue:(r*34+col*13+level*17)%360
@@ -269,11 +439,14 @@ hp,max:hp,hue:(r*34+col*13+level*17)%360
 if(isBoss){
 boss={x:145,y:65,w:250,h:92,hp:18+level*3,max:18+level*3,dir:1,attack:0};
 toast('⚠️ زعيم المرحلة ظهر!');
+sound('bossHit');
 }
 hud();
 }
 
 function start(reset=false){
+initAudio();
+
 if(reset){
 score=0;
 level=1;
@@ -284,6 +457,7 @@ score=save.score||0;
 level=save.level||1;
 lives=3;
 }
+
 newLevel();
 state='ready';
 hide();
@@ -293,40 +467,93 @@ hud();
 
 function launch(){
 if(state==='ready'){
+initAudio();
 state='playing';
+
 balls.forEach(b=>{
 b.vx=rnd(-2.6,2.6);
 b.vy=-(5+level*.22);
 });
+
+sound('launch');
 }
 }
 
 function explosion(px,py){
+let destroyed=0;
+
 bricks.slice().forEach(b=>{
 if(Math.hypot(b.x+b.w/2-px,b.y+b.h/2-py)<115){
 bricks.splice(bricks.indexOf(b),1);
 score+=35;
 save.stats.bricks++;
 earn(3);
+destroyed++;
 }
 });
-if(boss&&Math.hypot(boss.x+125-px,boss.y+46-py)<180)boss.hp-=5;
+
+if(boss&&Math.hypot(boss.x+125-px,boss.y+46-py)<180){
+boss.hp-=5;
+if(boss.hp<=0)bossDown();
+}
+
+sound('bomb');
+toast('💥 انفجار! تم تدمير '+destroyed+' طوبة');
 }
 
 function power(t){
-if(t==='wide'){wide=650;paddle.w=155;toast('🟦 مضرب أكبر')}
+sound('power');
+
+if(t==='wide'){
+wide=650;
+paddle.w=155;
+toast('🟦 مضرب أكبر');
+}
+
 if(t==='multi'){
 let b=balls[0]||ball();
-balls.push(ball(b.x,b.y,rnd(-4,4),-5),ball(b.x,b.y,rnd(-4,4),-5));
+balls.push(
+ball(b.x,b.y,rnd(-4,4),-5),
+ball(b.x,b.y,rnd(-4,4),-5)
+);
 toast('🟣 كرات إضافية');
 }
-if(t==='shield'){shield=1;toast('🛡️ درع جاهز')}
-if(t==='curse'){lives--;toast('🔴 خسرت حياة');if(lives<=0)gameOver()}
-if(t==='fire'){balls.forEach(b=>b.fire=600);toast('🔥 كرة نارية')}
-if(t==='bomb'){explosion(balls[0]?.x||270,balls[0]?.y||400);toast('💣 انفجار')}
-if(t==='freeze'){slow=500;toast('❄️ تجميد')}
-if(t==='magnet'){magnet=600;toast('🧲 مغناطيس')}
-if(t==='laser'){laser=600;toast('🔫 ليزر')}
+
+if(t==='shield'){
+shield=1;
+toast('🛡️ درع جاهز');
+}
+
+if(t==='curse'){
+lives--;
+sound('lose');
+toast('🔴 خسرت حياة');
+if(lives<=0)gameOver();
+}
+
+if(t==='fire'){
+balls.forEach(b=>b.fire=600);
+toast('🔥 كرة نارية');
+}
+
+if(t==='bomb'){
+explosion(balls[0]?.x||270,balls[0]?.y||400);
+}
+
+if(t==='freeze'){
+slow=500;
+toast('❄️ تجميد');
+}
+
+if(t==='magnet'){
+magnet=600;
+toast('🧲 مغناطيس');
+}
+
+if(t==='laser'){
+laser=600;
+toast('🔫 ليزر');
+}
 }
 
 function drop(px,py){
@@ -338,13 +565,19 @@ function hit(b){
 b.hp--;
 score+=10;
 save.stats.bricks++;
-earn(1);
+
 if(b.hp<=0){
 bricks.splice(bricks.indexOf(b),1);
 score+=15;
 earn(2);
+sound('break');
+
 if(Math.random()<.16)drop(b.x+b.w/2,b.y);
+}else{
+sound('hit');
 }
+
+earn(1);
 achievements();
 }
 
@@ -354,11 +587,13 @@ save.stats.bosses++;
 score+=500;
 earn(100+level*5);
 achievements();
+sound('bossDown');
 toast('🏆 هزمت الزعيم!');
 }
 
 function gameOver(){
 state='over';
+sound('lose');
 persist();
 overlay('انتهت اللعبة','نتيجتك '+score+' • أعلى نتيجة '+save.best,'العب مرة أخرى');
 }
@@ -367,6 +602,8 @@ function win(){
 score+=100+level*20;
 save.stats.clears++;
 earn(15+level*2);
+sound('win');
+
 level++;
 persist();
 newLevel();
@@ -396,24 +633,40 @@ goods.forEach(it=>{
 let owned=save.owned.includes(it[0]);
 let d=document.createElement('div');
 d.className='item';
+
 d.innerHTML=`
 <strong>${it[1]}</strong>
 <small>${it[2]}</small>
 <button class="btn gold">${it[3]} 🪙 ${it[4]==='skin'&&owned?'تم الشراء':it[4]==='power'?'شراء واستخدام':'شراء'}</button>`;
+
 let b=d.querySelector('button');
 if(it[4]==='skin'&&owned)b.disabled=true;
 
 b.onclick=()=>{
-if(save.coins<it[3]){toast('عملاتك لا تكفي');return}
+if(save.coins<it[3]){
+toast('عملاتك لا تكفي');
+return;
+}
+
 save.coins-=it[3];
-if(it[4]==='power')power(it[0]);
-else if(it[4]==='life')lives++;
-else save.owned.push(it[0]);
+
+if(it[4]==='power'){
+power(it[0]);
+}else if(it[4]==='life'){
+lives++;
+sound('power');
+}else{
+save.owned.push(it[0]);
+sound('power');
+}
+
 persist();
 openShop();
 };
+
 grid.append(d);
 });
+
 $('modal').append(grid);
 $('overlay').classList.remove('hidden');
 }
@@ -421,10 +674,12 @@ $('overlay').classList.remove('hidden');
 function closeShop(){
 let g=$('shopGrid');
 if(g)g.remove();
+
 $('mainBtn').style.display='block';
 $('menuShopBtn').style.display='block';
 $('resetBtn').textContent='بدء من المرحلة الأولى';
 $('resetBtn').onclick=()=>start(true);
+
 if(['playing','ready','paused'].includes(shopReturn)){
 state=shopReturn;
 hide();
@@ -436,49 +691,73 @@ overlay('جاهز للتحدي؟','اجمع العملات وطور قدراتك
 
 function update(dt){
 if(state!=='playing')return;
+
 frame++;
 let sp=dt/16.67*(slow>0?.45:1);
+
 if(slow>0)slow--;
 if(wide>0&&!--wide)paddle.w=100;
 if(magnet>0)magnet--;
 
 if(laser>0){
 laser--;
+
 if(frame%18===0){
 shots.push({x:paddle.x+15,y:paddle.y});
 shots.push({x:paddle.x+paddle.w-15,y:paddle.y});
+sound('laser');
 }
 }
 
 let move=(keys.ArrowLeft?-1:0)+(keys.ArrowRight?1:0);
 paddle.x=clamp(paddle.x+move*8*sp,0,W-paddle.w);
 
-balls.forEach((b,i)=>{
+// تحديث الكرات من الخلف للأمام لتجنب تخطي الكرات عند الحذف
+for(let i=balls.length-1;i>=0;i--){
+let b=balls[i];
+
 b.trail.push({x:b.x,y:b.y});
 if(b.trail.length>7)b.trail.shift();
 
-if(magnet&&b.y>H-260)b.vx+=(paddle.x+paddle.w/2-b.x)*.0008;
+if(magnet&&b.y>H-260){
+b.vx+=(paddle.x+paddle.w/2-b.x)*.0008;
+}
 
 b.x+=b.vx*sp;
 b.y+=b.vy*sp;
 
-if(b.x<b.r||b.x>W-b.r)b.vx*=-1;
-if(b.y<b.r)b.vy=Math.abs(b.vy);
+if(b.x<b.r||b.x>W-b.r){
+b.vx*=-1;
+b.x=clamp(b.x,b.r,W-b.r);
+sound('wall');
+}
+
+if(b.y<b.r){
+b.y=b.r;
+b.vy=Math.abs(b.vy);
+sound('wall');
+}
 
 if(b.vy>0&&b.y+b.r>=paddle.y&&b.y-b.r<=paddle.y+paddle.h&&b.x>=paddle.x&&b.x<=paddle.x+paddle.w){
 b.vx=(b.x-paddle.x-paddle.w/2)/(paddle.w/2)*6;
 b.vy=-Math.max(4.8,Math.abs(b.vy));
 b.y=paddle.y-b.r;
+sound('paddle');
 }
 
 for(let br of [...bricks]){
 if(b.x+b.r>br.x&&b.x-b.r<br.x+br.w&&b.y+b.r>br.y&&b.y-b.r<br.y+br.h){
+
 if(b.fire){
 bricks.splice(bricks.indexOf(br),1);
 score+=40;
 save.stats.bricks++;
 earn(3);
-}else hit(br);
+sound('break');
+}else{
+hit(br);
+}
+
 b.vy*=-1;
 break;
 }
@@ -488,118 +767,210 @@ if(boss&&b.x+b.r>boss.x&&b.x-b.r<boss.x+boss.w&&b.y+b.r>boss.y&&b.y-b.r<boss.y+b
 boss.hp-=b.fire?3:1;
 b.vy=Math.abs(b.vy);
 score+=20;
+sound('bossHit');
+
 if(boss.hp<=0)bossDown();
 }
 
 if(b.y>H+20){
 balls.splice(i,1);
+
 if(!balls.length){
 if(shield){
 shield=0;
 balls=[ball()];
 state='ready';
+sound('power');
 toast('🛡️ الدرع أنقذك');
-}else if(--lives<=0)gameOver();
-else{
+}else if(--lives<=0){
+gameOver();
+}else{
 balls=[ball()];
 state='ready';
+sound('lose');
 toast('فقدت الكرة! المس للإطلاق');
 }
 }
 }
-});
+}
 
 if(boss){
 boss.x+=boss.dir*(1.5+level*.08)*sp;
-if(boss.x<18||boss.x+boss.w>W-18)boss.dir*=-1;
-if(++boss.attack%150===0)drops.push({x:boss.x+125,y:boss.y+boss.h,vy:3,t:'curse'});
+
+if(boss.x<18||boss.x+boss.w>W-18){
+boss.dir*=-1;
 }
 
-drops.forEach((d,i)=>{
+if(++boss.attack%150===0){
+drops.push({x:boss.x+125,y:boss.y+boss.h,vy:3,t:'curse'});
+}
+}
+
+for(let i=drops.length-1;i>=0;i--){
+let d=drops[i];
 d.y+=d.vy*sp;
+
 if(d.y>paddle.y&&d.y<paddle.y+paddle.h+12&&d.x>paddle.x&&d.x<paddle.x+paddle.w){
 power(d.t);
+sound('catch');
 drops.splice(i,1);
-}else if(d.y>H)drops.splice(i,1);
-});
+}else if(d.y>H){
+drops.splice(i,1);
+}
+}
 
-shots.forEach((p,i)=>{
+for(let i=shots.length-1;i>=0;i--){
+let p=shots[i];
 p.y-=10*sp;
+
 let b=bricks.find(q=>p.x>q.x&&p.x<q.x+q.w&&p.y>q.y&&p.y<q.y+q.h);
+
 if(b){
 bricks.splice(bricks.indexOf(b),1);
 score+=25;
+save.stats.bricks++;
 earn(2);
+sound('break');
 shots.splice(i,1);
-}else if(p.y<0)shots.splice(i,1);
-});
+}else if(p.y<0){
+shots.splice(i,1);
+}
+}
 
 if(!bricks.length&&!boss)win();
+
 hud();
 }
 
 function draw(){
 let wi=worlds[Math.min(3,Math.floor((level-1)/5))];
 let g=x.createLinearGradient(0,0,0,H);
-g.addColorStop(0,wi[1]);g.addColorStop(1,wi[2]);
-x.fillStyle=g;x.fillRect(0,0,W,H);
+g.addColorStop(0,wi[1]);
+g.addColorStop(1,wi[2]);
+x.fillStyle=g;
+x.fillRect(0,0,W,H);
+
 x.strokeStyle='#ffffff12';
-for(let y=0;y<H;y+=42){x.beginPath();x.moveTo(0,y);x.lineTo(W,y);x.stroke()}
-for(let a=0;a<W;a+=42){x.beginPath();x.moveTo(a,0);x.lineTo(a,H);x.stroke()}
+
+for(let y=0;y<H;y+=42){
+x.beginPath();x.moveTo(0,y);x.lineTo(W,y);x.stroke();
+}
+
+for(let a=0;a<W;a+=42){
+x.beginPath();x.moveTo(a,0);x.lineTo(a,H);x.stroke();
+}
 
 bricks.forEach(b=>{
-x.save();x.shadowBlur=12;x.shadowColor=`hsl(${(b.hue+wi[3])%360},90%,60%)`;
+x.save();
+x.shadowBlur=12;
+x.shadowColor=`hsl(${(b.hue+wi[3])%360},90%,60%)`;
+
 let z=x.createLinearGradient(0,b.y,0,b.y+b.h);
 z.addColorStop(0,`hsl(${(b.hue+wi[3])%360},90%,65%)`);
 z.addColorStop(1,`hsl(${(b.hue+wi[3])%360},75%,38%)`);
-x.fillStyle=z;x.beginPath();x.roundRect(b.x,b.y,b.w,b.h,6);x.fill();x.restore();
+
+x.fillStyle=z;
+x.beginPath();
+x.roundRect(b.x,b.y,b.w,b.h,6);
+x.fill();
+x.restore();
 });
 
 if(boss){
-x.fillStyle='#9d245e';x.shadowBlur=20;x.shadowColor='#ff3f87';
-x.beginPath();x.roundRect(boss.x,boss.y,boss.w,boss.h,14);x.fill();x.shadowBlur=0;
-x.fillStyle='white';x.font='bold 22px sans-serif';x.textAlign='center';
+x.fillStyle='#9d245e';
+x.shadowBlur=20;
+x.shadowColor='#ff3f87';
+x.beginPath();
+x.roundRect(boss.x,boss.y,boss.w,boss.h,14);
+x.fill();
+x.shadowBlur=0;
+
+x.fillStyle='white';
+x.font='bold 22px sans-serif';
+x.textAlign='center';
 x.fillText('👾 الزعيم',270,boss.y+30);
-x.fillStyle='#35122a';x.fillRect(boss.x,boss.y+boss.h-13,boss.w,8);
-x.fillStyle='#ff4e9b';x.fillRect(boss.x,boss.y+boss.h-13,boss.w*boss.hp/boss.max,8);
+
+x.fillStyle='#35122a';
+x.fillRect(boss.x,boss.y+boss.h-13,boss.w,8);
+
+x.fillStyle='#ff4e9b';
+x.fillRect(boss.x,boss.y+boss.h-13,boss.w*boss.hp/boss.max,8);
 }
 
-let colors={wide:'#38dfff',multi:'#bd79ff',shield:'#ffe17a',curse:'#ff4d65',fire:'#ff7b28',bomb:'#ffb02e',freeze:'#85eaff',magnet:'#e68cff',laser:'#ff4cde'};
-let labels={wide:'↔',multi:'●',shield:'◇',curse:'!',fire:'🔥',bomb:'💣',freeze:'❄',magnet:'🧲',laser:'⚡'};
+let colors={
+wide:'#38dfff',multi:'#bd79ff',shield:'#ffe17a',
+curse:'#ff4d65',fire:'#ff7b28',bomb:'#ffb02e',
+freeze:'#85eaff',magnet:'#e68cff',laser:'#ff4cde'
+};
+
+let labels={
+wide:'↔',multi:'●',shield:'◇',curse:'!',
+fire:'🔥',bomb:'💣',freeze:'❄',magnet:'🧲',laser:'⚡'
+};
+
 drops.forEach(d=>{
-x.fillStyle=colors[d.t];x.beginPath();x.arc(d.x,d.y,15,0,7);x.fill();
-x.fillStyle='#07101e';x.textAlign='center';x.fillText(labels[d.t],d.x,d.y+5);
+x.fillStyle=colors[d.t];
+x.beginPath();
+x.arc(d.x,d.y,15,0,7);
+x.fill();
+
+x.fillStyle='#07101e';
+x.textAlign='center';
+x.fillText(labels[d.t],d.x,d.y+5);
 });
 
 x.fillStyle=save.owned.includes('paddle')?'#ffd166':'#39e7ff';
-x.shadowBlur=18;x.shadowColor=x.fillStyle;
-x.beginPath();x.roundRect(paddle.x,paddle.y,paddle.w,paddle.h,8);x.fill();x.shadowBlur=0;
+x.shadowBlur=18;
+x.shadowColor=x.fillStyle;
+x.beginPath();
+x.roundRect(paddle.x,paddle.y,paddle.w,paddle.h,8);
+x.fill();
+x.shadowBlur=0;
 
 if(shield){
-x.strokeStyle='#ffe17a';x.lineWidth=4;x.beginPath();
-x.moveTo(12,H-28);x.lineTo(W-12,H-28);x.stroke();
+x.strokeStyle='#ffe17a';
+x.lineWidth=4;
+x.beginPath();
+x.moveTo(12,H-28);
+x.lineTo(W-12,H-28);
+x.stroke();
 }
 
-shots.forEach(p=>{x.fillStyle='#ff62ed';x.fillRect(p.x-3,p.y,6,18)});
+shots.forEach(p=>{
+x.fillStyle='#ff62ed';
+x.fillRect(p.x-3,p.y,6,18);
+});
+
 balls.forEach(b=>{
 b.trail.forEach((t,i)=>{
 x.globalAlpha=(i+1)/b.trail.length*.25;
-x.fillStyle='#8df7ff';x.beginPath();
-x.arc(t.x,t.y,b.r*(i+1)/b.trail.length,0,7);x.fill();
+x.fillStyle='#8df7ff';
+x.beginPath();
+x.arc(t.x,t.y,b.r*(i+1)/b.trail.length,0,7);
+x.fill();
 });
+
 x.globalAlpha=1;
 x.fillStyle=save.owned.includes('ball')?'#ffd166':'white';
-x.beginPath();x.arc(b.x,b.y,b.r,0,7);x.fill();
+x.beginPath();
+x.arc(b.x,b.y,b.r,0,7);
+x.fill();
 });
 
 if(state==='ready'){
-x.fillStyle='white';x.font='bold 18px system-ui';x.textAlign='center';
+x.fillStyle='white';
+x.font='bold 18px system-ui';
+x.textAlign='center';
 x.fillText('اضغط لإطلاق الكرة',270,H-90);
 }
 }
 
 function loop(t){
-let dt=Math.min(32,t-last||16);last=t;update(dt);draw();requestAnimationFrame(loop);
+let dt=Math.min(32,t-last||16);
+last=t;
+update(dt);
+draw();
+requestAnimationFrame(loop);
 }
 
 function pointer(e){
@@ -608,37 +979,84 @@ paddle.x=clamp((e.clientX-r.left)/r.width*W-paddle.w/2,0,W-paddle.w);
 }
 
 c.addEventListener('pointerdown',e=>{
-e.preventDefault();pointer(e);
+e.preventDefault();
+initAudio();
+pointer(e);
+
 if(state==='ready')launch();
 });
+
 c.addEventListener('pointermove',e=>{
-if(e.buttons||e.pointerType==='touch'){e.preventDefault();pointer(e)}
+if(e.buttons||e.pointerType==='touch'){
+e.preventDefault();
+pointer(e);
+}
 });
 
 window.addEventListener('keydown',e=>{
 keys[e.key]=true;
+
 if(e.key===' '){
 e.preventDefault();
+
 if(state==='ready')launch();
 else if(state==='playing')pause();
 }
 });
+
 window.addEventListener('keyup',e=>keys[e.key]=false);
 
-$('mainBtn').onclick=()=>state==='over'?start(true):start(false);
-$('continueBtn').onclick=()=>{
-score=save.score||0;level=save.level||1;lives=3;
-newLevel();state='ready';hide();
+$('mainBtn').onclick=()=>{
+initAudio();
+state==='over'?start(true):start(false);
 };
+
+$('continueBtn').onclick=()=>{
+initAudio();
+score=save.score||0;
+level=save.level||1;
+lives=3;
+newLevel();
+state='ready';
+hide();
+};
+
 $('resetBtn').onclick=()=>start(true);
 $('menuShopBtn').onclick=openShop;
 $('shopBtn').onclick=openShop;
-$('saveBtn').onclick=()=>{persist();toast('تم حفظ التقدم')};
+$('saveBtn').onclick=()=>{
+persist();
+toast('تم حفظ التقدم');
+sound('coin');
+};
+
 $('pauseBtn').onclick=pause;
+
+$('soundBtn').textContent=soundEnabled?'🔊 الصوت':'🔇 مكتوم';
+
+$('soundBtn').onclick=()=>{
+soundEnabled=!soundEnabled;
+
+try{
+localStorage.setItem(SOUND_KEY,soundEnabled?'on':'off');
+}catch(e){}
+
+$('soundBtn').textContent=soundEnabled?'🔊 الصوت':'🔇 مكتوم';
+
+if(soundEnabled){
+initAudio();
+sound('button');
+}
+};
 
 $('abilityBtn').onclick=()=>{
 let id=['fire','bomb','freeze','magnet','laser','shield'].find(k=>save.owned.includes(k));
-if(!id){toast('اشترِ قدرة من المتجر أولاً');return}
+
+if(!id){
+toast('اشترِ قدرة من المتجر أولاً');
+return;
+}
+
 save.owned.splice(save.owned.indexOf(id),1);
 power(id);
 persist();
@@ -647,17 +1065,26 @@ persist();
 function pause(){
 if(state==='playing'){
 state='paused';
+sound('pause');
+
 overlay('إيقاف مؤقت','اللعبة متوقفة.','متابعة');
-$('mainBtn').onclick=()=>{state='playing';hide()};
+$('mainBtn').onclick=()=>{
+initAudio();
+state='playing';
+hide();
+};
 }else if(state==='paused'){
-state='playing';hide();
+state='playing';
+hide();
 }
 }
 
 hud();
 achievements();
 $('continueBtn').style.display=save.score>0?'block':'none';
+
 requestAnimationFrame(loop);
+
 })();
 </script>
 </body>
