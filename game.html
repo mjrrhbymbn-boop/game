@@ -1,401 +1,572 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>لعبة نيون نينجا - Neon Slice</title>
-    
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: none;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
-
-        body {
-            background-color: #080b11;
-            color: #f8fafc;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
-            height: 100vh;
-            height: 100dvh;
-            overflow: hidden;
-            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            max-width: 480px;
-            padding: 12px 20px;
-            background: #111827;
-            border-bottom-left-radius: 18px;
-            border-bottom-right-radius: 18px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-            font-size: 1rem;
-            font-weight: 600;
-            z-index: 5;
-            border-bottom: 1px solid #1f2937;
-        }
-
-        .score-box {
-            display: flex;
-            gap: 15px;
-        }
-
-        .highlight {
-            color: #ec4899;
-        }
-
-        .game-wrapper {
-            position: relative;
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            max-width: 480px;
-            padding: 8px;
-        }
-
-        #gameCanvas {
-            background: radial-gradient(circle at center, #1f102c 0%, #080b11 100%);
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
-            border: 2px solid #374151;
-            width: 100%;
-            height: 100%;
-            max-height: 80vh;
-        }
-
-        .overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(8, 11, 17, 0.95);
-            backdrop-filter: blur(12px);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-            z-index: 10;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .overlay.hidden {
-            display: none;
-        }
-
-        .overlay h1 {
-            font-size: 2.4rem;
-            color: #ec4899;
-            text-shadow: 0 0 20px rgba(236, 72, 153, 0.5);
-        }
-
-        .overlay p {
-            font-size: 1.2rem;
-            color: #9ca3af;
-        }
-
-        .menu-btn {
-            background: #ec4899;
-            color: #f8fafc;
-            border: none;
-            padding: 14px 38px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            border-radius: 30px;
-            cursor: pointer;
-            box-shadow: 0 4px 20px rgba(236, 72, 153, 0.4);
-            transition: transform 0.2s;
-        }
-
-        .menu-btn:hover {
-            transform: scale(1.05);
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#080817">
+<title>FLIP OR DIE | OS GAMES</title>
+<style>
+*{box-sizing:border-box}
+:root{--bg:#080817;--panel:#141429;--cyan:#00eaff;--purple:#9b5cff;--pink:#ff3ca6}
+body{
+ margin:0;background:var(--bg);color:white;
+ font-family:system-ui,-apple-system,sans-serif;
+ overflow:hidden;touch-action:none;user-select:none;
+ -webkit-user-select:none;
+}
+button{font:inherit;cursor:pointer;color:white;border:0}
+#app{height:100dvh;width:100%;position:relative;overflow:hidden;
+ background:radial-gradient(ellipse at 50% 45%,#171638 0%,#080817 72%)}
+canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;
+ align-items:center;justify-content:center;padding:25px 22px;
+ text-align:center;z-index:3}
+.hidden{display:none!important}
+.logo{font-size:clamp(36px,11vw,60px);font-weight:1000;
+ letter-spacing:2px;line-height:1.05;
+ text-shadow:0 0 15px #9b5cff,0 0 35px #00eaff}
+.logo span{color:var(--cyan)}
+.sub{color:#aaa9c8;font-size:13px;margin:12px 0 28px}
+.panel{width:min(100%,360px);padding:22px;border:1px solid #39345e;
+ border-radius:23px;background:rgba(18,17,43,.91);
+ box-shadow:0 15px 55px #0008}
+.primary{width:100%;padding:16px;border-radius:15px;
+ background:linear-gradient(110deg,#7c35ff,#00bde9);
+ font-size:17px;font-weight:900;margin:6px 0;
+ box-shadow:0 5px 22px #753aff55}
+.secondary{width:100%;padding:13px;border-radius:13px;
+ background:#252440;border:1px solid #454064;margin-top:8px}
+.stats{display:flex;gap:10px;margin:15px 0}
+.stat{flex:1;background:#201e3d;border-radius:13px;padding:12px 5px}
+.stat strong{display:block;font-size:22px;color:var(--cyan)}
+.stat small{color:#a8a5c7;font-size:11px}
+#hud{position:absolute;z-index:2;top:calc(env(safe-area-inset-top) + 12px);
+ left:14px;right:14px;display:flex;justify-content:space-between;
+ align-items:center;pointer-events:none}
+.hudbox{background:#17162cdd;border:1px solid #454064;
+ border-radius:12px;padding:8px 13px;font-weight:800;font-size:14px}
+#pause{pointer-events:auto;border-radius:50%;width:42px;height:42px;
+ background:#252440;border:1px solid #555077;font-size:18px}
+#hint{position:absolute;z-index:2;bottom:calc(env(safe-area-inset-bottom) + 18px);
+ width:100%;text-align:center;color:#b3b0d0;font-size:12px;pointer-events:none}
+.title{font-size:25px;font-weight:900;margin-bottom:8px}
+.muted{color:#aaa8c6;font-size:13px;line-height:1.8}
+#resultScore{font-size:58px;color:var(--cyan);font-weight:1000;
+ text-shadow:0 0 25px #00eaff66}
+.shopgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:17px 0}
+.skin{border:1px solid #484367;background:#211f3c;border-radius:13px;
+ padding:13px 4px;font-size:12px}
+.orb{width:29px;height:29px;border-radius:50%;margin:0 auto 8px;
+ box-shadow:0 0 15px currentColor;background:currentColor}
+.skin.selected{border:2px solid var(--cyan)}
+#toast{position:absolute;z-index:9;top:23%;left:50%;
+ transform:translateX(-50%);background:#282347;padding:11px 20px;
+ border-radius:12px;opacity:0;transition:opacity .2s;pointer-events:none}
+@media(min-width:600px){
+ #app{max-width:480px;margin:auto;border-left:1px solid #252440;
+ border-right:1px solid #252440}
+}
+</style>
 </head>
 <body>
+<div id="app">
+<canvas id="game"></canvas>
 
-    <div class="header">
-        <div class="score-box">
-            <div>النقاط: <span id="score" class="highlight">0</span></div>
-            <div>الأرواح: <span id="lives" class="highlight">❤️❤️❤️</span></div>
-        </div>
-        <div>أعلى نتيجة: <span id="highScore" class="highlight">0</span></div>
-    </div>
+<div id="hud" class="hidden">
+ <div class="hudbox">⭐ <span id="score">0</span></div>
+ <div class="hudbox">🪙 <span id="coins">0</span></div>
+ <button id="pause">Ⅱ</button>
+</div>
+<div id="hint" class="hidden">المس الشاشة لقلب الجاذبية</div>
+<div id="toast"></div>
 
-    <div class="game-wrapper">
-        <canvas id="gameCanvas"></canvas>
-    </div>
+<section id="home" class="screen">
+ <div class="logo">FLIP <span>OR</span> DIE</div>
+ <div class="sub">لعبة من عالم OS GAMES • هل تستطيع النجاة؟</div>
+ <div class="panel">
+  <div class="stats">
+   <div class="stat"><strong id="bestHome">0</strong><small>أفضل نتيجة</small></div>
+   <div class="stat"><strong id="coinHome">0</strong><small>عملاتك</small></div>
+  </div>
+  <button class="primary" id="play">ابدأ اللعب ⚡</button>
+  <button class="secondary" id="openShop">🛍️ متجر الكرات</button>
+  <button class="secondary" id="help">❔ كيف تلعب؟</button>
+  <p class="muted" style="margin-bottom:0">تحدَّ نفسك وحطّم رقمك القياسي!</p>
+ </div>
+ <p class="muted" style="margin-top:22px">POWERED BY OS GAMES</p>
+</section>
 
-    <div id="overlay" class="overlay">
-        <h1>⚔️ نيون نينجا</h1>
-        <p>اسحب بإصبعك على الشاشة لتقطيع الفواكه وتجنب القنابل!</p>
-        <button class="menu-btn" id="startBtn">ابدأ اللعبة 🎮</button>
-    </div>
+<section id="pauseScreen" class="screen hidden">
+ <div class="panel">
+  <div class="title">⏸️ توقف مؤقت</div>
+  <p class="muted">خذ نفساً... التحدي ينتظرك.</p>
+  <button class="primary" id="resume">استمرار اللعب</button>
+  <button class="secondary" id="restartPause">إعادة المحاولة</button>
+  <button class="secondary" id="homePause">الرئيسية</button>
+ </div>
+</section>
 
-    <script>
-        // نظام أصوات تفاعلية حية (Web Audio API)
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
-        function playSound(type) {
-            if (!audioCtx) return;
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            osc.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            let now = audioCtx.currentTime;
+<section id="over" class="screen hidden">
+ <div class="panel">
+  <div class="title">انتهت الجولة!</div>
+  <div id="resultScore">0</div>
+  <p class="muted">نقاطك في هذه الجولة</p>
+  <div class="stats">
+   <div class="stat"><strong id="resultBest">0</strong><small>أفضل نتيجة</small></div>
+   <div class="stat"><strong id="earned">0</strong><small>عملات جمعتها</small></div>
+  </div>
+  <button class="primary" id="again">حاول مرة أخرى 🔥</button>
+  <button class="secondary" id="homeOver">العودة للرئيسية</button>
+ </div>
+</section>
 
-            if (type === 'slice') {
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(600, now);
-                osc.frequency.exponentialRampToValueAtTime(200, now + 0.08);
-                gainNode.gain.setValueAtTime(0.15, now);
-                gainNode.gain.linearRampToValueAtTime(0.01, now + 0.08);
-                osc.start(now); osc.stop(now + 0.08);
-            } else if (type === 'bomb') {
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(120, now);
-                osc.frequency.linearRampToValueAtTime(30, now + 0.25);
-                gainNode.gain.setValueAtTime(0.25, now);
-                gainNode.gain.linearRampToValueAtTime(0.01, now + 0.25);
-                osc.start(now); osc.stop(now + 0.25);
-            }
-        }
+<section id="shop" class="screen hidden">
+ <div class="panel">
+  <div class="title">🛍️ متجر الكرات</div>
+  <p class="muted">اختر مظهر كرتك المفضل</p>
+  <div class="stats">
+   <div class="stat"><strong id="shopCoins">0</strong><small>عملاتك</small></div>
+  </div>
+  <div class="shopgrid" id="skins"></div>
+  <button class="secondary" id="closeShop">العودة</button>
+ </div>
+</section>
 
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
+<section id="instructions" class="screen hidden">
+ <div class="panel">
+  <div class="title">كيف تلعب؟</div>
+  <p class="muted">
+   🔵 تتحرك الكرة تلقائياً.<br>
+   👆 المس الشاشة لقلب الجاذبية.<br>
+   💠 مر من الفتحات وتجنب الحواجز.<br>
+   🪙 اجمع العملات لشراء أشكال جديدة.<br>
+   ⚡ كلما تقدمت زادت السرعة والصعوبة.<br>
+   🏆 حاول تحطيم رقمك القياسي!
+  </p>
+  <button class="primary" id="closeHelp">فهمت، لنبدأ!</button>
+ </div>
+</section>
+</div>
 
-        const scoreEl = document.getElementById('score');
-        const livesEl = document.getElementById('lives');
-        const highScoreEl = document.getElementById('highScore');
-        const overlay = document.getElementById('overlay');
-        const startBtn = document.getElementById('startBtn');
+<script>
+(()=>{
+"use strict";
 
-        let score = 0;
-        let lives = 3;
-        let highScore = localStorage.getItem('neon_ninja_hs') || 0;
-        highScoreEl.innerText = highScore;
+const $=id=>document.getElementById(id);
+const canvas=$("game");
+const ctx=canvas.getContext("2d",{alpha:false});
 
-        let gameRunning = false;
+const STORE={
+ get(key,fallback){
+  try{
+   const v=localStorage.getItem("os_flip_"+key);
+   return v===null?fallback:JSON.parse(v);
+  }catch(e){return fallback}
+ },
+ set(key,value){
+  try{localStorage.setItem("os_flip_"+key,JSON.stringify(value))}
+  catch(e){}
+ }
+};
 
-        function resizeCanvas() {
-            const rect = canvas.parentElement.getBoundingClientRect();
-            canvas.width = rect.width;
-            canvas.height = rect.height;
-        }
-        resizeCanvas();
+let W=0,H=0,DPR=1;
+let state="home";
+let score=0,best=STORE.get("best",0);
+let coins=STORE.get("coins",0);
+let earned=0;
+let speed=270,elapsed=0,spawnTimer=0;
+let obstacles=[],particles=[],stars=[];
+let shake=0,flash=0;
+let lastTime=0;
+let audio=null;
+let soundOn=STORE.get("sound",true);
+let selected=STORE.get("skin",0);
+let owned=STORE.get("owned",[0]);
 
-        let fruits = [];
-        let particles = [];
-        let trail = []; // أثر الإصبع أو السيف على الشاشة
+const colors=["#00eaff","#ff3ca6","#a6ff3c","#ffb52e","#b78aff","#ffffff"];
+const skinNames=["نيون","وردي","ليموني","ذهبي","بنفسجي","ثلجي"];
+const skinPrices=[0,30,60,100,150,220];
 
-        const fruitTypes = [
-            { emoji: '🍉', color: '#ef4444', radius: 28, points: 10 },
-            { emoji: '🍎', color: '#dc2626', radius: 24, points: 10 },
-            { emoji: '🍊', color: '#f97316', radius: 25, points: 15 },
-            { emoji: '🍍', color: '#eab308', radius: 30, points: 20 },
-            { emoji: '🥥', color: '#ffffff', radius: 26, points: 15 },
-            { emoji: '💣', color: '#000000', radius: 25, isBomb: true }
-        ];
+const player={
+ x:0,y:0,vy:0,r:11,gravity:1,
+ trail:[],invulnerable:0
+};
 
-        function spawnFruit() {
-            if (!gameRunning) return;
-            const template = fruitTypes[Math.floor(Math.random() * fruitTypes.length)];
-            
-            // قذف الفاكهة من الأسفل إلى الأعلى بزاوية عشوائية
-            const startX = Math.random() * (canvas.width - 100) + 50;
-            const vx = (canvas.width / 2 - startX) * 0.015 + (Math.random() - 0.5) * 3;
-            const vy = -(Math.random() * 4 + 11);
+function resize(){
+ const rect=canvas.getBoundingClientRect();
+ W=rect.width;H=rect.height;
+ DPR=Math.min(window.devicePixelRatio||1,2);
+ canvas.width=Math.round(W*DPR);
+ canvas.height=Math.round(H*DPR);
+ ctx.setTransform(DPR,0,0,DPR,0,0);
+ player.x=W*.27;
+ if(state==="home"||state==="shop"||state==="help"){
+  player.y=H*.5;
+ }
+ stars=Array.from({length:65},()=>({
+  x:Math.random()*W,y:Math.random()*H,
+  s:Math.random()*1.8+.3,a:Math.random()*.5+.15
+ }));
+}
+window.addEventListener("resize",resize);
+resize();
 
-            fruits.push({
-                x: startX,
-                y: canvas.height + 30,
-                vx: vx,
-                vy: vy,
-                gravity: 0.35,
-                ...template,
-                sliced: false
-            });
-        }
+function show(id){
+ ["home","pauseScreen","over","shop","instructions"].forEach(x=>
+  $(x).classList.toggle("hidden",x!==id));
+ $("hud").classList.toggle("hidden",id!=="playing");
+ $("hint").classList.toggle("hidden",id!=="playing");
+}
 
-        function createSplash(x, y, color) {
-            for (let i = 0; i < 10; i++) {
-                particles.push({
-                    x: x, y: y,
-                    dx: (Math.random() - 0.5) * 8,
-                    dy: (Math.random() - 0.5) * 8,
-                    radius: Math.random() * 4 + 2,
-                    color: color,
-                    alpha: 1
-                });
-            }
-        }
+function sound(freq=500,duration=.07,type="sine",volume=.045){
+ if(!soundOn)return;
+ try{
+  audio=audio||new (window.AudioContext||window.webkitAudioContext)();
+  if(audio.state==="suspended")audio.resume();
+  const osc=audio.createOscillator();
+  const gain=audio.createGain();
+  osc.type=type;osc.frequency.setValueAtTime(freq,audio.currentTime);
+  gain.gain.setValueAtTime(volume,audio.currentTime);
+  gain.gain.exponentialRampToValueAtTime(.001,audio.currentTime+duration);
+  osc.connect(gain);gain.connect(audio.destination);
+  osc.start();osc.stop(audio.currentTime+duration);
+ }catch(e){}
+}
 
-        // تتبع حركة اللمس على شاشة الأيفون
-        canvas.addEventListener('touchmove', (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const touch = e.touches[0];
-            const x = touch.clientX - rect.left;
-            const y = touch.clientY - rect.top;
+function updateHome(){
+ $("bestHome").textContent=best;
+ $("coinHome").textContent=coins;
+ $("shopCoins").textContent=coins;
+ $("coins").textContent=coins;
+}
 
-            trail.push({ x, y, alpha: 1 });
-            checkSlice(x, y);
-            e.preventDefault();
-        }, { passive: false });
+function start(){
+ score=0;earned=0;elapsed=0;speed=270;spawnTimer=.6;
+ obstacles=[];particles=[];shake=0;flash=0;
+ player.y=H*.5;player.vy=0;player.gravity=1;
+ player.trail=[];player.invulnerable=0;
+ state="playing";show("playing");
+ $("score").textContent="0";
+ $("coins").textContent=coins;
+ sound(650,.12);
+ lastTime=performance.now();
+}
 
-        canvas.addEventListener('mousemove', (e) => {
-            if (e.buttons !== 1) return; // للكمبيوتر عند الضغط والسحب
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+function pause(){
+ if(state!=="playing")return;
+ state="paused";show("pauseScreen");
+}
 
-            trail.push({ x, y, alpha: 1 });
-            checkSlice(x, y);
-        });
+function resume(){
+ if(state!=="paused")return;
+ state="playing";show("playing");
+ lastTime=performance.now();
+}
 
-        function checkSlice(x, y) {
-            if (!gameRunning) return;
-            fruits.forEach(f => {
-                if (!f.sliced) {
-                    let dist = Math.hypot(f.x - x, f.y - y);
-                    if (dist < f.radius + 15) {
-                        f.sliced = true;
-                        createSplash(f.x, f.y, f.color);
+function goHome(){
+ state="home";show("home");updateHome();
+}
 
-                        if (f.isBomb) {
-                            playSound('bomb');
-                            lives--;
-                            livesEl.innerText = '❤️❤️❤️'.substring(0, lives);
-                            if (lives <= 0) endGame();
-                        } else {
-                            playSound('slice');
-                            score += f.points;
-                            scoreEl.innerText = score;
-                            if (score > highScore) {
-                                highScore = score;
-                                highScoreEl.innerText = highScore;
-                                localStorage.setItem('neon_ninja_hs', highScore);
-                            }
-                        }
-                    }
-                }
-            });
-        }
+function flip(){
+ if(state!=="playing")return;
+ player.gravity*=-1;
+ player.vy=player.gravity*80;
+ burst(player.x,player.y,colors[selected],5);
+ sound(player.gravity===1?430:650,.06,"sine");
+}
 
-        function updateGame() {
-            if (!gameRunning) return;
+function spawnObstacle(){
+ const gapH=Math.max(112,H*.22-(score*.45));
+ const margin=65;
+ const center=margin+Math.random()*(H-margin*2);
+ const gapY=Math.max(gapH/2+25,Math.min(H-gapH/2-25,center));
+ obstacles.push({
+  x:W+45,gapY,gapH,
+  passed:false,
+  coin:Math.random()<.72,
+  coinTaken:false,
+  phase:Math.random()*6
+ });
+}
 
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+function burst(x,y,color,count=12){
+ for(let i=0;i<count;i++){
+  const a=Math.random()*Math.PI*2;
+  const v=40+Math.random()*210;
+  particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,
+   life:.35+Math.random()*.5,max:.85,size:2+Math.random()*3,color});
+ }
+}
 
-            // رسم أثر السيف/الإصبع
-            for (let i = trail.length - 1; i >= 0; i--) {
-                let t = trail[i];
-                t.alpha -= 0.08;
-                if (t.alpha <= 0) {
-                    trail.splice(i, 1);
-                } else {
-                    ctx.save();
-                    ctx.globalAlpha = t.alpha;
-                    ctx.beginPath();
-                    ctx.arc(t.x, t.y, 6, 0, Math.PI * 2);
-                    ctx.fillStyle = '#ec4899';
-                    ctx.shadowColor = '#ec4899';
-                    ctx.shadowBlur = 10;
-                    ctx.fill();
-                    ctx.restore();
-                }
-            }
+function hit(){
+ if(state!=="playing")return;
+ state="over";shake=12;flash=.7;
+ burst(player.x,player.y,colors[selected],35);
+ sound(100,.35,"sawtooth",.08);
 
-            // تحديث ورسم الفواكه
-            fruits.forEach((f, index) => {
-                f.x += f.vx;
-                f.y += f.vy;
-                f.vy += f.gravity;
+ if(score>best){
+  best=score;STORE.set("best",best);
+ }
+ const reward=Math.max(1,Math.floor(score/2)+earned);
+ coins+=reward;
+ STORE.set("coins",coins);
+ $("resultScore").textContent=score;
+ $("resultBest").textContent=best;
+ $("earned").textContent=reward;
+ show("over");
+ updateHome();
+}
 
-                ctx.save();
-                if (f.sliced) {
-                    ctx.globalAlpha = 0.4;
-                }
-                ctx.font = `${f.radius * 1.5}px sans-serif`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(f.emoji, f.x, f.y);
-                ctx.restore();
+function collect(o){
+ if(o.coinTaken)return;
+ o.coinTaken=true;earned++;
+ burst(o.x+18,o.gapY, "#ffe36b",9);
+ sound(850,.09,"triangle");
+}
 
-                // إذا سقطت الفاكهة بدون تقطيع (وليست قنبلة)
-                if (f.y > canvas.height + 50 && !f.sliced && !f.isBomb) {
-                    lives--;
-                    livesEl.innerText = '❤️'.repeat(Math.max(0, lives));
-                    if (lives <= 0) endGame();
-                }
+function collideCircleRect(cx,cy,r,rx,ry,rw,rh){
+ const px=Math.max(rx,Math.min(cx,rx+rw));
+ const py=Math.max(ry,Math.min(cy,ry+rh));
+ const dx=cx-px,dy=cy-py;
+ return dx*dx+dy*dy<r*r;
+}
 
-                if (f.y > canvas.height + 100) {
-                    fruits.splice(index, 1);
-                }
-            });
+function update(dt){
+ if(state!=="playing")return;
+ elapsed+=dt;
+ speed=Math.min(520,270+elapsed*5+score*1.4);
+ player.vy+=player.gravity*950*dt;
+ player.y+=player.vy*dt;
+ player.invulnerable=Math.max(0,player.invulnerable-dt);
 
-            // رسم قطرات العصير والشرارات
-            particles.forEach((p, index) => {
-                p.x += p.dx; p.y += p.dy; p.alpha -= 0.03;
-                if (p.alpha <= 0) {
-                    particles.splice(index, 1);
-                } else {
-                    ctx.save();
-                    ctx.globalAlpha = p.alpha;
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                    ctx.fillStyle = p.color;
-                    ctx.fill();
-                    ctx.restore();
-                }
-            });
+ player.trail.push({x:player.x,y:player.y});
+ if(player.trail.length>9)player.trail.shift();
 
-            requestAnimationFrame(updateGame);
-        }
+ if(player.y-player.r<8||player.y+player.r>H-8){
+  hit();return;
+ }
 
-        let spawnInterval;
-        function startGame() {
-            score = 0;
-            lives = 3;
-            fruits = [];
-            particles = [];
-            trail = [];
-            scoreEl.innerText = score;
-            livesEl.innerText = '❤️❤️❤️';
-            overlay.classList.add('hidden');
-            gameRunning = true;
-            updateGame();
+ spawnTimer-=dt;
+ if(spawnTimer<=0){
+  spawnObstacle();
+  spawnTimer=Math.max(.95,1.48-score*.012);
+ }
 
-            clearInterval(spawnInterval);
-            spawnInterval = setInterval(spawnFruit, 900);
-        }
+ for(const o of obstacles){
+  o.x-=speed*dt;
+  if(!o.passed&&o.x+35<player.x){
+   o.passed=true;score++;
+   $("score").textContent=score;
+   sound(570,.04);
+  }
 
-        function endGame() {
-            gameRunning = false;
-            clearInterval(spawnInterval);
-            overlay.classList.remove('hidden');
-            overlay.querySelector('h1').innerText = "💥 انتهت اللعبة!";
-            overlay.querySelector('p').innerText = `مجموع نقاطك: ${score}`;
-            startBtn.innerText = "العب مجدداً 🔄";
-        }
+  const topH=o.gapY-o.gapH/2;
+  const bottomY=o.gapY+o.gapH/2;
+  if(collideCircleRect(player.x,player.y,player.r,o.x,0,28,topH)||
+     collideCircleRect(player.x,player.y,player.r,o.x,bottomY,28,H-bottomY)){
+   hit();return;
+  }
 
-        startBtn.addEventListener('click', startGame);
+  if(o.coin&&!o.coinTaken){
+   const cx=o.x+14,cy=o.gapY;
+   if(Math.hypot(player.x-cx,player.y-cy)<player.r+15)collect(o);
+  }
+ }
+ obstacles=obstacles.filter(o=>o.x>-60);
 
-        window.addEventListener('resize', () => {
-            resizeCanvas();
-        });
-    </script>
+ for(const p of particles){
+  p.x+=p.vx*dt;p.y+=p.vy*dt;
+  p.vx*=.985;p.vy*=.985;p.life-=dt;
+ }
+ particles=particles.filter(p=>p.life>0);
+ shake=Math.max(0,shake-dt*25);
+ flash=Math.max(0,flash-dt*2);
+}
+
+function roundedRect(x,y,w,h,r){
+ ctx.beginPath();
+ ctx.roundRect(x,y,w,h,r);
+}
+
+function drawBackground(){
+ ctx.fillStyle="#080817";ctx.fillRect(0,0,W,H);
+ const grad=ctx.createRadialGradient(W*.5,H*.5,10,W*.5,H*.5,W*.75);
+ grad.addColorStop(0,"#191638");grad.addColorStop(1,"#080817");
+ ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
+
+ for(const s of stars){
+  ctx.globalAlpha=s.a;
+  ctx.fillStyle="#b9b5ff";
+  ctx.beginPath();ctx.arc(s.x,s.y,s.s,0,Math.PI*2);ctx.fill();
+  if(state==="playing"){
+   s.x-=speed*.025*(s.s/2);
+   if(s.x<0)s.x=W;
+  }
+ }
+ ctx.globalAlpha=1;
+
+ ctx.strokeStyle="#ffffff0b";ctx.lineWidth=1;
+ for(let y=0;y<H;y+=48){
+  ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
+ }
+}
+
+function drawObstacle(o){
+ const topH=o.gapY-o.gapH/2;
+ const bottomY=o.gapY+o.gapH/2;
+ ctx.save();
+ ctx.shadowBlur=17;ctx.shadowColor="#9b5cff";
+ const g=ctx.createLinearGradient(o.x,0,o.x+28,0);
+ g.addColorStop(0,"#6635c9");g.addColorStop(.5,"#c36bff");
+ g.addColorStop(1,"#6234c7");
+ ctx.fillStyle=g;
+ roundedRect(o.x,0,28,topH,7);ctx.fill();
+ roundedRect(o.x,bottomY,28,H-bottomY,7);ctx.fill();
+ ctx.shadowBlur=0;
+ ctx.fillStyle="#ffffff55";
+ ctx.fillRect(o.x+5,0,3,topH);
+ ctx.fillRect(o.x+5,bottomY,3,H-bottomY);
+ if(o.coin&&!o.coinTaken){
+  const pulse=1+Math.sin(elapsed*8+o.phase)*.12;
+  ctx.shadowBlur=18;ctx.shadowColor="#ffe36b";
+  ctx.fillStyle="#ffe36b";
+  ctx.beginPath();ctx.arc(o.x+14,o.gapY,9*pulse,0,Math.PI*2);ctx.fill();
+  ctx.shadowBlur=0;
+  ctx.fillStyle="#704400";
+  ctx.font="bold 12px system-ui";ctx.textAlign="center";
+  ctx.fillText("$",o.x+14,o.gapY+4);
+ }
+ ctx.restore();
+}
+
+function drawPlayer(){
+ const color=colors[selected];
+ for(let i=0;i<player.trail.length;i++){
+  const t=player.trail[i],a=(i+1)/player.trail.length;
+  ctx.globalAlpha=a*.22;
+  ctx.fillStyle=color;
+  ctx.beginPath();ctx.arc(t.x,t.y,player.r*a,0,Math.PI*2);ctx.fill();
+ }
+ ctx.globalAlpha=1;
+ ctx.save();
+ ctx.shadowBlur=25;ctx.shadowColor=color;
+ const g=ctx.createRadialGradient(player.x-4,player.y-5,1,player.x,player.y,player.r+5);
+ g.addColorStop(0,"#ffffff");g.addColorStop(.3,color);g.addColorStop(1,"#6135b9");
+ ctx.fillStyle=g;
+ ctx.beginPath();ctx.arc(player.x,player.y,player.r,0,Math.PI*2);ctx.fill();
+ ctx.restore();
+
+ ctx.fillStyle="#ffffff";
+ ctx.globalAlpha=.8;
+ ctx.beginPath();ctx.arc(player.x-3,player.y-4,3,0,Math.PI*2);ctx.fill();
+ ctx.globalAlpha=1;
+}
+
+function drawParticles(){
+ for(const p of particles){
+  ctx.globalAlpha=Math.max(0,p.life/p.max);
+  ctx.fillStyle=p.color;
+  ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();
+ }
+ ctx.globalAlpha=1;
+}
+
+function draw(){
+ ctx.save();
+ if(shake>0)ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
+ drawBackground();
+
+ if(state==="playing"||state==="paused"||state==="over"){
+  for(const o of obstacles)drawObstacle(o);
+  drawParticles();
+  if(state!=="over")drawPlayer();
+ }
+ if(flash>0){
+  ctx.fillStyle=`rgba(255,60,166,${flash*.35})`;
+  ctx.fillRect(0,0,W,H);
+ }
+ ctx.restore();
+}
+
+function loop(now){
+ const dt=Math.min((now-lastTime)/1000||0,.033);
+ lastTime=now;
+ if(state==="playing")update(dt);
+ draw();
+ requestAnimationFrame(loop);
+}
+
+function buildShop(){
+ $("skins").innerHTML="";
+ colors.forEach((c,i)=>{
+  const ownedSkin=owned.includes(i);
+  const b=document.createElement("button");
+  b.className="skin"+(selected===i?" selected":"");
+  const orb=document.createElement("div");
+  orb.className="orb";orb.style.color=c;
+  const name=document.createElement("div");
+  name.textContent=skinNames[i];
+  const price=document.createElement("div");
+  price.style.marginTop="6px";
+  price.textContent=ownedSkin?(selected===i?"محدد":"اختيار"):"🪙 "+skinPrices[i];
+  b.append(orb,name,price);
+  b.addEventListener("click",()=>{
+   if(owned.includes(i)){
+    selected=i;STORE.set("skin",selected);buildShop();sound(600);
+   }else if(coins>=skinPrices[i]){
+    coins-=skinPrices[i];owned.push(i);
+    selected=i;STORE.set("coins",coins);
+    STORE.set("owned",owned);STORE.set("skin",selected);
+    buildShop();updateHome();sound(850);
+   }else{
+    toast("عملاتك غير كافية!");
+   }
+  });
+  $("skins").appendChild(b);
+ });
+}
+
+let toastTimer;
+function toast(msg){
+ const t=$("toast");t.textContent=msg;t.style.opacity=1;
+ clearTimeout(toastTimer);
+ toastTimer=setTimeout(()=>t.style.opacity=0,1300);
+}
+
+$("play").onclick=start;
+$("again").onclick=start;
+$("restartPause").onclick=start;
+$("pause").onclick=pause;
+$("resume").onclick=resume;
+$("homePause").onclick=goHome;
+$("homeOver").onclick=goHome;
+$("openShop").onclick=()=>{buildShop();show("shop")};
+$("closeShop").onclick=()=>{show("home");updateHome()};
+$("help").onclick=()=>show("instructions");
+$("closeHelp").onclick=()=>{show("home");updateHome()};
+
+function handleInput(e){
+ if(e)e.preventDefault();
+ if(state==="playing")flip();
+}
+canvas.addEventListener("pointerdown",handleInput,{passive:false});
+window.addEventListener("keydown",e=>{
+ if(e.code==="Space"||e.code==="ArrowUp"){
+  e.preventDefault();handleInput(e);
+ }
+ if(e.code==="Escape"&&state==="playing")pause();
+});
+
+document.addEventListener("visibilitychange",()=>{
+ if(document.hidden&&state==="playing")pause();
+});
+
+updateHome();
+show("home");
+requestAnimationFrame(loop);
+
+})();
+</script>
 </body>
 </html>
