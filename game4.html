@@ -1,438 +1,254 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Bubble Blast Pro - By Osama</title>
-    <style>
-        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        
-        body { 
-            overflow: hidden; background: radial-gradient(circle at center, #1a1a2e 0%, #050510 100%); 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            touch-action: none; /* منع السكرول والزوم */
-            width: 100vw; height: 100vh;
-        }
-
-        #ui-layer {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; display: flex; flex-direction: column; justify-content: space-between;
-            padding: 15px; z-index: 10;
-        }
-
-        .top-ui { display: flex; justify-content: space-between; align-items: flex-start; }
-        
-        #score-board {
-            color: #fff; font-size: 20px; font-weight: 900; text-shadow: 0 0 10px #00ffff;
-            background: rgba(0,0,0,0.5); padding: 8px 15px; border-radius: 15px;
-            border: 1px solid rgba(0,255,255,0.3); backdrop-filter: blur(5px);
-        }
-        #score-board span { color: #00ffff; }
-
-        .next-bubble-ui {
-            display: flex; flex-direction: column; align-items: center; color: #fff; font-size: 10px; font-weight: bold;
-            background: rgba(0,0,0,0.5); padding: 5px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2);
-        }
-        #next-color-indicator { 
-            width: 25px; height: 25px; border-radius: 50%; margin-top: 5px; 
-            box-shadow: inset 0 0 10px rgba(255,255,255,0.5), 0 0 10px currentColor; 
-        }
-
-        .bottom-bar { display: flex; justify-content: space-between; width: 100%; pointer-events: auto; padding-bottom: 10px; }
-        .btn { 
-            padding: 10px 20px; font-size: 14px; font-weight: bold; background: rgba(255,255,255,0.1); 
-            color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; 
-            cursor: pointer; backdrop-filter: blur(5px); transition: transform 0.1s;
-        }
-        .btn:active { transform: scale(0.9); background: rgba(255,255,255,0.2); }
-
-        #credit { position: absolute; bottom: 10px; right: 15px; color: rgba(255,255,255,0.3); font-size: 11px; font-weight: bold; pointer-events: none; }
-        #credit strong { color: #ff00ff; }
-
-        .overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(10, 10, 21, 0.95); backdrop-filter: blur(10px);
-            display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 20; padding: 20px;
-        }
-        .overlay h1 { margin: 0 0 10px 0; font-size: 32px; font-weight: 900; color: #00ffff; text-shadow: 0 0 20px #00ffff; text-align: center;}
-        .overlay p { margin: 0 0 20px 0; color: #aaa; font-size: 16px; text-align: center;}
-        
-        .shop-item { 
-            width: 90%; max-width: 300px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 15px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;
-        }
-        .shop-item h3 { font-size: 14px; margin: 0; color: #fff; }
-        
-        #aim-line {
-            position: absolute; bottom: 60px; left: 50%; width: 4px; height: 300px;
-            background: linear-gradient(to top, rgba(0,255,255,0), rgba(0,255,255,0.8));
-            transform-origin: bottom center; pointer-events: none; z-index: 5;
-            display: none; border-radius: 2px;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>Gravity Inversion Bubble Shooter</title>
+<style>
+  body { margin:0; background:#0a0a14; display:flex; justify-content:center; align-items:center; height:100vh; font-family:monospace; color:#0ff; }
+  canvas { border:2px solid #0ff; box-shadow:0 0 30px #0ff8; }
+  #hud { position:absolute; top:10px; left:10px; font-size:14px; }
+</style>
 </head>
 <body>
+<div id="hud">Gravity: <span id="gdir">DOWN</span> | Next flip: <span id="timer">10</span>s</div>
+<canvas id="c" width="480" height="640"></canvas>
+<script>
+const c = document.getElementById('c'), ctx = c.getContext('2d');
+const COLS = 12, R = 20, ROW_H = Math.sqrt(3) * R;
+const W = c.width, H = c.height;
+const COLORS = ['#ff3366','#33ff88','#3399ff','#ffcc00','#cc33ff'];
 
-    <div id="ui-layer">
-        <div class="top-ui">
-            <div id="score-board">SCORE: <span id="score-val">0</span></div>
-            <div class="next-bubble-ui">NEXT <div id="next-color-indicator"></div></div>
-        </div>
-        
-        <div class="bottom-bar">
-            <button class="btn" onclick="openShop()">🛍️ SHOP</button>
-            <button class="btn" onclick="location.reload()">🔄 RESTART</button>
-        </div>
-    </div>
+let grid = [], shooter = {x: W/2, y: H - 40, angle: -Math.PI/2};
+let projectile = null;
+let gravityDir = 1;          // 1 = down, -1 = up
+let flipTimer = 10, lastFlip = performance.now();
+let score = 0;
 
-    <div id="credit">Programmed by <strong>Osama</strong></div>
-    <div id="aim-line"></div>
+// ---- init grid ----
+function initGrid() {
+  grid = [];
+  for (let r = 0; r < 8; r++) {
+    grid[r] = [];
+    for (let col = 0; col < COLS; col++) {
+      if (r % 2 === 0 || col < COLS - 1) {
+        grid[r][col] = { color: COLORS[(Math.random()*COLORS.length)|0], alive: true };
+      }
+    }
+  }
+}
+initGrid();
 
-    <!-- شاشة الفوز -->
-    <div id="win-screen" class="overlay">
-        <h1>LEVEL CLEAR!</h1>
-        <p>You popped them all.</p>
-        <button class="btn" style="background:#00ffff; color:#000; padding:15px 30px; font-size:18px;" onclick="location.reload()">PLAY AGAIN</button>
-    </div>
+// ---- geometry ----
+function cellPos(row, col) {
+  const x = col * (2*R) + R + (row % 2) * R;
+  const y = gravityDir === 1
+    ? row * ROW_H + R
+    : H - (row * ROW_H + R);
+  return {x, y};
+}
 
-    <!-- شاشة الخسارة -->
-    <div id="lose-screen" class="overlay">
-        <h1 style="color:#ff3333; text-shadow: 0 0 20px #ff3333;">GAME OVER</h1>
-        <p>The bubbles reached the bottom.</p>
-        <button class="btn" style="background:#ff3333; color:#fff; padding:15px 30px; font-size:18px;" onclick="location.reload()">TRY AGAIN</button>
-    </div>
+// ---- shooting ----
+c.addEventListener('mousemove', e => {
+  const rect = c.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  shooter.angle = Math.atan2(my - shooter.y, mx - shooter.x);
+  shooter.angle = Math.max(-Math.PI + 0.2, Math.min(-0.2, shooter.angle));
+});
+c.addEventListener('click', () => {
+  if (projectile) return;
+  const color = COLORS[(Math.random()*COLORS.length)|0];
+  projectile = {
+    x: shooter.x, y: shooter.y,
+    vx: Math.cos(shooter.angle) * 9,
+    vy: Math.sin(shooter.angle) * 9,
+    color
+  };
+});
 
-    <!-- المتجر -->
-    <div id="shop-screen" class="overlay">
-        <h1 style="color:#ffcc00; text-shadow: 0 0 20px #ffcc00;">SHOP</h1>
-        <p>Change bubble style</p>
-        
-        <div class="shop-item">
-            <div><h3>Default Style</h3></div>
-            <button class="btn" onclick="buyTheme('default')">SELECT</button>
-        </div>
-        <div class="shop-item">
-            <div><h3>Neon Glow</h3></div>
-            <button class="btn" onclick="buyTheme('neon')">SELECT</button>
-        </div>
-        <div class="shop-item">
-            <div><h3>Metallic</h3></div>
-            <button class="btn" onclick="buyTheme('metal')">SELECT</button>
-        </div>
+// ---- physics & collision ----
+function dist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
 
-        <button class="btn" style="margin-top: 20px; background: #ff3333; width: 80%;" onclick="closeShop()">CLOSE</button>
-    </div>
+function snapToGrid(p) {
+  let best = null, bestD = Infinity;
+  for (let r = 0; r < 20; r++) {
+    if (!grid[r]) grid[r] = [];
+    for (let col = 0; col < COLS; col++) {
+      if (grid[r][col]?.alive) continue;
+      const {x, y} = cellPos(r, col);
+      if (y < -R || y > H + R) continue;
+      const d = dist(p, {x, y});
+      if (d < bestD) { bestD = d; best = {r, col, x, y}; }
+    }
+  }
+  if (best && bestD < 2*R) {
+    if (!grid[best.r]) grid[best.r] = [];
+    grid[best.r][best.col] = { color: p.color, alive: true };
+    return best;
+  }
+  return null;
+}
 
-    <script type="importmap">
-        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
-    </script>
+function neighbors(r, col) {
+  const odd = r % 2;
+  return [
+    [r, col-1],[r, col+1],[r-1, col-1+odd],[r-1, col+odd],
+    [r+1, col-1+odd],[r+1, col+odd]
+  ].filter(([rr,cc]) => rr>=0 && cc>=0 && cc<COLS && grid[rr]?.[cc]?.alive);
+}
 
-    <script type="module">
-        import * as THREE from 'three';
+function popCluster(r, col, color) {
+  const stack = [[r,col]], seen = new Set(), cluster = [];
+  while (stack.length) {
+    const [rr,cc] = stack.pop();
+    const k = rr+','+cc;
+    if (seen.has(k)) continue;
+    seen.add(k);
+    if (grid[rr]?.[cc]?.alive && grid[rr][cc].color === color) {
+      cluster.push([rr,cc]);
+      for (const n of neighbors(rr,cc)) stack.push(n);
+    }
+  }
+  if (cluster.length >= 3) {
+    cluster.forEach(([rr,cc]) => grid[rr][cc].alive = false);
+    score += cluster.length * 10;
+    return true;
+  }
+  return false;
+}
 
-        // --- إعدادات المشهد ---
-        const scene = new THREE.Scene();
-        
-        // إعداد الكاميرا (تتعدل حسب مقاس الشاشة)
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 0, 25); 
+// ---- gravity inversion: drop floating bubbles ----
+function dropFloating() {
+  const anchored = new Set();
+  // anchor row is the one closest to "ceiling" (top if gravity down, bottom if up)
+  const startRow = gravityDir === 1 ? 0 : 7;
+  for (let col = 0; col < COLS; col++) {
+    if (grid[startRow]?.[col]?.alive) {
+      const stack = [[startRow,col]];
+      while (stack.length) {
+        const [r,cc] = stack.pop();
+        const k = r+','+cc;
+        if (anchored.has(k)) continue;
+        anchored.add(k);
+        for (const [rr,ccc] of neighbors(r,cc)) stack.push([rr,ccc]);
+      }
+    }
+  }
+  // any alive cell not in anchored set falls
+  for (let r = 0; r < grid.length; r++) {
+    if (!grid[r]) continue;
+    for (let col = 0; col < COLS; col++) {
+      const cell = grid[r][col];
+      if (cell?.alive && !anchored.has(r+','+col)) {
+        // fell off — simulate by removing and reapplying at opposite side
+        cell.alive = false;
+        // spawn a new one from opposite side (living inversion)
+        const newR = gravityDir === 1 ? 7 : 0;
+        for (let cc = 0; cc < COLS; cc++) {
+          if (!grid[newR]) grid[newR] = [];
+          if (!grid[newR][cc]?.alive) {
+            grid[newR][cc] = {color: cell.color, alive: true};
+            break;
+          }
+        }
+        score += 25;
+      }
+    }
+  }
+}
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // تحسين الأداء
-        document.body.appendChild(renderer.domElement);
+// ---- main loop ----
+function loop(now) {
+  // timer
+  if (now - lastFlip > 1000) {
+    lastFlip = now;
+    flipTimer--;
+    document.getElementById('timer').textContent = flipTimer;
+    if (flipTimer <= 0) {
+      flipTimer = 10;
+      gravityDir *= -1;
+      document.getElementById('gdir').textContent = gravityDir === 1 ? 'DOWN' : 'UP';
+      dropFloating();
+    }
+  }
 
-        // --- الإضاءة ---
-        scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-        const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
-        dirLight.position.set(5, 10, 10);
-        scene.add(dirLight);
-        const pointLight = new THREE.PointLight(0x00ffff, 1.5, 50);
-        pointLight.position.set(0, -10, 10);
-        scene.add(pointLight);
-
-        // --- المتغيرات الأساسية ---
-        const colors = [0xff3366, 0x33ff66, 0x3366ff, 0xffff33, 0xff33ff];
-        const bubbleRadius = 0.85;
-        const gridCols = 9; 
-        const gridRows = 8; 
-        const spacingX = bubbleRadius * 2;
-        const spacingY = bubbleRadius * Math.sqrt(3);
-
-        let bubbles = [];
-        let particles = [];
-        const bubbleGeo = new THREE.SphereGeometry(bubbleRadius, 32, 32);
-        let currentTheme = 'default';
-
-        // إنشاء فقاعة (Mesh)
-        function createBubbleMesh(colorIndex) {
-            let mat;
-            if (currentTheme === 'neon') {
-                mat = new THREE.MeshStandardMaterial({ color: colors[colorIndex], emissive: colors[colorIndex], emissiveIntensity: 0.8, roughness: 0.1 });
-            } else if (currentTheme === 'metal') {
-                mat = new THREE.MeshStandardMaterial({ color: colors[colorIndex], metalness: 0.9, roughness: 0.1 });
-            } else {
-                mat = new THREE.MeshStandardMaterial({ color: colors[colorIndex], roughness: 0.3, metalness: 0.1 });
+  // projectile
+  if (projectile) {
+    projectile.x += projectile.vx;
+    projectile.y += projectile.vy;
+    // wall bounce
+    if (projectile.x < R || projectile.x > W - R) projectile.vx *= -1;
+    // ceiling / floor
+    if (projectile.y < R || projectile.y > H - R) {
+      const hit = snapToGrid(projectile);
+      if (hit) popCluster(hit.r, hit.col, projectile.color);
+      projectile = null;
+    } else {
+      // collision with existing bubbles
+      for (let r = 0; r < grid.length; r++) {
+        if (!grid[r]) continue;
+        for (let col = 0; col < COLS; col++) {
+          if (grid[r][col]?.alive) {
+            const p = cellPos(r,col);
+            if (dist(projectile, p) < 2*R - 2) {
+              const hit = snapToGrid(projectile);
+              if (hit) popCluster(hit.r, hit.col, projectile.color);
+              projectile = null;
+              r = grid.length; break;
             }
-            return new THREE.Mesh(bubbleGeo, mat);
+          }
         }
+      }
+    }
+  }
 
-        // --- توليد الشبكة (Hex Grid) بدون تداخل ---
-        function initGrid() {
-            let startY = (gridRows * spacingY) / 2;
-            for (let row = 0; row < gridRows; row++) {
-                for (let col = 0; col < gridCols; col++) {
-                    // إزاحة الصفوف الفردية عشان ما تتداخل
-                    let offsetX = (row % 2 === 0) ? 0 : spacingX / 2;
-                    let x = (col * spacingX) - (gridCols * spacingX) / 2 + offsetX + (spacingX/2);
-                    let y = startY - (row * spacingY);
-                    
-                    if (Math.random() > 0.1) {
-                        let colorIndex = Math.floor(Math.random() * colors.length);
-                        let bubble = createBubbleMesh(colorIndex);
-                        bubble.position.set(x, y, 0);
-                        bubble.userData = { color: colorIndex, isGrid: true };
-                        scene.add(bubble);
-                        bubbles.push(bubble);
-                    }
-                }
-            }
-        }
+  // ---- render ----
+  ctx.fillStyle = '#0a0a14';
+  ctx.fillRect(0,0,W,H);
 
-        // --- اللاعب ---
-        let currentBubble;
-        let nextColor;
-        let isShooting = false;
-        let aimAngle = 0; 
+  // grid
+  for (let r = 0; r < grid.length; r++) {
+    if (!grid[r]) continue;
+    for (let col = 0; col < COLS; col++) {
+      const cell = grid[r][col];
+      if (!cell?.alive) continue;
+      const {x,y} = cellPos(r,col);
+      if (y < -R || y > H+R) continue;
+      ctx.beginPath();
+      ctx.arc(x, y, R-2, 0, Math.PI*2);
+      ctx.fillStyle = cell.color;
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+      ctx.stroke();
+    }
+  }
 
-        function setupPlayer() {
-            if (currentBubble) scene.remove(currentBubble);
-            let colorIndex = nextColor !== undefined ? nextColor : Math.floor(Math.random() * colors.length);
-            currentBubble = createBubbleMesh(colorIndex);
-            currentBubble.position.set(0, -11, 0);
-            currentBubble.userData = { color: colorIndex, isGrid: false };
-            scene.add(currentBubble);
+  // shooter
+  ctx.beginPath();
+  ctx.arc(shooter.x, shooter.y, R, 0, Math.PI*2);
+  ctx.fillStyle = '#fff';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(shooter.x, shooter.y);
+  ctx.lineTo(shooter.x + Math.cos(shooter.angle)*40, shooter.y + Math.sin(shooter.angle)*40);
+  ctx.strokeStyle = '#0ff';
+  ctx.stroke();
 
-            nextColor = Math.floor(Math.random() * colors.length);
-            updateNextColorUI();
-        }
+  // projectile
+  if (projectile) {
+    ctx.beginPath();
+    ctx.arc(projectile.x, projectile.y, R-2, 0, Math.PI*2);
+    ctx.fillStyle = projectile.color;
+    ctx.fill();
+  }
 
-        function updateNextColorUI() {
-            const hex = '#' + colors[nextColor].toString(16).padStart(6, '0');
-            const indicator = document.getElementById('next-color-indicator');
-            indicator.style.backgroundColor = hex;
-            indicator.style.boxShadow = `0 0 15px ${hex}, inset 0 0 10px rgba(255,255,255,0.5)`;
-        }
+  // score
+  ctx.fillStyle = '#0ff';
+  ctx.font = '14px monospace';
+  ctx.fillText('Score: ' + score, 10, 20);
 
-        // --- التصويب (سلس وسريع) ---
-        function handlePointerMove(e) {
-            if (isShooting) return;
-            let clientX = e.clientX || (e.touches && e.touches[0].clientX);
-            let clientY = e.clientY || (e.touches && e.touches[0].clientY);
-            if (clientX === undefined) return;
-
-            // حساب الزاوية باستخدام الرياضيات المباشرة (أسرع وأدق)
-            let rect = renderer.domElement.getBoundingClientRect();
-            let mouseX = clientX - rect.left;
-            let mouseY = clientY - rect.top;
-            
-            // نقطة انطلاق الفقاعة على الشاشة
-            let startX = rect.width / 2;
-            let startY = rect.height - 100; // تقريباً مكان الكورة تحت
-
-            let dx = mouseX - startX;
-            let dy = mouseY - startY;
-
-            // منع التصويب للأسفل
-            if (dy > -20) dy = -20; 
-
-            aimAngle = Math.atan2(dx, -dy); // الزاوية من المحور الصادي
-            
-            // تدوير الفقاعة الحالية
-            if(currentBubble) currentBubble.rotation.z = -aimAngle;
-            
-            // تحريك خط التصويب
-            const aimLine = document.getElementById('aim-line');
-            aimLine.style.display = 'block';
-            // نستخدم rotation بالسالب عشان RTL
-            aimLine.style.transform = `translateX(-50%) rotate(${aimAngle}rad)`;
-        }
-
-        document.addEventListener('mousemove', handlePointerMove);
-        document.addEventListener('touchmove', handlePointerMove, { passive: false });
-
-        function shootBubble() {
-            if (isShooting) return;
-            isShooting = true;
-            document.getElementById('aim-line').style.display = 'none';
-
-            let speed = 0.8; 
-            let vx = Math.sin(aimAngle) * speed;
-            let vy = Math.cos(aimAngle) * speed;
-
-            let shootInterval = setInterval(() => {
-                currentBubble.position.x += vx;
-                currentBubble.position.y += vy;
-
-                // ارتداد الجدران
-                let maxX = (gridCols * spacingX) / 2;
-                if (currentBubble.position.x > maxX) { currentBubble.position.x = maxX; vx = -vx; }
-                if (currentBubble.position.x < -maxX) { currentBubble.position.x = -maxX; vx = -vx; }
-
-                // فحص الاصطدام
-                for (let i = 0; i < bubbles.length; i++) {
-                    let b = bubbles[i];
-                    let dist = currentBubble.position.distanceTo(b.position);
-                    if (dist < bubbleRadius * 2) {
-                        clearInterval(shootInterval);
-                        snapBubble();
-                        return;
-                    }
-                }
-
-                // وصل للسقف
-                if (currentBubble.position.y > (gridRows * spacingY) / 2 + 5) {
-                    clearInterval(shootInterval);
-                    snapBubble();
-                }
-
-            }, 10);
-        }
-
-        document.addEventListener('mouseup', () => { if(!isShooting) shootBubble(); });
-        document.addEventListener('touchend', () => { if(!isShooting) shootBubble(); });
-
-        // تثبيت الفقاعة
-        function snapBubble() {
-            let newBubble = createBubbleMesh(currentBubble.userData.color);
-            newBubble.position.copy(currentBubble.position);
-            newBubble.userData = { color: currentBubble.userData.color, isGrid: true };
-            scene.add(newBubble);
-            bubbles.push(newBubble);
-            scene.remove(currentBubble);
-
-            checkMatches(newBubble);
-            
-            if (bubbles.length === 0) {
-                document.getElementById('win-screen').style.display = 'flex';
-                return;
-            }
-
-            // فحص الخسارة (إذا نزلت تحت خط معين)
-            let minY = (gridRows * spacingY) / 2 - (gridRows * spacingY) - 2;
-            if (newBubble.position.y < -8) {
-                document.getElementById('lose-screen').style.display = 'flex';
-                return;
-            }
-
-            setupPlayer();
-            isShooting = false;
-        }
-
-        function checkMatches(startBubble) {
-            let color = startBubble.userData.color;
-            let matches = [startBubble];
-            let queue = [startBubble];
-            let checked = new Set();
-            checked.add(startBubble);
-
-            while (queue.length > 0) {
-                let current = queue.shift();
-                for (let i = 0; i < bubbles.length; i++) {
-                    let b = bubbles[i];
-                    if (!checked.has(b) && b.userData.color === color) {
-                        if (b.position.distanceTo(current.position) < bubbleRadius * 2.3) {
-                            checked.add(b);
-                            matches.push(b);
-                            queue.push(b);
-                        }
-                    }
-                }
-            }
-
-            if (matches.length >= 3) {
-                matches.forEach(m => {
-                    createExplosion(m.position.x, m.position.y, colors[color]);
-                    scene.remove(m);
-                    let index = bubbles.indexOf(m);
-                    if (index > -1) bubbles.splice(index, 1);
-                });
-                
-                let scoreVal = document.getElementById('score-val');
-                scoreVal.innerText = parseInt(scoreVal.innerText) + (matches.length * 10);
-                
-                // اهتزاز الشاشة
-                renderer.domElement.style.transform = 'translate(2px, 2px)';
-                setTimeout(() => renderer.domElement.style.transform = 'translate(-2px, -2px)', 50);
-                setTimeout(() => renderer.domElement.style.transform = 'translate(0, 0)', 100);
-            }
-        }
-
-        function createExplosion(x, y, color) {
-            for (let i = 0; i < 8; i++) {
-                let pGeo = new THREE.SphereGeometry(0.15, 8, 8);
-                let pMat = new THREE.MeshBasicMaterial({ color: color });
-                let particle = new THREE.Mesh(pGeo, pMat);
-                particle.position.set(x, y, 0);
-                particle.userData = {
-                    vx: (Math.random() - 0.5) * 0.8,
-                    vy: (Math.random() - 0.5) * 0.8,
-                    life: 1.0
-                };
-                scene.add(particle);
-                particles.push(particle);
-            }
-        }
-
-        function updateParticles() {
-            for (let i = particles.length - 1; i >= 0; i--) {
-                let p = particles[i];
-                p.position.x += p.userData.vx;
-                p.position.y += p.userData.vy;
-                p.userData.life -= 0.05;
-                p.scale.set(p.userData.life, p.userData.life, p.userData.life);
-
-                if (p.userData.life <= 0) {
-                    scene.remove(p);
-                    particles.splice(i, 1);
-                }
-            }
-        }
-
-        function openShop() { document.getElementById('shop-screen').style.display = 'flex'; }
-        function closeShop() { document.getElementById('shop-screen').style.display = 'none'; }
-        
-        function buyTheme(theme) {
-            currentTheme = theme;
-            closeShop();
-            // إعادة بناء الكور بالشكل الجديد
-            bubbles.forEach(b => {
-                scene.remove(b);
-                let newMesh = createBubbleMesh(b.userData.color);
-                newMesh.position.copy(b.position);
-                newMesh.userData = b.userData;
-                scene.add(newMesh);
-            });
-            if(currentBubble) scene.remove(currentBubble);
-            setupPlayer();
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-            updateParticles();
-            renderer.render(scene, camera);
-        }
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        initGrid();
-        setupPlayer();
-        animate();
-
-    </script>
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
 </body>
 </html>
