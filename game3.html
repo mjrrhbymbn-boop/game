@@ -1,319 +1,244 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Color Quest - تصميم محسن</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Color Sort - By Osama</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap');
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Tajawal', sans-serif;
-            user-select: none;
+        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+        body { 
+            margin: 0; padding: 0; overflow: hidden; background: #0a0915;
+            background: linear-gradient(180deg, #0a0915 0%, #1a1025 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100vh; color: white; touch-action: none;
         }
 
-        body {
-            /* خلفية متدرجة جميلة بدلاً من اللون السادة */
-            background: radial-gradient(circle at top, #1e1b4b 0%, #0f172a 50%, #020617 100%);
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow: hidden;
+        #game-container { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        
+        .top-bar {
+            position: absolute; top: 20px; width: 100%; display: flex; justify-content: space-between; padding: 0 20px;
+            font-size: 18px; font-weight: bold; color: #ccc;
+        }
+        .top-bar div { background: rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); }
+        
+        .level-title { position: absolute; top: 70px; font-size: 24px; font-weight: 900; letter-spacing: 2px; color: #e0e0e0; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+
+        #tubes-container {
+            display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-end;
+            gap: 15px; max-width: 380px; margin-top: 50px;
         }
 
-        .game-container {
-            width: 100%;
-            max-width: 450px;
-            height: 100vh;
-            max-height: 850px;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-        }
-
-        /* --- لوحة المعلومات العلوية --- */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .title-area {
-            text-align: right;
-        }
-
-        .title-area h1 {
-            font-size: 24px;
-            font-weight: 900;
-            background: linear-gradient(to right, #a78bfa, #818cf8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .title-area p {
-            font-size: 12px;
-            color: #94a3b8;
-        }
-
-        .coins {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 8px 15px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: bold;
-            color: #fbbf24;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        /* --- بطاقة المستوى --- */
-        .level-card {
-            background: rgba(30, 41, 59, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            backdrop-filter: blur(10px);
-            margin-bottom: 30px;
-        }
-
-        .level-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .level-header h2 {
-            font-size: 28px;
-            font-weight: 900;
-        }
-
-        .level-header span {
-            color: #94a3b8;
-            font-size: 14px;
-        }
-
-        /* شريط التقدم */
-        .progress-bar {
-            width: 100%;
-            height: 6px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-            margin-bottom: 20px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            width: 40%;
-            height: 100%;
-            background: linear-gradient(to right, #818cf8, #c084fc);
-            border-radius: 10px;
-        }
-
-        /* الإحصائيات */
-        .stats {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-        }
-
-        .stat-box {
-            flex: 1;
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 15px;
-            padding: 10px;
-            text-align: center;
-        }
-
-        .stat-box .value {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .stat-box .label {
-            font-size: 12px;
-            color: #94a3b8;
-        }
-
-        /* --- منطقة اللعب (الأنابيب) --- */
-        .play-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .instruction {
-            font-size: 14px;
-            color: #e2e8f0;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .tubes-container {
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        /* تصميم الأنبوب */
         .tube {
-            width: 65px;
-            height: 240px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-top: none;
-            border-radius: 0 0 30px 30px;
-            position: relative;
-            display: flex;
-            flex-direction: column-reverse; /* الكرات تبدأ من الأسفل */
-            align-items: center;
-            padding-bottom: 5px;
-            box-shadow: inset 0 0 15px rgba(255,255,255,0.1), 0 10px 20px rgba(0,0,0,0.3);
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .tube:hover {
-            transform: translateY(-5px);
-        }
-
-        /* الحافة العلوية للأنبوب */
-        .tube::before {
-            content: '';
-            position: absolute;
-            top: -4px;
-            left: -2px;
-            right: -2px;
-            height: 8px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            box-shadow: 0 0 10px rgba(255,255,255,0.3);
-        }
-
-        /* الكرات */
-        .ball {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            margin-bottom: 4px;
-            box-shadow: inset -5px -5px 10px rgba(0,0,0,0.3), inset 5px 5px 10px rgba(255,255,255,0.4);
-            transition: all 0.3s ease;
-            position: relative;
+            width: 65px; height: 220px; border: 3px solid rgba(255,255,255,0.3);
+            border-top: none; border-radius: 0 0 30px 30px; position: relative;
+            background: rgba(0,0,0,0.3); backdrop-filter: blur(5px);
+            display: flex; flex-direction: column-reverse; padding: 3px; overflow: hidden;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.8), 0 10px 20px rgba(0,0,0,0.5);
+            cursor: pointer; transition: transform 0.2s;
         }
         
-        /* لمعان الكرة */
-        .ball::after {
-            content: '';
-            position: absolute;
-            top: 8px;
-            left: 10px;
-            width: 12px;
-            height: 12px;
-            background: rgba(255,255,255,0.6);
-            border-radius: 50%;
-            filter: blur(2px);
+        /* حافة الأنبوب العلوية */
+        .tube::before {
+            content: ''; position: absolute; top: -3px; left: -3px; right: -3px; height: 10px;
+            border: 3px solid rgba(255,255,255,0.5); border-radius: 50%; z-index: 5;
         }
 
-        /* ألوان الكرات */
-        .red { background: radial-gradient(circle at 30% 30%, #f87171, #dc2626); }
-        .yellow { background: radial-gradient(circle at 30% 30%, #fde047, #ca8a04); }
-        .cyan { background: radial-gradient(circle at 30% 30%, #67e8f9, #0891b2); }
+        .tube.selected { transform: translateY(-20px); border-color: rgba(0, 255, 255, 0.8); box-shadow: inset 0 0 15px rgba(0, 255, 255, 0.3), 0 15px 25px rgba(0,0,0,0.6); }
+        .tube.selected::before { border-color: rgba(0, 255, 255, 0.8); }
 
+        .liquid {
+            width: 100%; flex: 0 0 45px; border-radius: 5px; margin-top: 2px;
+            box-shadow: inset 0 5px 10px rgba(255,255,255,0.3), inset 0 -5px 10px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+        }
+
+        .overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 9, 21, 0.95); display: none; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 20;
+        }
+        .overlay h1 { margin: 0 0 10px 0; font-size: 42px; font-weight: 900; color: #00ffff; text-shadow: 0 0 20px #00ffff; }
+        .overlay p { margin: 0 0 30px 0; color: #aaa; font-size: 18px; }
+        button { padding: 12px 30px; font-size: 18px; font-weight: bold; background: #00ffff; color: #000; border: none; border-radius: 30px; cursor: pointer; box-shadow: 0 0 20px rgba(0,255,255,0.5); }
+
+        #credit { position: absolute; bottom: 15px; font-size: 14px; color: rgba(255,255,255,0.4); font-weight: bold; }
+        #credit strong { color: #00ffff; }
     </style>
 </head>
 <body>
 
-    <div class="game-container">
-        <!-- لوحة المعلومات -->
-        <div class="header">
-            <div class="coins">
-                <span>🪙</span>
-                <span>140</span>
-            </div>
-            <div class="title-area">
-                <h1>Color Quest</h1>
-                <p>رحلة فرز الألوان</p>
-            </div>
+    <div id="game-container">
+        <div class="top-bar">
+            <div>Moves: <span id="moves">0</span></div>
+            <div>Best: <span id="best">-</span></div>
+        </div>
+        
+        <div class="level-title">LEVEL <span id="level">1</span></div>
+
+        <div id="tubes-container"></div>
+
+        <div id="win-screen" class="overlay">
+            <h1>LEVEL CLEARED!</h1>
+            <p>You sorted the colors.</p>
+            <button onclick="nextLevel()">NEXT LEVEL</button>
         </div>
 
-        <div class="level-card">
-            <div class="level-header">
-                <div>
-                    <h2>المستوى 2</h2>
-                    <span>بداية الرحلة</span>
-                </div>
-                <span>تحديك الحالي</span>
-            </div>
-            
-            <div class="progress-bar">
-                <div class="progress-fill"></div>
-            </div>
-
-            <div class="stats">
-                <div class="stat-box">
-                    <div class="value">0</div>
-                    <div class="label">الحركات</div>
-                </div>
-                <div class="stat-box">
-                    <div class="value">00:04</div>
-                    <div class="label">الوقت</div>
-                </div>
-                <div class="stat-box">
-                    <div class="value">—</div>
-                    <div class="label">أفضل حركات</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- منطقة اللعب -->
-        <div class="play-area">
-            <div class="instruction">
-                <span>✨</span> رتب كل لون في قارورة مستقلة
-            </div>
-
-            <div class="tubes-container">
-                <!-- الأنبوب 1 -->
-                <div class="tube">
-                    <div class="ball yellow"></div>
-                    <div class="ball yellow"></div>
-                    <div class="ball yellow"></div>
-                    <div class="ball red"></div>
-                </div>
-                <!-- الأنبوب 2 -->
-                <div class="tube">
-                    <div class="ball cyan"></div>
-                    <div class="ball cyan"></div>
-                    <div class="ball cyan"></div>
-                    <div class="ball yellow"></div>
-                </div>
-                <!-- الأنبوب 3 -->
-                <div class="tube">
-                    <div class="ball red"></div>
-                    <div class="ball red"></div>
-                    <div class="ball red"></div>
-                    <div class="ball cyan"></div>
-                </div>
-                <!-- الأنبوب الفارغ (تم تعديل حجمه ليكون متناسقاً) -->
-                <div class="tube"></div>
-            </div>
-        </div>
+        <div id="credit">Programmed by <strong>Osama</strong></div>
     </div>
 
+    <script>
+        const colors = ['#ff3366', '#ff9933', '#ffff33', '#33ff99', '#33ccff', '#cc33ff', '#ff3333', '#33ff33'];
+        const container = document.getElementById('tubes-container');
+        const movesLabel = document.getElementById('moves');
+        const levelLabel = document.getElementById('level');
+        
+        let tubes = [];
+        let moves = 0;
+        let selectedTube = null;
+        let currentLevel = 1;
+        let isAnimating = false;
+
+        // إعدادات المرحلة
+        function setupLevel() {
+            container.innerHTML = '';
+            tubes = [];
+            moves = 0;
+            movesLabel.innerText = moves;
+            selectedTube = null;
+            levelLabel.innerText = currentLevel;
+            document.getElementById('win-screen').style.display = 'none';
+
+            // عدد الألوان والأنابيب (يزيد مع المستوى)
+            let numColors = Math.min(3 + currentLevel, 8); 
+            let emptyTubes = 2;
+            
+            // توليد الألوان
+            let levelColors = [];
+            for(let i=0; i<numColors; i++) {
+                levelColors.push(colors[i]);
+                levelColors.push(colors[i]);
+                levelColors.push(colors[i]);
+                levelColors.push(colors[i]); // 4 طبقات من كل لون
+            }
+
+            // خلط الألوان
+            levelColors.sort(() => Math.random() - 0.5);
+
+            // توزيع الألوان على الأنابيب
+            for (let i = 0; i < numColors; i++) {
+                let tubeData = levelColors.slice(i * 4, (i + 1) * 4);
+                tubes.push(tubeData);
+            }
+            // إضافة الأنابيب الفارغة
+            for (let i = 0; i < emptyTubes; i++) {
+                tubes.push([]);
+            }
+
+            renderTubes();
+        }
+
+        function renderTubes() {
+            container.innerHTML = '';
+            tubes.forEach((tubeData, index) => {
+                let tubeEl = document.createElement('div');
+                tubeEl.className = 'tube';
+                if (selectedTube === index) tubeEl.classList.add('selected');
+                
+                // رسم السوائل
+                tubeData.forEach(colorHex => {
+                    let liquid = document.createElement('div');
+                    liquid.className = 'liquid';
+                    liquid.style.backgroundColor = colorHex;
+                    tubeEl.appendChild(liquid);
+                });
+
+                tubeEl.onclick = () => handleTubeClick(index);
+                container.appendChild(tubeEl);
+            });
+        }
+
+        function handleTubeClick(index) {
+            if (isAnimating) return;
+
+            if (selectedTube === null) {
+                // اختيار أنبوب
+                if (tubes[index].length > 0) {
+                    selectedTube = index;
+                    renderTubes();
+                }
+            } else if (selectedTube === index) {
+                // إلغاء الاختيار
+                selectedTube = null;
+                renderTubes();
+            } else {
+                // محاولة النقل
+                let fromTube = tubes[selectedTube];
+                let toTube = tubes[index];
+
+                if (toTube.length >= 4) {
+                    // الأنبوب ممتلئ
+                    selectedTube = null;
+                    renderTubes();
+                    return;
+                }
+
+                let colorToMove = fromTube[fromTube.length - 1];
+                
+                // التحقق من إمكانية النقل (إما فارغ أو نفس اللون)
+                if (toTube.length === 0 || toTube[toTube.length - 1] === colorToMove) {
+                    // نقل السوائل
+                    let count = 0;
+                    // عد السوائل المتتالية بنفس اللون
+                    for (let i = fromTube.length - 1; i >= 0; i--) {
+                        if (fromTube[i] === colorToMove && toTube.length + count < 4) {
+                            count++;
+                        } else {
+                            break;
+                        }
+                    }
+
+                    // تنفيذ النقل
+                    for (let i = 0; i < count; i++) {
+                        toTube.push(fromTube.pop());
+                    }
+
+                    moves++;
+                    movesLabel.innerText = moves;
+                    selectedTube = null;
+                    renderTubes();
+                    checkWin();
+                } else {
+                    // حركة خاطئة
+                    selectedTube = null;
+                    renderTubes();
+                }
+            }
+        }
+
+        function checkWin() {
+            let isWin = true;
+            for (let tube of tubes) {
+                if (tube.length > 0) {
+                    // لازم يكون 4 من نفس اللون
+                    if (tube.length !== 4 || new Set(tube).size !== 1) {
+                        isWin = false;
+                        break;
+                    }
+                }
+            }
+            if (isWin) {
+                document.getElementById('win-screen').style.display = 'flex';
+            }
+        }
+
+        function nextLevel() {
+            currentLevel++;
+            setupLevel();
+        }
+
+        // بدء اللعبة
+        setupLevel();
+    </script>
 </body>
 </html>
