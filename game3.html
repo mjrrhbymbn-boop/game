@@ -1,800 +1,319 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="theme-color" content="#080d1b">
-<title>Color Quest Ultimate</title>
-<style>
-:root{
---bg:#070b19;
---panel:#111a31;
---line:#34466b;
---purple:#916aff;
---cyan:#38e5ff;
---gold:#ffd45c;
---tubeW:65px;
---tubeH:205px;
-}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{
-margin:0;min-height:100svh;color:#fff;
-font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;
-background:
-radial-gradient(ellipse at 50% 0%,#30266c 0%,transparent 38%),
-radial-gradient(ellipse at 100% 65%,#103653 0%,transparent 38%),
-#070b19;
-}
-button{font:inherit;color:inherit;border:0;cursor:pointer;touch-action:manipulation}
-.app{
-width:min(100%,760px);margin:auto;min-height:100svh;
-padding:env(safe-area-inset-top) 13px calc(20px + env(safe-area-inset-bottom));
-display:flex;flex-direction:column;
-}
-.topbar{display:flex;justify-content:space-between;align-items:center;padding:13px 3px}
-.brand{display:flex;align-items:center;gap:10px;font-size:21px;font-weight:950}
-.logo{
-width:44px;height:44px;border-radius:16px;display:grid;place-items:center;
-background:linear-gradient(145deg,#b49aff,#6244db);
-box-shadow:0 0 25px #7959ff66;font-size:24px
-}
-.actions{display:flex;gap:8px}
-.icon-btn{
-width:43px;height:43px;border-radius:15px;
-background:linear-gradient(145deg,#1c2a49,#101a30);
-border:1px solid #52668d;font-size:19px;
-box-shadow:0 5px 15px #0005
-}
-.hero{
-padding:17px;border-radius:25px;
-background:linear-gradient(145deg,#1d2b4b,#111a31);
-border:1px solid #455b85;
-box-shadow:0 15px 35px #0005,inset 0 1px #ffffff17;
-}
-.hero-top{display:flex;justify-content:space-between;align-items:center}
-.small{font-size:12px;color:#aebbd5}
-.level{font-size:27px;font-weight:950}
-.coins{font-size:24px;font-weight:900;color:var(--gold)}
-.progress{
-height:9px;background:#080e20;border-radius:20px;
-margin:14px 0;overflow:hidden;border:1px solid #283b60
-}
-.progress div{
-height:100%;width:0%;
-background:linear-gradient(90deg,#7957ff,#39e6ff);
-border-radius:20px;transition:.3s
-}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
-.stat{
-padding:10px 4px;text-align:center;border-radius:17px;
-background:#0b1429;border:1px solid #34466b
-}
-.stat b{font-size:18px;display:block}
-.stat span{font-size:11px;color:#aebbd5}
-.game-area{flex:1;display:flex;flex-direction:column;justify-content:center;padding:22px 0}
-.instruction{text-align:center;color:#c4cce0;font-size:14px;margin:0 0 24px}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Quest - تصميم محسن</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap');
 
-/* شبكة الأنابيب */
-.board{
-display:grid;
-grid-template-columns:repeat(var(--cols,4),var(--tubeW));
-justify-content:center;
-align-items:end;
-gap:clamp(17px,4vw,28px) clamp(13px,4vw,25px);
-padding:12px 0 20px;
-}
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Tajawal', sans-serif;
+            user-select: none;
+        }
 
-/* تصميم القارورة الزجاجية الجديدة */
-.tube{
-width:var(--tubeW);
-height:var(--tubeH);
-position:relative;
-border:3px solid rgba(164,191,255,.55);
-border-top:5px solid rgba(221,237,255,.85);
-border-radius:20px 20px 36px 36px;
-background:
-linear-gradient(90deg,
-rgba(255,255,255,.18) 0%,
-rgba(110,160,255,.035) 16%,
-rgba(255,255,255,.025) 50%,
-rgba(255,255,255,.14) 90%,
-rgba(255,255,255,.03) 100%);
-box-shadow:
-inset 5px 0 9px #ffffff12,
-inset -5px 0 9px #ffffff12,
-inset 0 -12px 18px #6c8fff18,
-0 10px 24px #0007,
-0 0 13px #629bff25;
-display:flex;
-flex-direction:column-reverse;
-align-items:center;
-justify-content:flex-start;
-gap:4px;
-padding:7px 4px 9px;
-overflow:visible;
-transition:transform .2s,filter .2s;
-}
+        body {
+            /* خلفية متدرجة جميلة بدلاً من اللون السادة */
+            background: radial-gradient(circle at top, #1e1b4b 0%, #0f172a 50%, #020617 100%);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
 
-/* فوهة القارورة */
-.tube:before{
-content:"";
-position:absolute;
-top:-8px;
-left:-5px;
-right:-5px;
-height:13px;
-border-radius:50%;
-background:linear-gradient(180deg,#e9f4ff,#667aab 45%,#172440 75%);
-border:3px solid #b7d2ff;
-box-shadow:
-0 0 9px #9cbfff88,
-inset 0 2px 4px #fff;
-z-index:4;
-}
+        .game-container {
+            width: 100%;
+            max-width: 450px;
+            height: 100vh;
+            max-height: 850px;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
 
-/* قاعدة القارورة */
-.tube:after{
-content:"";
-position:absolute;
-bottom:-8px;
-left:15%;
-width:70%;
-height:11px;
-border-radius:50%;
-border:2px solid #8faeff;
-background:linear-gradient(90deg,#17284d,#b6d8ff,#182a50);
-box-shadow:0 5px 12px #527eff55;
-z-index:-1;
-}
+        /* --- لوحة المعلومات العلوية --- */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
 
-/* الانعكاس الزجاجي */
-.tube .glass-shine{
-position:absolute;
-left:6px;
-top:17px;
-bottom:17px;
-width:4px;
-border-radius:10px;
-background:linear-gradient(180deg,transparent,#ffffff70,transparent);
-pointer-events:none;
-z-index:3;
-}
+        .title-area {
+            text-align: right;
+        }
 
-.tube.selected{
-transform:translateY(-13px) scale(1.035);
-border-color:#c7a8ff;
-box-shadow:
-0 0 0 3px #946aff44,
-0 0 25px #946aff88,
-inset 5px 0 9px #ffffff22,
-0 10px 25px #0008;
-}
+        .title-area h1 {
+            font-size: 24px;
+            font-weight: 900;
+            background: linear-gradient(to right, #a78bfa, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-.tube.target{
-border-color:#3dffff;
-box-shadow:0 0 22px #38e5ff99;
-}
+        .title-area p {
+            font-size: 12px;
+            color: #94a3b8;
+        }
 
-.tube.shake{animation:shake .3s}
+        .coins {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: bold;
+            color: #fbbf24;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
 
-/* الكرات الزجاجية */
-.ball{
-width:91%;
-flex:1 1 0;
-min-height:12px;
-max-height:43px;
-position:relative;
-border-radius:50%;
-box-shadow:
-inset -7px -8px 12px #0005,
-inset 5px 5px 9px #ffffff75,
-inset 0 0 8px #ffffff22,
-0 4px 8px #0006;
-animation:ballPop .2s ease-out;
-z-index:1;
-}
+        /* --- بطاقة المستوى --- */
+        .level-card {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+            margin-bottom: 30px;
+        }
 
-.ball:before{
-content:"";
-position:absolute;
-width:35%;
-height:21%;
-top:12%;
-left:19%;
-background:linear-gradient(90deg,#ffffffb9,#ffffff20);
-border-radius:50%;
-filter:blur(1px);
-transform:rotate(-35deg);
-}
+        .level-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
 
-.ball:after{
-content:"";
-position:absolute;
-width:13%;
-height:13%;
-top:19%;
-left:56%;
-background:#ffffffa0;
-border-radius:50%;
-filter:blur(2px);
-}
+        .level-header h2 {
+            font-size: 28px;
+            font-weight: 900;
+        }
 
-/* أزرار التحكم */
-.controls{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
-.action{
-min-height:67px;
-border-radius:20px;
-background:linear-gradient(145deg,#1e3154,#101b34);
-border:1px solid #435a86;
-box-shadow:0 6px 15px #0005,inset 0 1px #ffffff15;
-display:flex;flex-direction:column;align-items:center;justify-content:center;
-gap:4px;font-size:23px;
-}
-.action span{font-size:11px;color:#d3dcef;font-weight:700}
-.action:disabled{opacity:.3}
-.primary{
-width:100%;margin-top:12px;min-height:55px;
-border-radius:18px;
-background:linear-gradient(100deg,#7957f6,#4a5fe9);
-font-weight:900;font-size:17px;
-box-shadow:0 8px 25px #624fff55;
-}
-.bottom-note{text-align:center;color:#7f91b4;font-size:11px;padding:15px 0}
+        .level-header span {
+            color: #94a3b8;
+            font-size: 14px;
+        }
 
-.toast{
-position:fixed;z-index:50;bottom:35px;left:50%;
-transform:translate(-50%,20px);opacity:0;
-background:#f2f4ff;color:#18213a;padding:12px 20px;
-border-radius:30px;font-weight:800;transition:.2s;
-white-space:nowrap;pointer-events:none;
-}
-.toast.show{opacity:1;transform:translate(-50%,0)}
+        /* شريط التقدم */
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
 
-.modal{
-position:fixed;inset:0;background:#020617d9;backdrop-filter:blur(10px);
-display:none;align-items:center;justify-content:center;
-padding:20px;z-index:60
-}
-.modal.show{display:flex}
-.dialog{
-width:min(100%,390px);padding:24px;text-align:center;
-border-radius:25px;border:1px solid #586da1;
-background:linear-gradient(145deg,#26365e,#111a32);
-box-shadow:0 20px 70px #0009;
-}
-.dialog h2{font-size:25px}
-.dialog p{color:#c3cde0;line-height:1.8;font-size:14px}
-.secondary{
-width:100%;margin-top:9px;padding:13px;
-border-radius:15px;background:#263958;border:1px solid #455a7f
-}
-.confetti{
-position:fixed;top:-15px;width:8px;height:13px;z-index:90;
-animation:fall 1.8s linear forwards;pointer-events:none
-}
-@keyframes ballPop{from{transform:scale(.65)}to{transform:scale(1)}}
-@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
-@keyframes fall{to{transform:translateY(110vh) rotate(650deg);opacity:.2}}
+        .progress-fill {
+            width: 40%;
+            height: 100%;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            border-radius: 10px;
+        }
 
-@media(max-width:390px){
-:root{--tubeW:53px;--tubeH:175px}
-.app{padding-left:10px;padding-right:10px}
-.board{gap:17px 12px}
-.brand{font-size:18px}
-}
-@media(min-width:600px){
-:root{--tubeW:72px;--tubeH:225px}
-.board{gap:25px 30px}
-}
-@media(max-height:720px){
-:root{--tubeH:150px}
-.game-area{padding:10px 0}
-.hero{padding:12px}
-}
-@media(prefers-reduced-motion:reduce){
-*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}
-}
-</style>
+        /* الإحصائيات */
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .stat-box {
+            flex: 1;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .stat-box .value {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-box .label {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        /* --- منطقة اللعب (الأنابيب) --- */
+        .play-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .instruction {
+            font-size: 14px;
+            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .tubes-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        /* تصميم الأنبوب */
+        .tube {
+            width: 65px;
+            height: 240px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-top: none;
+            border-radius: 0 0 30px 30px;
+            position: relative;
+            display: flex;
+            flex-direction: column-reverse; /* الكرات تبدأ من الأسفل */
+            align-items: center;
+            padding-bottom: 5px;
+            box-shadow: inset 0 0 15px rgba(255,255,255,0.1), 0 10px 20px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .tube:hover {
+            transform: translateY(-5px);
+        }
+
+        /* الحافة العلوية للأنبوب */
+        .tube::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -2px;
+            right: -2px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(255,255,255,0.3);
+        }
+
+        /* الكرات */
+        .ball {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            margin-bottom: 4px;
+            box-shadow: inset -5px -5px 10px rgba(0,0,0,0.3), inset 5px 5px 10px rgba(255,255,255,0.4);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        /* لمعان الكرة */
+        .ball::after {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 10px;
+            width: 12px;
+            height: 12px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 50%;
+            filter: blur(2px);
+        }
+
+        /* ألوان الكرات */
+        .red { background: radial-gradient(circle at 30% 30%, #f87171, #dc2626); }
+        .yellow { background: radial-gradient(circle at 30% 30%, #fde047, #ca8a04); }
+        .cyan { background: radial-gradient(circle at 30% 30%, #67e8f9, #0891b2); }
+
+    </style>
 </head>
-
 <body>
-<div class="app">
 
-<header class="topbar">
-<div class="brand">
-<div class="logo">🫧</div>
-<div>Color <span style="color:#ae91ff">Quest</span>
-<div class="small">رحلة فرز الألوان</div></div>
-</div>
-<div class="actions">
-<button class="icon-btn" id="soundBtn">🔊</button>
-<button class="icon-btn" id="settingsBtn">⚙️</button>
-</div>
-</header>
+    <div class="game-container">
+        <!-- لوحة المعلومات -->
+        <div class="header">
+            <div class="coins">
+                <span>🪙</span>
+                <span>140</span>
+            </div>
+            <div class="title-area">
+                <h1>Color Quest</h1>
+                <p>رحلة فرز الألوان</p>
+            </div>
+        </div>
+
+        <div class="level-card">
+            <div class="level-header">
+                <div>
+                    <h2>المستوى 2</h2>
+                    <span>بداية الرحلة</span>
+                </div>
+                <span>تحديك الحالي</span>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="value">0</div>
+                    <div class="label">الحركات</div>
+                </div>
+                <div class="stat-box">
+                    <div class="value">00:04</div>
+                    <div class="label">الوقت</div>
+                </div>
+                <div class="stat-box">
+                    <div class="value">—</div>
+                    <div class="label">أفضل حركات</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- منطقة اللعب -->
+        <div class="play-area">
+            <div class="instruction">
+                <span>✨</span> رتب كل لون في قارورة مستقلة
+            </div>
+
+            <div class="tubes-container">
+                <!-- الأنبوب 1 -->
+                <div class="tube">
+                    <div class="ball yellow"></div>
+                    <div class="ball yellow"></div>
+                    <div class="ball yellow"></div>
+                    <div class="ball red"></div>
+                </div>
+                <!-- الأنبوب 2 -->
+                <div class="tube">
+                    <div class="ball cyan"></div>
+                    <div class="ball cyan"></div>
+                    <div class="ball cyan"></div>
+                    <div class="ball yellow"></div>
+                </div>
+                <!-- الأنبوب 3 -->
+                <div class="tube">
+                    <div class="ball red"></div>
+                    <div class="ball red"></div>
+                    <div class="ball red"></div>
+                    <div class="ball cyan"></div>
+                </div>
+                <!-- الأنبوب الفارغ (تم تعديل حجمه ليكون متناسقاً) -->
+                <div class="tube"></div>
+            </div>
+        </div>
+    </div>
 
-<section class="hero">
-<div class="hero-top">
-<div>
-<div class="small">تحدّيك الحالي</div>
-<div class="level">المستوى <b id="levelNum">1</b></div>
-<div class="small" id="difficulty">بداية الرحلة</div>
-</div>
-<div>
-<div class="small">🪙 رصيدك</div>
-<div class="coins" id="coins">120</div>
-</div>
-</div>
-<div class="progress"><div id="progress"></div></div>
-<div class="stats">
-<div class="stat"><b id="moves">0</b><span>الحركات</span></div>
-<div class="stat"><b id="timer">00:00</b><span>الوقت</span></div>
-<div class="stat"><b id="best">—</b><span>أفضل حركات</span></div>
-</div>
-</section>
-
-<main class="game-area">
-<p class="instruction" id="instruction">رتّب كل لون في قارورة مستقلة ✨</p>
-<div class="board" id="board"></div>
-</main>
-
-<div class="controls">
-<button class="action" id="undoBtn">↶<span>تراجع</span></button>
-<button class="action" id="hintBtn">💡<span>تلميح · 10</span></button>
-<button class="action" id="extraBtn">🧪<span>قارورة · 35</span></button>
-<button class="action" id="restartBtn">⟳<span>إعادة</span></button>
-</div>
-
-<button class="primary" id="nextBtn" style="display:none">المستوى التالي ←</button>
-<div class="bottom-note">Color Quest Ultimate · اجمع الألوان وحقق أعلى النتائج</div>
-</div>
-
-<div class="toast" id="toast"></div>
-<div class="modal" id="modal"><div class="dialog" id="dialog"></div></div>
-
-<script>
-(()=>{
-'use strict';
-
-const $=id=>document.getElementById(id);
-const palette=[
-'#ff4f78','#27dafa','#ffd13d','#a66aff',
-'#39df86','#ff914d','#f26ad1','#699cff',
-'#b8e64c','#b58a75'
-];
-
-let level=1,coins=120,tubes=[],selected=-1,moves=0;
-let history=[],extraUsed=false,won=false;
-let startedAt=0,elapsed=0,tick=null,sound=true,best={};
-
-const KEY='colorQuestUltimate_v2';
-
-function save(){
-try{
-localStorage.setItem(KEY,JSON.stringify({
-level,coins,tubes,moves,history:history.slice(-30),
-extraUsed,elapsed,best,sound
-}));
-}catch(e){}
-}
-
-function load(){
-try{
-const s=JSON.parse(localStorage.getItem(KEY)||'{}');
-level=s.level||1;
-coins=s.coins??120;
-best=s.best||{};
-sound=s.sound!==false;
-if(s.tubes){
-tubes=s.tubes;
-moves=s.moves||0;
-history=s.history||[];
-elapsed=s.elapsed||0;
-extraUsed=!!s.extraUsed;
-}
-}catch(e){}
-}
-
-function colorsCount(){
-return Math.min(10,3+Math.floor((level-1)/3));
-}
-
-function createLevel(){
-const n=colorsCount();
-let arr=Array.from({length:n},(_,i)=>[i,i,i,i]);
-arr.push([]);
-let last=-1;
-
-// خلط عكسي لضمان وجود حل للمرحلة
-for(let k=0;k<Math.min(70+n*level*2,450);k++){
-let choices=[];
-for(let a=0;a<arr.length;a++){
-if(!arr[a].length)continue;
-for(let b=0;b<arr.length;b++){
-if(a===b||arr[b].length>=4)continue;
-let c=arr[a][arr[a].length-1];
-let below=arr[a].length>1?arr[a][arr[a].length-2]:null;
-if(below!==null&&below!==c)continue;
-if(a===last&&Math.random()<.8)continue;
-choices.push([a,b]);
-}
-}
-if(!choices.length)continue;
-let [a,b]=choices[Math.floor(Math.random()*choices.length)];
-arr[b].push(arr[a].pop());
-last=b;
-}
-
-tubes=arr;
-selected=-1;
-moves=0;
-history=[];
-extraUsed=false;
-won=false;
-elapsed=0;
-startedAt=Date.now();
-$('nextBtn').style.display='none';
-$('instruction').textContent='رتّب كل لون في قارورة مستقلة ✨';
-render();
-save();
-startClock();
-}
-
-function valid(){
-return Array.isArray(tubes)&&tubes.length>1&&
-tubes.every(t=>Array.isArray(t)&&t.length<=4&&
-t.every(c=>Number.isInteger(c)&&c>=0&&c<palette.length));
-}
-
-function formatTime(s){
-return String(Math.floor(s/60)).padStart(2,'0')+':'+
-String(s%60).padStart(2,'0');
-}
-
-function startClock(){
-clearInterval(tick);
-tick=setInterval(()=>{
-if(!won){
-elapsed=Math.floor((Date.now()-startedAt)/1000);
-$('timer').textContent=formatTime(elapsed);
-}
-},500);
-}
-
-function lighten(hex){
-let n=parseInt(hex.slice(1),16);
-return `rgb(${Math.min(255,((n>>16)&255)+55)},${Math.min(255,((n>>8)&255)+55)},${Math.min(255,(n&255)+55)})`;
-}
-
-function darken(hex){
-let n=parseInt(hex.slice(1),16);
-return `rgb(${Math.floor(((n>>16)&255)*.6)},${Math.floor(((n>>8)&255)*.6)},${Math.floor((n&255)*.6)})`;
-}
-
-function render(){
-let board=$('board');
-board.innerHTML='';
-
-let cols=Math.min(6,Math.max(2,Math.ceil(Math.sqrt(tubes.length*1.25))));
-board.style.setProperty('--cols',cols);
-
-tubes.forEach((tube,i)=>{
-let el=document.createElement('button');
-el.className='tube'+(selected===i?' selected':'');
-el.setAttribute('aria-label','قارورة '+(i+1));
-el.onclick=()=>tap(i);
-
-tube.forEach(c=>{
-let ball=document.createElement('span');
-ball.className='ball';
-ball.style.background=
-`radial-gradient(circle at 30% 22%,${lighten(palette[c])},${palette[c]} 53%,${darken(palette[c])})`;
-el.appendChild(ball);
-});
-
-let shine=document.createElement('span');
-shine.className='glass-shine';
-el.appendChild(shine);
-board.appendChild(el);
-});
-
-$('levelNum').textContent=level;
-$('coins').textContent=coins;
-$('moves').textContent=moves;
-$('timer').textContent=formatTime(elapsed);
-$('best').textContent=best[level]||'—';
-
-let complete=tubes.filter(t=>t.length===4&&t.every(c=>c===t[0])).length;
-$('progress').style.width=(complete/colorsCount()*100)+'%';
-
-$('undoBtn').disabled=!history.length||won;
-$('hintBtn').disabled=won;
-$('extraBtn').disabled=extraUsed||won;
-
-$('difficulty').textContent=
-level<4?'بداية الرحلة':
-level<10?'تركيز أعلى':
-level<20?'خبير الألوان':'تحدي المحترفين';
-}
-
-function tap(i){
-if(won)return;
-
-if(selected===-1){
-if(!tubes[i].length){
-toast('القارورة فارغة');
-return;
-}
-selected=i;
-render();
-return;
-}
-
-if(selected===i){
-selected=-1;
-render();
-return;
-}
-
-let from=tubes[selected],to=tubes[i];
-let ball=from[from.length-1];
-
-if(!from.length){
-selected=i;
-render();
-return;
-}
-
-if(to.length>=4){
-shake(i);
-toast('القارورة ممتلئة');
-return;
-}
-
-if(to.length&&to[to.length-1]!==ball){
-shake(i);
-toast('اختر قارورة بلون مطابق');
-return;
-}
-
-history.push({tubes:tubes.map(t=>[...t]),moves});
-if(history.length>40)history.shift();
-
-to.push(from.pop());
-moves++;
-selected=-1;
-tone(520,.05);
-render();
-save();
-checkWin();
-}
-
-function shake(i){
-let el=$('board').children[i];
-if(!el)return;
-el.classList.remove('shake');
-void el.offsetWidth;
-el.classList.add('shake');
-}
-
-function undo(){
-if(!history.length||won)return;
-let s=history.pop();
-tubes=s.tubes;
-moves=s.moves;
-selected=-1;
-render();
-save();
-tone(330,.05);
-}
-
-function findHint(){
-let opts=[];
-for(let a=0;a<tubes.length;a++){
-let A=tubes[a];
-if(!A.length)continue;
-let c=A[A.length-1];
-let pure=A.every(x=>x===c);
-
-for(let b=0;b<tubes.length;b++){
-if(a===b||tubes[b].length>=4)continue;
-let B=tubes[b];
-if(B.length&&B[B.length-1]!==c)continue;
-let score=0;
-if(B.length===3&&B.every(x=>x===c))score+=100;
-if(A.length>1&&A[A.length-2]!==c)score+=3;
-if(A.length===1)score+=5;
-if(B.length===0)score+=1;
-if(pure&&B.length===0)score-=2;
-opts.push({a,b,score});
-}
-}
-opts.sort((x,y)=>y.score-x.score);
-return opts.length?[opts[0].a,opts[0].b]:null;
-}
-
-function hint(){
-if(won)return;
-if(coins<10){toast('لا تملك عملات كافية');return;}
-let m=findHint();
-if(!m){toast('لا يوجد تلميح واضح');return;}
-coins-=10;
-selected=m[0];
-render();
-let target=$('board').children[m[1]];
-if(target)target.classList.add('target');
-$('instruction').textContent=
-`جرّب نقل الكرة من القارورة ${m[0]+1} إلى ${m[1]+1}`;
-save();
-}
-
-function extra(){
-if(won||extraUsed)return;
-if(coins<35){toast('تحتاج 35 عملة');return;}
-coins-=35;
-tubes.push([]);
-extraUsed=true;
-render();
-save();
-toast('تمت إضافة قارورة جديدة');
-}
-
-function checkWin(){
-let done=tubes.every(t=>!t.length||(t.length===4&&t.every(c=>c===t[0])));
-if(!done)return;
-
-won=true;
-clearInterval(tick);
-
-if(!best[level]||moves<best[level])best[level]=moves;
-
-let reward=20+Math.min(30,Math.floor(level/2));
-coins+=reward;
-render();
-
-$('nextBtn').style.display='block';
-$('instruction').textContent='رائع! أنهيت المرحلة بنجاح 🏆';
-
-confetti();
-winSound();
-
-modal(
-'🏆 أحسنت!',
-`أنهيت المستوى ${level} في ${moves} حركة.
-<br>مكافأتك: <b style="color:#ffd45c">+${reward} 🪙</b>`,
-'المستوى التالي',
-nextLevel,
-'إغلاق'
-);
-save();
-}
-
-function nextLevel(){
-closeModal();
-level++;
-createLevel();
-}
-
-function restart(){
-modal('إعادة المرحلة؟','هل تريد إعادة ترتيب الألوان؟','إعادة',()=>{
-closeModal();
-createLevel();
-},'إلغاء');
-}
-
-function toast(msg){
-let t=$('toast');
-t.textContent=msg;
-t.classList.add('show');
-clearTimeout(toast.timer);
-toast.timer=setTimeout(()=>t.classList.remove('show'),1900);
-}
-
-function modal(title,body,ok,action,cancel){
-$('dialog').innerHTML=`
-<h2>${title}</h2>
-<p>${body}</p>
-<button class="primary" id="modalOK">${ok}</button>
-${cancel?'<button class="secondary" id="modalCancel">'+cancel+'</button>':''}
-`;
-$('modal').classList.add('show');
-$('modalOK').onclick=action;
-if(cancel)$('modalCancel').onclick=closeModal;
-}
-
-function closeModal(){
-$('modal').classList.remove('show');
-}
-
-function settings(){
-$('dialog').innerHTML=`
-<h2>⚙️ الإعدادات</h2>
-<p>الصوت والمؤثرات</p>
-<button class="primary" id="soundToggle">${sound?'🔊 الصوت يعمل':'🔇 الصوت مكتوم'}</button>
-<button class="secondary" id="closeSettings">إغلاق</button>
-<button class="secondary" id="resetAll">مسح جميع البيانات</button>
-`;
-$('modal').classList.add('show');
-
-$('soundToggle').onclick=()=>{
-sound=!sound;
-$('soundToggle').textContent=sound?'🔊 الصوت يعمل':'🔇 الصوت مكتوم';
-$('soundBtn').textContent=sound?'🔊':'🔇';
-save();
-};
-$('closeSettings').onclick=closeModal;
-$('resetAll').onclick=()=>{
-localStorage.removeItem(KEY);
-location.reload();
-};
-}
-
-function confetti(){
-for(let i=0;i<65;i++){
-let e=document.createElement('i');
-e.className='confetti';
-e.style.left=Math.random()*100+'vw';
-e.style.background=palette[Math.floor(Math.random()*palette.length)];
-e.style.animationDelay=Math.random()*.7+'s';
-document.body.appendChild(e);
-setTimeout(()=>e.remove(),2600);
-}
-}
-
-let audioCtx;
-function tone(freq,duration){
-if(!sound)return;
-try{
-audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();
-let o=audioCtx.createOscillator();
-let g=audioCtx.createGain();
-o.type='sine';
-o.frequency.value=freq;
-g.gain.setValueAtTime(.04,audioCtx.currentTime);
-g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+duration);
-o.connect(g);
-g.connect(audioCtx.destination);
-o.start();
-o.stop(audioCtx.currentTime+duration);
-}catch(e){}
-}
-
-function winSound(){
-tone(660,.12);
-setTimeout(()=>tone(880,.16),130);
-setTimeout(()=>tone(1100,.22),290);
-}
-
-$('undoBtn').onclick=undo;
-$('hintBtn').onclick=hint;
-$('extraBtn').onclick=extra;
-$('restartBtn').onclick=restart;
-$('nextBtn').onclick=nextLevel;
-$('settingsBtn').onclick=settings;
-
-$('soundBtn').onclick=()=>{
-sound=!sound;
-$('soundBtn').textContent=sound?'🔊':'🔇';
-save();
-toast(sound?'الصوت مفعّل':'الصوت مكتوم');
-};
-
-$('modal').addEventListener('click',e=>{
-if(e.target===$('modal'))closeModal();
-});
-
-load();
-$('soundBtn').textContent=sound?'🔊':'🔇';
-
-if(!valid()){
-createLevel();
-}else{
-startedAt=Date.now()-elapsed*1000;
-render();
-startClock();
-}
-
-})();
-</script>
 </body>
 </html>
