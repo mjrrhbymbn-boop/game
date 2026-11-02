@@ -2,584 +2,442 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Color Quest AI - By Osama</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Quest - رحلة فرز الألوان</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
-
         :root {
-            --bg-color: #0f0c29;
-            --tube-border: rgba(255,255,255,0.2);
-            --glass-bg: rgba(255,255,255,0.05);
-            --glow-color: #00ffff;
+            --bg-color: #0d1117;
+            --card-bg: #161b22;
+            --accent-color: #58a6ff;
+            --text-color: #f0f6fc;
+            --sub-text: #8b949e;
         }
 
-        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        
-        body { 
-            overflow: hidden; background: var(--bg-color);
-            background: linear-gradient(180deg, #24243e 0%, #302b63 50%, #0f0c29 100%);
-            font-family: 'Cairo', sans-serif; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            height: 100vh; height: 100dvh; color: white; touch-action: none; transition: background 0.5s;
-            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
         }
 
-        /* خلفية النجوم */
-        .stars { position: absolute; width: 100%; height: 100%; z-index: -1; overflow: hidden; }
-        .star { position: absolute; background: white; border-radius: 50%; opacity: 0.5; animation: twinkle infinite alternate; }
-        @keyframes twinkle { 0% { opacity: 0.1; transform: scale(0.8); } 100% { opacity: 0.8; transform: scale(1.2); } }
-
-        #game-container { position: relative; width: 100%; max-width: 600px; height: 100%; display: flex; flex-direction: column; align-items: center; padding: 10px; z-index: 1; }
-
-        /* الشريط العلوي */
-        .top-bar {
-            width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 12px 20px;
-            background: var(--glass-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            border-radius: 18px; border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 10;
-        }
-        .stat-box { display: flex; flex-direction: column; align-items: center; min-width: 60px; }
-        .stat-title { font-size: 11px; color: #aaa; font-weight: 700; }
-        .stat-value { font-size: 18px; font-weight: 900; color: #fff; }
-        .level-title { font-size: clamp(18px, 5vw, 24px); font-weight: 900; color: #fff; text-shadow: 0 0 15px rgba(255,255,255,0.4); text-align: center; line-height: 1.2; }
-        .mode-badge { font-size: 12px; background: rgba(0,255,255,0.2); color: #00ffff; padding: 2px 8px; border-radius: 10px; border: 1px solid rgba(0,255,255,0.3); margin-top: 4px; display: inline-block; }
-
-        /* شبكة الأنابيب */
-        #tubes-container {
-            display: flex; flex-wrap: wrap; justify-content: center; align-content: center;
-            gap: clamp(10px, 3vw, 25px); width: 100%; flex-grow: 1; margin-top: 20px; margin-bottom: 20px;
-            overflow-y: auto; padding: 10px;
+        /* الهيدر وشريط الأدوات */
+        .header {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
         }
 
-        /* تصميم الأنبوب */
+        .title-area h1 {
+            margin: 0;
+            font-size: 22px;
+            color: #a5d6ff;
+        }
+
+        .title-area span {
+            font-size: 12px;
+            color: var(--sub-text);
+        }
+
+        /* بطاقة الإحصائيات */
+        .stats-card {
+            background-color: var(--card-bg);
+            border: 1px solid #30363d;
+            border-radius: 16px;
+            padding: 15px;
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            margin-bottom: 30px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #38d9a9;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--sub-text);
+            margin-top: 4px;
+        }
+
+        /* الأنابيب والكرات */
+        .game-board {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            max-width: 420px;
+            margin-bottom: 30px;
+        }
+
         .tube {
-            width: clamp(45px, 12vw, 65px); 
-            height: clamp(160px, 28vh, 240px); 
+            width: 60px;
+            height: 200px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-top: none;
+            border-radius: 0 0 30px 30px;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+            padding-bottom: 8px;
+            cursor: pointer;
             position: relative;
-            background: var(--glass-bg); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
-            border: 2px solid var(--tube-border); border-top: none;
-            border-radius: 0 0 25px 25px;
-            display: flex; flex-direction: column-reverse; padding: 4px; overflow: hidden;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 10px 20px rgba(0,0,0,0.4);
-            cursor: pointer; transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.25s;
-        }
-        
-        .tube::before {
-            content: ''; position: absolute; top: -2px; left: -2px; right: -2px; height: 6px;
-            border: 2px solid var(--tube-border); border-radius: 50%; z-index: 5;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            background: rgba(255, 255, 255, 0.03);
+            box-shadow: inset 0 0 10px rgba(255,255,255,0.05);
+            transition: all 0.3s ease;
         }
 
-        .tube.selected { 
-            transform: translateY(-25px); 
-            border-color: var(--glow-color); 
-            box-shadow: inset 0 0 30px rgba(0,255,255,0.2), 0 20px 30px rgba(0,0,0,0.6);
-        }
-        .tube.selected::before { border-color: var(--glow-color); }
-
-        /* تصغير الأنابيب لو صارت كثيرة */
-        .tube.small-tube { width: clamp(38px, 10vw, 50px); height: clamp(130px, 22vh, 190px); border-radius: 0 0 15px 15px; }
-        .tube.tiny-tube { width: clamp(30px, 8vw, 40px); height: clamp(100px, 18vh, 150px); border-radius: 0 0 12px 12px; }
-
-        /* السوائل */
-        .liquid {
-            width: 100%; flex: 1; border-radius: 6px; margin-top: 2px;
-            box-shadow: inset 0 5px 10px rgba(255,255,255,0.3), inset 0 -5px 10px rgba(0,0,0,0.4);
-            transition: all 0.3s ease; position: relative;
+        .tube.selected {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 15px rgba(88, 166, 255, 0.5);
+            transform: translateY(-10px);
         }
 
-        /* أزرار التحكم */
-        .bottom-bar { display: flex; gap: 10px; width: 100%; justify-content: center; padding-bottom: 10px; }
+        /* تأثيرات التلميح الذكي */
+        .tube.hint-from {
+            border-color: #ff4757 !important;
+            box-shadow: 0 0 20px rgba(255, 71, 87, 0.8) !important;
+            transform: scale(1.05);
+        }
+
+        .tube.hint-to {
+            border-color: #2ed573 !important;
+            box-shadow: 0 0 20px rgba(46, 213, 115, 0.8) !important;
+            transform: scale(1.05);
+        }
+
+        .ball {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            margin-top: 4px;
+            box-shadow: inset -5px -5px 10px rgba(0,0,0,0.4), 0 3px 6px rgba(0,0,0,0.3);
+            transition: all 0.2s ease;
+        }
+
+        /* أزرار التحكم والمساعدات */
+        .controls {
+            display: flex;
+            gap: 15px;
+        }
+
         .btn {
-            padding: 12px 15px; font-size: clamp(12px, 3.5vw, 15px); font-weight: 700; font-family: 'Cairo', sans-serif;
-            background: rgba(255,255,255,0.08); color: white; border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 15px; cursor: pointer; backdrop-filter: blur(5px); transition: all 0.2s;
-            display: flex; align-items: center; gap: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            background: #21262d;
+            color: var(--text-color);
+            border: 1px solid #30363d;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
         }
-        .btn:hover { background: rgba(255,255,255,0.15); }
-        .btn:active { transform: scale(0.95); }
-        .btn-ai { background: linear-gradient(45deg, #00ffff, #0055ff); color: #000; border: none; font-weight: 900; box-shadow: 0 0 15px rgba(0,255,255,0.4); }
 
-        /* الشاشات المنبثقة */
-        .overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 12, 41, 0.95); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 20; padding: 20px;
+        .btn:hover {
+            background: #30363d;
+            transform: translateY(-2px);
         }
-        .overlay h1 { margin: 0 0 10px 0; font-size: clamp(28px, 8vw, 36px); font-weight: 900; color: var(--glow-color); text-shadow: 0 0 20px var(--glow-color); text-align: center; }
-        .overlay p { margin: 0 0 25px 0; color: #ccc; font-size: clamp(14px, 4vw, 18px); text-align: center; line-height: 1.6; }
-        
-        /* المتجر */
-        #shop-screen { justify-content: flex-start; padding-top: 30px; overflow-y: auto; }
-        .shop-item { 
-            width: 95%; max-width: 400px; background: var(--glass-bg); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 15px; padding: 15px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
+
+        .btn-hint {
+            background: #1f6beb;
+            border-color: #388bfd;
         }
-        .shop-item h3 { font-size: 16px; margin: 0; }
-        .shop-item p { font-size: 12px; color: #aaa; margin: 5px 0 0 0; }
 
-        /* شاشة اختيار الصعوبة */
-        #diff-screen { justify-content: center; }
-        .diff-btn { width: 85%; max-width: 300px; margin-bottom: 15px; padding: 18px; font-size: 18px; border-radius: 20px; border: none; font-weight: 900; cursor: pointer; font-family: 'Cairo'; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: transform 0.2s; }
-        .diff-btn:active { transform: scale(0.95); }
-
-        #credit { font-size: 11px; color: rgba(255,255,255,0.3); margin-bottom: 5px; font-weight: 700; }
-        #credit strong { color: var(--glow-color); }
-
-        /* شاشة المساعد الذكي */
-        #ai-toast {
-            position: absolute; top: 100px; background: rgba(0, 255, 255, 0.9); color: #000;
-            padding: 15px 25px; border-radius: 15px; font-weight: 900; font-size: 16px;
-            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.5); display: none; z-index: 30;
-            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-align: center;
+        .btn-hint:hover {
+            background: #388bfd;
         }
-        @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-
     </style>
 </head>
 <body>
 
-    <div class="stars" id="stars"></div>
-
-    <div id="game-container">
-        <div class="top-bar">
-            <div class="stat-box">
-                <span class="stat-title">الحركات</span>
-                <span class="stat-value" id="moves">0</span>
-            </div>
-            <div class="level-title">
-                المستوى <span id="level">1</span><br>
-                <span class="mode-badge" id="mode-display">متوسط</span>
-            </div>
-            <div class="stat-box">
-                <span class="stat-title">النجوم</span>
-                <span class="stat-value" id="coins">0 ⭐</span>
-            </div>
-        </div>
-
-        <div id="tubes-container"></div>
-
-        <div class="bottom-bar">
-            <button class="btn" onclick="undoMove()">↩️ تراجع</button>
-            <button class="btn btn-ai" onclick="useAI()">🤖 مساعد AI</button>
-            <button class="btn" onclick="openShop()">🛍️ المتجر</button>
-            <button class="btn" onclick="restartLevel()">🔄</button>
-        </div>
-
-        <div id="credit">Programmed by <strong>Osama</strong></div>
-
-        <!-- شاشة المساعد الذكي -->
-        <div id="ai-toast"></div>
-
-        <!-- شاشة الفوز -->
-        <div id="win-screen" class="overlay">
-            <h1>أحسنت!</h1>
-            <p>لقد رتبت الألوان بنجاح.</p>
-            <div style="background: rgba(0,255,255,0.1); border: 1px solid #00ffff; padding: 15px; border-radius: 15px; margin-bottom: 20px; text-align: center;">
-                <p style="margin:0; font-size: 14px; color: #fff;">مكافأة السرعة</p>
-                <h2 style="margin: 5px 0 0 0; color: #00ffff;" id="speed-reward">+0 ⭐</h2>
-            </div>
-            <button class="diff-btn" style="background:#00ffff; color:#000;" onclick="nextLevel()">المستوى التالي</button>
-        </div>
-
-        <!-- المتجر -->
-        <div id="shop-screen" class="overlay">
-            <h1 style="color:#ffcc00; text-shadow: 0 0 20px #ffcc00;">المتجر</h1>
-            <p>استخدم النجوم لتغيير المظهر</p>
-            
-            <div class="shop-item">
-                <div><h3>المظهر الافتراضي</h3></div>
-                <button class="btn" onclick="buyTheme('default', 0)">تفعيل</button>
-            </div>
-            <div class="shop-item">
-                <div><h3>النيون الساطع</h3><p>توهج قوي</p></div>
-                <button class="btn" onclick="buyTheme('neon', 100)">100 ⭐</button>
-            </div>
-            <div class="shop-item">
-                <div><h3>الفضاء السحيق</h3><p>خلفية فضائية</p></div>
-                <button class="btn" onclick="buyTheme('space', 150)">150 ⭐</button>
-            </div>
-
-            <button class="diff-btn" style="background: #ff3333; margin-top: 20px;" onclick="closeShop()">إغلاق</button>
-        </div>
-
-        <!-- شاشة اختيار الصعوبة -->
-        <div id="diff-screen" class="overlay" style="display: flex;">
-            <h1>Color Quest AI</h1>
-            <p>اختر مستوى الصعوبة لتبدأ التحدي</p>
-            <button class="diff-btn" style="background:#2ed573; color:#fff;" onclick="startGame('easy')">سهل (للتعلم)</button>
-            <button class="diff-btn" style="background:#ffa502; color:#fff;" onclick="startGame('medium')">متوسط (تحدي)</button>
-            <button class="diff-btn" style="background:#ff4757; color:#fff;" onclick="startGame('hard')">صعب (احترافي)</button>
+    <!-- الهيدر -->
+    <div class="header">
+        <div class="title-area">
+            <h1>Color Quest</h1>
+            <span>رحلة فرز الألوان</span>
         </div>
     </div>
 
+    <!-- لوحة الإحصائيات -->
+    <div class="stats-card">
+        <div class="stat-item">
+            <span class="stat-value" id="moves-count">0</span>
+            <span class="stat-label">الحركات</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-value" id="timer-display">01:00</span>
+            <span class="stat-label">الوقت المتبقي</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-value" id="score-display">140</span>
+            <span class="stat-label">الرصيد</span>
+        </div>
+    </div>
+
+    <!-- منطقة اللعب -->
+    <div class="game-board" id="board"></div>
+
+    <!-- التحكم والمساعدات -->
+    <div class="controls">
+        <button class="btn btn-hint" onclick="getSmartHint()">💡 تلميح ذكي</button>
+        <button class="btn" onclick="restartGame()">🔄 إعادة</button>
+    </div>
+
     <script>
-        const colors = ['#ff4757', '#2ed573', '#1e90ff', '#ffa502', '#eccc68', '#9b59b6', '#00d2d3', '#ff6b81', '#e67e22', '#1abc9c'];
-        const container = document.getElementById('tubes-container');
-        const movesLabel = document.getElementById('moves');
-        const levelLabel = document.getElementById('level');
-        const coinsLabel = document.getElementById('coins');
-        const modeDisplay = document.getElementById('mode-display');
-        const aiToast = document.getElementById('ai-toast');
-        
-        let tubes = [];
-        let history = [];
+        // إعدادات الألوان (يمكنك تعديل الألوان هنا)
+        const COLORS = {
+            red: '#ff4757',
+            yellow: '#ffa502',
+            blue: '#1e90ff',
+            green: '#2ed573'
+        };
+
+        // الحالة الأوليّة للأنبوب (توزيع مبدئي)
+        let initialTubes = [
+            [COLORS.yellow, COLORS.blue, COLORS.yellow, COLORS.red],
+            [COLORS.blue, COLORS.green, COLORS.green, COLORS.yellow],
+            [COLORS.red, COLORS.red, COLORS.blue, COLORS.green],
+            [], // أنبوب فارغ
+            []  // أنبوب فارغ
+        ];
+
+        let tubes = JSON.parse(JSON.stringify(initialTubes));
+        let selectedTubeIndex = null;
         let moves = 0;
-        let selectedTube = null;
-        let currentLevel = 1;
-        let coins = parseInt(localStorage.getItem('gameCoins')) || 0;
-        let currentTheme = localStorage.getItem('gameTheme') || 'default';
-        let isAnimating = false;
-        let difficulty = 'medium';
-        let mistakeCount = 0; // لتتبع الأخطاء لتشغيل AI
+        let timeLeft = 60;
+        let timerInterval = null;
 
-        coinsLabel.innerText = coins + " ⭐";
+        // رسم الأنابيب والكرات على الشاشة
+        function renderBoard() {
+            const board = document.getElementById('board');
+            board.innerHTML = '';
 
-        // --- الأصوات ---
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function playSound(type) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            if (type === 'select') { osc.type='sine'; osc.frequency.setValueAtTime(400, audioCtx.currentTime); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime+0.1); osc.start(); osc.stop(audioCtx.currentTime+0.1); }
-            else if (type === 'pour') { osc.type='triangle'; osc.frequency.setValueAtTime(600, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime+0.2); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime+0.2); osc.start(); osc.stop(audioCtx.currentTime+0.2); }
-            else if (type === 'win') { osc.type='square'; osc.frequency.setValueAtTime(400, audioCtx.currentTime); osc.frequency.setValueAtTime(600, audioCtx.currentTime+0.1); osc.frequency.setValueAtTime(800, audioCtx.currentTime+0.2); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime+0.4); osc.start(); osc.stop(audioCtx.currentTime+0.4); }
-            else if (type === 'error') { osc.type='sawtooth'; osc.frequency.setValueAtTime(150, audioCtx.currentTime); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime+0.2); osc.start(); osc.stop(audioCtx.currentTime+0.2); }
-        }
+            tubes.forEach((tube, tubeIdx) => {
+                const tubeEl = document.createElement('div');
+                tubeEl.className = 'tube' + (selectedTubeIndex === tubeIdx ? ' selected' : '');
+                tubeEl.onclick = () => handleTubeClick(tubeIdx);
 
-        function createStars() {
-            const sc = document.getElementById('stars');
-            for (let i = 0; i < 50; i++) {
-                let s = document.createElement('div'); s.className = 'star';
-                let size = Math.random() * 3;
-                s.style.width = size + 'px'; s.style.height = size + 'px';
-                s.style.left = Math.random() * 100 + '%'; s.style.top = Math.random() * 100 + '%';
-                s.style.animationDuration = (Math.random() * 3 + 1) + 's';
-                sc.appendChild(s);
-            }
-        }
-        createStars();
-
-        function startGame(diff) {
-            difficulty = diff;
-            if (diff === 'easy') modeDisplay.innerText = 'سهل';
-            else if (diff === 'medium') modeDisplay.innerText = 'متوسط';
-            else modeDisplay.innerText = 'صعب';
-            
-            document.getElementById('diff-screen').style.display = 'none';
-            currentLevel = 1;
-            setupLevel();
-        }
-
-        function restartLevel() {
-            setupLevel();
-        }
-
-        function setupLevel() {
-            container.innerHTML = '';
-            tubes = [];
-            history = [];
-            moves = 0;
-            mistakeCount = 0;
-            movesLabel.innerText = moves;
-            selectedTube = null;
-            levelLabel.innerText = currentLevel;
-            document.getElementById('win-screen').style.display = 'none';
-
-            let baseColors = 3 + Math.floor((currentLevel - 1) / 2);
-            let numColors = 0;
-            let emptyTubes = 2;
-
-            if (difficulty === 'easy') {
-                numColors = Math.min(baseColors, 6);
-                emptyTubes = 3;
-            } else if (difficulty === 'medium') {
-                numColors = Math.min(baseColors + 1, 8);
-                emptyTubes = 2;
-            } else {
-                numColors = Math.min(baseColors + 2, 10);
-                emptyTubes = 1;
-            }
-
-            let levelColors = [];
-            for(let i=0; i<numColors; i++) {
-                for(let j=0; j<4; j++) levelColors.push(colors[i % colors.length]);
-            }
-
-            levelColors.sort(() => Math.random() - 0.5);
-
-            for (let i = 0; i < numColors; i++) {
-                let tubeData = levelColors.slice(i * 4, (i + 1) * 4);
-                tubes.push(tubeData);
-            }
-            for (let i = 0; i < emptyTubes; i++) {
-                tubes.push([]);
-            }
-
-            renderTubes();
-        }
-
-        function renderTubes() {
-            container.innerHTML = '';
-            
-            let tubeSizeClass = '';
-            if (tubes.length > 12) tubeSizeClass = 'tiny-tube';
-            else if (tubes.length > 9) tubeSizeClass = 'small-tube';
-
-            let tubeClass = 'tube ' + tubeSizeClass;
-            if (currentTheme === 'gold') tubeClass += ' gold-tube';
-            if (currentTheme === 'neon') tubeClass += ' neon-tube';
-
-            tubes.forEach((tubeData, index) => {
-                let tubeEl = document.createElement('div');
-                tubeEl.className = tubeClass;
-                if (selectedTube === index) tubeEl.classList.add('selected');
-                
-                tubeData.forEach(colorHex => {
-                    let liquid = document.createElement('div');
-                    liquid.className = 'liquid';
-                    liquid.style.backgroundColor = colorHex;
-                    if (currentTheme === 'neon') liquid.style.boxShadow = `0 0 10px ${colorHex}, inset 0 5px 10px rgba(255,255,255,0.4)`;
-                    tubeEl.appendChild(liquid);
+                tube.forEach(color => {
+                    const ballEl = document.createElement('div');
+                    ballEl.className = 'ball';
+                    ballEl.style.backgroundColor = color;
+                    tubeEl.appendChild(ballEl);
                 });
 
-                tubeEl.onclick = () => handleTubeClick(index);
-                container.appendChild(tubeEl);
+                board.appendChild(tubeEl);
             });
+
+            document.getElementById('moves-count').innerText = moves;
         }
 
-        function handleTubeClick(index) {
-            if (isAnimating) return;
-
-            if (selectedTube === null) {
-                if (tubes[index].length > 0) {
-                    selectedTube = index;
-                    playSound('select');
-                    renderTubes();
+        // التفاعل عند النقر على الأنبوب
+        function handleTubeClick(tubeIdx) {
+            if (selectedTubeIndex === null) {
+                if (tubes[tubeIdx].length > 0) {
+                    selectedTubeIndex = tubeIdx;
                 }
-            } else if (selectedTube === index) {
-                selectedTube = null;
-                renderTubes();
             } else {
-                let fromTube = tubes[selectedTube];
-                let toTube = tubes[index];
-
-                if (toTube.length >= 4) {
-                    mistakeCount++;
-                    playSound('error');
-                    selectedTube = null;
-                    renderTubes();
-                    checkSmartTubes();
-                    return;
-                }
-
-                let colorToMove = fromTube[fromTube.length - 1];
-                
-                if (toTube.length === 0 || toTube[toTube.length - 1] === colorToMove) {
-                    history.push(JSON.parse(JSON.stringify(tubes)));
-
-                    let count = 0;
-                    for (let i = fromTube.length - 1; i >= 0; i--) {
-                        if (fromTube[i] === colorToMove && toTube.length + count < 4) {
-                            count++;
-                        } else break;
-                    }
-
-                    for (let i = 0; i < count; i++) {
-                        toTube.push(fromTube.pop());
-                    }
-
-                    moves++;
-                    movesLabel.innerText = moves;
-                    selectedTube = null;
-                    playSound('pour');
-                    renderTubes();
-                    
-                    setTimeout(checkWin, 300);
+                if (selectedTubeIndex === tubeIdx) {
+                    selectedTubeIndex = null;
                 } else {
-                    mistakeCount++;
-                    playSound('error');
-                    selectedTube = null;
-                    renderTubes();
-                    checkSmartTubes();
+                    if (isValidMove(selectedTubeIndex, tubeIdx)) {
+                        moveBall(selectedTubeIndex, tubeIdx);
+                        moves++;
+                        selectedTubeIndex = null;
+                        checkWin();
+                    } else {
+                        selectedTubeIndex = tubeIdx;
+                    }
                 }
             }
+            renderBoard();
         }
 
-        // --- الأنابيب الذكية ---
-        function checkSmartTubes() {
-            if (mistakeCount >= 3 && difficulty !== 'easy') {
-                showAIToast("أنابيب ذكية: هل تريد مساعدة الذكاء الاصطناعي؟");
-                mistakeCount = 0; // تصفير العداد
+        // التحقق من صحة الحركة
+        function isValidMove(fromIdx, toIdx) {
+            const fromTube = tubes[fromIdx];
+            const toTube = tubes[toIdx];
+
+            if (fromTube.length === 0) return false;
+            if (toTube.length >= 4) return false;
+            if (toTube.length === 0) return true;
+
+            const topFromColor = fromTube[fromTube.length - 1];
+            const topToColor = toTube[toTube.length - 1];
+
+            return topFromColor === topToColor;
+        }
+
+        // تنفيذ نقل الكرة
+        function moveBall(fromIdx, toIdx) {
+            const ball = tubes[fromIdx].pop();
+            tubes[toIdx].push(ball);
+        }
+
+        // ==========================================
+        // خوارزمية التلميح الذكي الحقيقية
+        // ==========================================
+        function getSmartHint() {
+            let possibleMoves = [];
+
+            for (let fromIdx = 0; fromIdx < tubes.length; fromIdx++) {
+                for (let toIdx = 0; toIdx < tubes.length; toIdx++) {
+                    if (fromIdx === toIdx) continue;
+
+                    if (isValidMove(fromIdx, toIdx)) {
+                        let score = evaluateMove(fromIdx, toIdx);
+                        possibleMoves.push({ from: fromIdx, to: toIdx, score: score });
+                    }
+                }
             }
-        }
 
-        function showAIToast(message) {
-            aiToast.innerText = message;
-            aiToast.style.display = 'block';
-            setTimeout(() => { aiToast.style.display = 'none'; }, 3000);
-        }
-
-        // --- الذكاء الاصطناعي (نصيحة) ---
-        function useAI() {
-            if (coins < 5) {
-                playSound('error');
-                showAIToast("تحتاج 5 نجوم لاستخدام المساعد!");
+            if (possibleMoves.length === 0) {
+                alert("لا توجد حركات متمكّنة! حاول إعادة المرحلة.");
                 return;
             }
+
+            // ترتيب الحركات للحصول على أعلى فائدة
+            possibleMoves.sort((a, b) => b.score - a.score);
+            let bestMove = possibleMoves[0];
+
+            highlightTubes(bestMove.from, bestMove.to);
+        }
+
+        function evaluateMove(fromIdx, toIdx) {
+            let fromTube = tubes[fromIdx];
+            let toTube = tubes[toIdx];
+            let topBall = fromTube[fromTube.length - 1];
+            let score = 0;
+
+            // أولوية قصوى: النقل إلى أنبوب يحوي نفس اللون
+            if (toTube.length > 0 && toTube[toTube.length - 1] === topBall) {
+                score += 50;
+                if (toTube.length + countTopSameColor(fromTube) === 4) {
+                    score += 40;
+                }
+            }
+
+            // حركة مفيدة: فتح المكان للكرات بالأسفل
+            if (fromTube.length > 1 && fromTube[0] !== topBall) {
+                score += 20;
+            }
+
+            // تجنب النقل لأنبوب فارغ بدون داعي
+            if (toTube.length === 0) {
+                if (isAllSameColor(fromTube)) {
+                    score -= 30;
+                } else {
+                    score += 10;
+                }
+            }
+
+            return score;
+        }
+
+        function countTopSameColor(tube) {
+            if (tube.length === 0) return 0;
+            let count = 0;
+            let color = tube[tube.length - 1];
+            for (let i = tube.length - 1; i >= 0; i--) {
+                if (tube[i] === color) count++;
+                else break;
+            }
+            return count;
+        }
+
+        function isAllSameColor(tube) {
+            if (tube.length === 0) return false;
+            return tube.every(ball => ball === tube[0]);
+        }
+
+        function highlightTubes(fromIdx, toIdx) {
+            const tubeElements = document.querySelectorAll('.tube');
+            if (!tubeElements[fromIdx] || !tubeElements[toIdx]) return;
+
+            tubeElements[fromIdx].classList.add('hint-from');
+            tubeElements[toIdx].classList.add('hint-to');
+
+            setTimeout(() => {
+                tubeElements[fromIdx].classList.remove('hint-from');
+                tubeElements[toIdx].classList.remove('hint-to');
+            }, 1500);
+        }
+
+        // ==========================================
+        // نظام مؤقت الوقت
+        // ==========================================
+        function startTimer() {
+            clearInterval(timerInterval);
+            timeLeft = 60;
             
-            let bestMove = findBestMove();
-            if (bestMove) {
-                coins -= 5;
-                coinsLabel.innerText = coins + " ⭐";
-                localStorage.setItem('gameCoins', coins);
-                playSound('win');
+            timerInterval = setInterval(() => {
+                timeLeft--;
                 
-                // إضاءة الأنبوبين المقترحين
-                let tube1 = container.children[bestMove.from];
-                let tube2 = container.children[bestMove.to];
+                let minutes = Math.floor(timeLeft / 60);
+                let seconds = timeLeft % 60;
+                let formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
                 
-                tube1.style.borderColor = '#00ffff';
-                tube2.style.borderColor = '#00ffff';
-                tube1.style.boxShadow = '0 0 20px #00ffff';
-                tube2.style.boxShadow = '0 0 20px #00ffff';
-                
-                showAIToast("انقل من الأنبوب الأيمن إلى الأيسر");
-                
-                setTimeout(() => {
-                    tube1.style.borderColor = ''; tube1.style.boxShadow = '';
-                    tube2.style.borderColor = ''; tube2.style.boxShadow = '';
-                }, 2000);
-            } else {
-                showAIToast("لا توجد حركة واضحة، جرب التراجع!");
-            }
-        }
+                document.getElementById('timer-display').innerText = formattedTime;
 
-        // خوارزمية بسيطة لإيجاد حركة (تحاكي AI)
-        function findBestMove() {
-            // البحث عن أنبوبين فارغين أو متطابقين
-            for (let i = 0; i < tubes.length; i++) {
-                for (let j = 0; j < tubes.length; j++) {
-                    if (i === j) continue;
-                    let from = tubes[i];
-                    let to = tubes[j];
-                    
-                    if (from.length === 0) continue;
-                    if (to.length === 4) continue;
-                    
-                    let color = from[from.length - 1];
-                    if (to.length === 0 || to[to.length - 1] === color) {
-                        // التحقق من أن النقل سيفيد (لا ننقل من أنبوب كامل لفراغ)
-                        if (to.length > 0 || from.length > 1) {
-                            return { from: i, to: j };
-                        }
-                    }
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    alert("انتهى الوقت! ⏳ حاول مرة أخرى");
+                    restartGame();
                 }
-            }
-            return null;
+            }, 1000);
         }
 
-        function undoMove() {
-            if (history.length > 0 && !isAnimating) {
-                tubes = history.pop();
-                moves = Math.max(0, moves - 1);
-                movesLabel.innerText = moves;
-                selectedTube = null;
-                playSound('select');
-                renderTubes();
-            }
+        // إعادة تشغيل اللعبة
+        function restartGame() {
+            tubes = JSON.parse(JSON.stringify(initialTubes));
+            selectedTubeIndex = null;
+            moves = 0;
+            renderBoard();
+            startTimer();
         }
 
+        // التحقق من الفوز
         function checkWin() {
-            let isWin = true;
-            for (let tube of tubes) {
-                if (tube.length > 0) {
-                    if (tube.length !== 4 || new Set(tube).size !== 1) {
-                        isWin = false;
-                        break;
-                    }
-                }
-            }
+            let isWin = tubes.every(tube => {
+                if (tube.length === 0) return true;
+                if (tube.length === 4 && isAllSameColor(tube)) return true;
+                return false;
+            });
+
             if (isWin) {
-                isAnimating = true;
-                playSound('win');
-                
-                let reward = 20;
-                if (difficulty === 'easy') reward = 10;
-                if (difficulty === 'hard') reward = 30;
-                
-                // مكافأة إضافية للحركات القليلة
-                let speedBonus = Math.max(0, 40 - moves) * 2;
-                coins += (reward + speedBonus);
-                
-                localStorage.setItem('gameCoins', coins);
-                coinsLabel.innerText = coins + " ⭐";
-                
-                document.getElementById('speed-reward').innerText = `+${reward + speedBonus} ⭐`;
-                document.getElementById('win-screen').style.display = 'flex';
-                createConfetti();
-                isAnimating = false;
+                clearInterval(timerInterval);
+                setTimeout(() => {
+                    alert("مبارك! 🎉 أكملت المستوى بنجاح!");
+                }, 300);
             }
         }
 
-        function nextLevel() {
-            currentLevel++;
-            setupLevel();
-        }
-
-        function openShop() { document.getElementById('shop-screen').style.display = 'flex'; }
-        function closeShop() { document.getElementById('shop-screen').style.display = 'none'; }
-        
-        function buyTheme(theme, price) {
-            if (currentTheme === theme) return;
-            if (coins >= price) {
-                coins -= price;
-                currentTheme = theme;
-                localStorage.setItem('gameCoins', coins);
-                localStorage.setItem('gameTheme', theme);
-                coinsLabel.innerText = coins + " ⭐";
-                playSound('win');
-                renderTubes();
-                applyTheme();
-            } else {
-                playSound('error');
-                showAIToast('لا تملك نجوم كافية!');
-            }
-        }
-
-        function applyTheme() {
-            if (currentTheme === 'gold') document.body.style.background = 'linear-gradient(180deg, #2b1a00, #4a3000, #0f0c29)';
-            else if (currentTheme === 'neon') document.body.style.background = 'linear-gradient(180deg, #001f2b, #00334a, #0f0c29)';
-            else if (currentTheme === 'space') document.body.style.background = 'linear-gradient(180deg, #000000, #1a0033, #0f0c29)';
-            else document.body.style.background = 'linear-gradient(180deg, #24243e, #302b63, #0f0c29)';
-        }
-
-        function createConfetti() {
-            for (let i = 0; i < 40; i++) {
-                let c = document.createElement('div');
-                c.style.position = 'fixed'; c.style.width = '8px'; c.style.height = '8px';
-                c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                c.style.left = Math.random() * 100 + 'vw'; c.style.top = '-10px'; c.style.zIndex = '100';
-                c.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
-                document.body.appendChild(c);
-                let anim = c.animate([{ transform: `translateY(0) rotate(0deg)` }, { transform: `translateY(100vh) rotate(${Math.random() * 720}deg)` }], { duration: Math.random() * 2000 + 1000, easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' });
-                anim.onfinish = () => c.remove();
-            }
-        }
-
-        // إضافة CSS للثيمات
-        const style = document.createElement('style');
-        style.innerHTML = `
-            .tube.gold-tube { border-color: #ffcc00; box-shadow: inset 0 0 20px rgba(255,204,0,0.3), 0 10px 20px rgba(0,0,0,0.4); }
-            .tube.gold-tube::before { border-color: #ffcc00; }
-            .tube.neon-tube { border-color: #00ffff; box-shadow: inset 0 0 20px rgba(0,255,255,0.3), 0 10px 20px rgba(0,0,0,0.4); }
-            .tube.neon-tube::before { border-color: #00ffff; }
-        `;
-        document.head.appendChild(style);
-
-        applyTheme();
+        // التجهيز عند فتح الصفحة
+        window.onload = function() {
+            renderBoard();
+            startTimer();
+        };
     </script>
 </body>
 </html>
