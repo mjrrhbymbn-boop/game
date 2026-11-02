@@ -2,19 +2,27 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>Color Quest Pro - By Osama</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Color Quest AI - By Osama</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
 
-        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; margin: 0; padding: 0; }
+        :root {
+            --bg-color: #0f0c29;
+            --tube-border: rgba(255,255,255,0.2);
+            --glass-bg: rgba(255,255,255,0.05);
+            --glow-color: #00ffff;
+        }
+
+        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         
         body { 
-            overflow: hidden; background: #0f0c29;
-            background: linear-gradient(to bottom, #24243e, #302b63, #0f0c29);
+            overflow: hidden; background: var(--bg-color);
+            background: linear-gradient(180deg, #24243e 0%, #302b63 50%, #0f0c29 100%);
             font-family: 'Cairo', sans-serif; 
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            height: 100vh; color: white; touch-action: none; transition: background 0.5s;
+            height: 100vh; height: 100dvh; color: white; touch-action: none; transition: background 0.5s;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         }
 
         /* خلفية النجوم */
@@ -22,91 +30,112 @@
         .star { position: absolute; background: white; border-radius: 50%; opacity: 0.5; animation: twinkle infinite alternate; }
         @keyframes twinkle { 0% { opacity: 0.1; transform: scale(0.8); } 100% { opacity: 0.8; transform: scale(1.2); } }
 
-        #game-container { position: relative; width: 100%; max-width: 500px; height: 100%; display: flex; flex-direction: column; align-items: center; padding: 10px; }
+        #game-container { position: relative; width: 100%; max-width: 600px; height: 100%; display: flex; flex-direction: column; align-items: center; padding: 10px; z-index: 1; }
 
         /* الشريط العلوي */
         .top-bar {
-            width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 10px 15px;
-            background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border-radius: 15px; border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 10;
+            width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 12px 20px;
+            background: var(--glass-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            border-radius: 18px; border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 10;
         }
-        .stat-box { display: flex; flex-direction: column; align-items: center; }
-        .stat-title { font-size: 12px; color: #aaa; }
-        .stat-value { font-size: 18px; font-weight: 700; color: #fff; }
-        .level-title { font-size: 20px; font-weight: 900; letter-spacing: 1px; color: #e0e0e0; text-shadow: 0 0 10px rgba(255,255,255,0.5); text-align: center; }
+        .stat-box { display: flex; flex-direction: column; align-items: center; min-width: 60px; }
+        .stat-title { font-size: 11px; color: #aaa; font-weight: 700; }
+        .stat-value { font-size: 18px; font-weight: 900; color: #fff; }
+        .level-title { font-size: clamp(18px, 5vw, 24px); font-weight: 900; color: #fff; text-shadow: 0 0 15px rgba(255,255,255,0.4); text-align: center; line-height: 1.2; }
+        .mode-badge { font-size: 12px; background: rgba(0,255,255,0.2); color: #00ffff; padding: 2px 8px; border-radius: 10px; border: 1px solid rgba(0,255,255,0.3); margin-top: 4px; display: inline-block; }
 
         /* شبكة الأنابيب */
         #tubes-container {
             display: flex; flex-wrap: wrap; justify-content: center; align-content: center;
-            gap: 10px; width: 100%; flex-grow: 1; margin-top: 15px; padding-bottom: 20px;
-            overflow-y: auto; /* عشان لو صارت كثيرة */
+            gap: clamp(10px, 3vw, 25px); width: 100%; flex-grow: 1; margin-top: 20px; margin-bottom: 20px;
+            overflow-y: auto; padding: 10px;
         }
 
+        /* تصميم الأنبوب */
         .tube {
-            width: 55px; height: 180px; position: relative;
-            background: rgba(255,255,255,0.03); backdrop-filter: blur(5px);
-            border: 2px solid rgba(255,255,255,0.2); border-top: none;
+            width: clamp(45px, 12vw, 65px); 
+            height: clamp(160px, 28vh, 240px); 
+            position: relative;
+            background: var(--glass-bg); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+            border: 2px solid var(--tube-border); border-top: none;
             border-radius: 0 0 25px 25px;
-            display: flex; flex-direction: column-reverse; padding: 3px; overflow: hidden;
+            display: flex; flex-direction: column-reverse; padding: 4px; overflow: hidden;
             box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 10px 20px rgba(0,0,0,0.4);
-            cursor: pointer; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s;
+            cursor: pointer; transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.25s;
         }
         
         .tube::before {
             content: ''; position: absolute; top: -2px; left: -2px; right: -2px; height: 6px;
-            border: 2px solid rgba(255,255,255,0.4); border-radius: 50%; z-index: 5;
+            border: 2px solid var(--tube-border); border-radius: 50%; z-index: 5;
             box-shadow: 0 2px 5px rgba(0,0,0,0.5);
         }
 
-        .tube.selected { transform: translateY(-20px); border-color: rgba(0, 255, 255, 0.8); box-shadow: inset 0 0 30px rgba(0, 255, 255, 0.3), 0 20px 30px rgba(0,0,0,0.6); }
-        .tube.selected::before { border-color: rgba(0, 255, 255, 0.8); }
+        .tube.selected { 
+            transform: translateY(-25px); 
+            border-color: var(--glow-color); 
+            box-shadow: inset 0 0 30px rgba(0,255,255,0.2), 0 20px 30px rgba(0,0,0,0.6);
+        }
+        .tube.selected::before { border-color: var(--glow-color); }
 
         /* تصغير الأنابيب لو صارت كثيرة */
-        .tube.small-tube { width: 40px; height: 140px; border-radius: 0 0 15px 15px; }
-        .tube.small-tube .liquid { height: 30px; border-radius: 5px; }
-        .tube.tiny-tube { width: 32px; height: 110px; border-radius: 0 0 10px 10px; }
-        .tube.tiny-tube .liquid { height: 22px; border-radius: 4px; }
+        .tube.small-tube { width: clamp(38px, 10vw, 50px); height: clamp(130px, 22vh, 190px); border-radius: 0 0 15px 15px; }
+        .tube.tiny-tube { width: clamp(30px, 8vw, 40px); height: clamp(100px, 18vh, 150px); border-radius: 0 0 12px 12px; }
 
         /* السوائل */
         .liquid {
-            width: 100%; height: 40px; border-radius: 6px; margin-top: 2px;
-            box-shadow: inset 0 5px 10px rgba(255,255,255,0.4), inset 0 -5px 10px rgba(0,0,0,0.4);
+            width: 100%; flex: 1; border-radius: 6px; margin-top: 2px;
+            box-shadow: inset 0 5px 10px rgba(255,255,255,0.3), inset 0 -5px 10px rgba(0,0,0,0.4);
             transition: all 0.3s ease; position: relative;
         }
 
         /* أزرار التحكم */
-        .bottom-bar { display: flex; gap: 10px; margin-top: 10px; margin-bottom: 10px; }
+        .bottom-bar { display: flex; gap: 10px; width: 100%; justify-content: center; padding-bottom: 10px; }
         .btn {
-            padding: 10px 20px; font-size: 14px; font-weight: bold; font-family: 'Cairo', sans-serif;
-            background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 20px; cursor: pointer; backdrop-filter: blur(5px); transition: all 0.2s;
+            padding: 12px 15px; font-size: clamp(12px, 3.5vw, 15px); font-weight: 700; font-family: 'Cairo', sans-serif;
+            background: rgba(255,255,255,0.08); color: white; border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 15px; cursor: pointer; backdrop-filter: blur(5px); transition: all 0.2s;
+            display: flex; align-items: center; gap: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
-        .btn:hover { background: rgba(255,255,255,0.2); }
+        .btn:hover { background: rgba(255,255,255,0.15); }
         .btn:active { transform: scale(0.95); }
+        .btn-ai { background: linear-gradient(45deg, #00ffff, #0055ff); color: #000; border: none; font-weight: 900; box-shadow: 0 0 15px rgba(0,255,255,0.4); }
 
         /* الشاشات المنبثقة */
         .overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 12, 41, 0.95); backdrop-filter: blur(10px);
+            background: rgba(15, 12, 41, 0.95); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
             display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 20; padding: 20px;
         }
-        .overlay h1 { margin: 0 0 10px 0; font-size: 32px; font-weight: 900; color: #00ffff; text-shadow: 0 0 20px #00ffff; text-align: center; }
-        .overlay p { margin: 0 0 20px 0; color: #ccc; font-size: 16px; text-align: center; }
+        .overlay h1 { margin: 0 0 10px 0; font-size: clamp(28px, 8vw, 36px); font-weight: 900; color: var(--glow-color); text-shadow: 0 0 20px var(--glow-color); text-align: center; }
+        .overlay p { margin: 0 0 25px 0; color: #ccc; font-size: clamp(14px, 4vw, 18px); text-align: center; line-height: 1.6; }
         
         /* المتجر */
         #shop-screen { justify-content: flex-start; padding-top: 30px; overflow-y: auto; }
         .shop-item { 
-            width: 90%; max-width: 350px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 15px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;
+            width: 95%; max-width: 400px; background: var(--glass-bg); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 15px; padding: 15px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
         }
-        .shop-item h3 { font-size: 14px; margin: 0; }
-        .shop-item p { font-size: 11px; color: #aaa; margin: 3px 0 0 0; }
-        
-        #credit { font-size: 11px; color: rgba(255,255,255,0.3); margin-bottom: 5px; }
-        #credit strong { color: #00ffff; }
+        .shop-item h3 { font-size: 16px; margin: 0; }
+        .shop-item p { font-size: 12px; color: #aaa; margin: 5px 0 0 0; }
 
         /* شاشة اختيار الصعوبة */
-        .diff-btn { width: 80%; margin-bottom: 10px; padding: 15px; font-size: 16px; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; }
+        #diff-screen { justify-content: center; }
+        .diff-btn { width: 85%; max-width: 300px; margin-bottom: 15px; padding: 18px; font-size: 18px; border-radius: 20px; border: none; font-weight: 900; cursor: pointer; font-family: 'Cairo'; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: transform 0.2s; }
+        .diff-btn:active { transform: scale(0.95); }
+
+        #credit { font-size: 11px; color: rgba(255,255,255,0.3); margin-bottom: 5px; font-weight: 700; }
+        #credit strong { color: var(--glow-color); }
+
+        /* شاشة المساعد الذكي */
+        #ai-toast {
+            position: absolute; top: 100px; background: rgba(0, 255, 255, 0.9); color: #000;
+            padding: 15px 25px; border-radius: 15px; font-weight: 900; font-size: 16px;
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.5); display: none; z-index: 30;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-align: center;
+        }
+        @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
     </style>
 </head>
 <body>
@@ -119,7 +148,10 @@
                 <span class="stat-title">الحركات</span>
                 <span class="stat-value" id="moves">0</span>
             </div>
-            <div class="level-title">المستوى <span id="level">1</span><br><span style="font-size:12px; color:#aaa" id="mode-display">متوسط</span></div>
+            <div class="level-title">
+                المستوى <span id="level">1</span><br>
+                <span class="mode-badge" id="mode-display">متوسط</span>
+            </div>
             <div class="stat-box">
                 <span class="stat-title">النجوم</span>
                 <span class="stat-value" id="coins">0 ⭐</span>
@@ -130,63 +162,66 @@
 
         <div class="bottom-bar">
             <button class="btn" onclick="undoMove()">↩️ تراجع</button>
+            <button class="btn btn-ai" onclick="useAI()">🤖 مساعد AI</button>
             <button class="btn" onclick="openShop()">🛍️ المتجر</button>
-            <button class="btn" onclick="restartLevel()">🔄 إعادة</button>
+            <button class="btn" onclick="restartLevel()">🔄</button>
         </div>
 
         <div id="credit">Programmed by <strong>Osama</strong></div>
+
+        <!-- شاشة المساعد الذكي -->
+        <div id="ai-toast"></div>
 
         <!-- شاشة الفوز -->
         <div id="win-screen" class="overlay">
             <h1>أحسنت!</h1>
             <p>لقد رتبت الألوان بنجاح.</p>
-            <button class="btn" style="background:#00ffff; color:#000; font-size: 18px; padding: 15px 30px;" onclick="nextLevel()">المستوى التالي</button>
+            <div style="background: rgba(0,255,255,0.1); border: 1px solid #00ffff; padding: 15px; border-radius: 15px; margin-bottom: 20px; text-align: center;">
+                <p style="margin:0; font-size: 14px; color: #fff;">مكافأة السرعة</p>
+                <h2 style="margin: 5px 0 0 0; color: #00ffff;" id="speed-reward">+0 ⭐</h2>
+            </div>
+            <button class="diff-btn" style="background:#00ffff; color:#000;" onclick="nextLevel()">المستوى التالي</button>
         </div>
 
         <!-- المتجر -->
         <div id="shop-screen" class="overlay">
-            <h1 style="color:#ffcc00; text-shadow: 0 0 20px #ffcc00; font-size: 28px;">المتجر</h1>
+            <h1 style="color:#ffcc00; text-shadow: 0 0 20px #ffcc00;">المتجر</h1>
             <p>استخدم النجوم لتغيير المظهر</p>
             
             <div class="shop-item">
                 <div><h3>المظهر الافتراضي</h3></div>
                 <button class="btn" onclick="buyTheme('default', 0)">تفعيل</button>
             </div>
-
             <div class="shop-item">
-                <div><h3>المظهر الذهبي</h3><p>أنابيب ذهبية وخلفية دافئة</p></div>
-                <button class="btn" onclick="buyTheme('gold', 50)">50 ⭐</button>
-            </div>
-
-            <div class="shop-item">
-                <div><h3>النيون الساطع</h3><p>توهج قوي وألوان صارخة</p></div>
+                <div><h3>النيون الساطع</h3><p>توهج قوي</p></div>
                 <button class="btn" onclick="buyTheme('neon', 100)">100 ⭐</button>
             </div>
-            
             <div class="shop-item">
-                <div><h3>الفضاء السحيق</h3><p>خلفية فضائية غامقة</p></div>
+                <div><h3>الفضاء السحيق</h3><p>خلفية فضائية</p></div>
                 <button class="btn" onclick="buyTheme('space', 150)">150 ⭐</button>
             </div>
 
-            <button class="btn" style="margin-top: 20px; background: #ff3333;" onclick="closeShop()">إغلاق</button>
+            <button class="diff-btn" style="background: #ff3333; margin-top: 20px;" onclick="closeShop()">إغلاق</button>
         </div>
 
         <!-- شاشة اختيار الصعوبة -->
         <div id="diff-screen" class="overlay" style="display: flex;">
-            <h1>اختر الصعوبة</h1>
-            <button class="diff-btn" style="background:#2ed573; color:#fff;" onclick="startGame('easy')">سهل</button>
-            <button class="diff-btn" style="background:#ffa502; color:#fff;" onclick="startGame('medium')">متوسط</button>
-            <button class="diff-btn" style="background:#ff4757; color:#fff;" onclick="startGame('hard')">صعب</button>
+            <h1>Color Quest AI</h1>
+            <p>اختر مستوى الصعوبة لتبدأ التحدي</p>
+            <button class="diff-btn" style="background:#2ed573; color:#fff;" onclick="startGame('easy')">سهل (للتعلم)</button>
+            <button class="diff-btn" style="background:#ffa502; color:#fff;" onclick="startGame('medium')">متوسط (تحدي)</button>
+            <button class="diff-btn" style="background:#ff4757; color:#fff;" onclick="startGame('hard')">صعب (احترافي)</button>
         </div>
     </div>
 
     <script>
-        const colors = ['#ff4757', '#2ed573', '#1e90ff', '#ffa502', '#eccc68', '#9b59b6', '#00d2d3', '#ff6b81'];
+        const colors = ['#ff4757', '#2ed573', '#1e90ff', '#ffa502', '#eccc68', '#9b59b6', '#00d2d3', '#ff6b81', '#e67e22', '#1abc9c'];
         const container = document.getElementById('tubes-container');
         const movesLabel = document.getElementById('moves');
         const levelLabel = document.getElementById('level');
         const coinsLabel = document.getElementById('coins');
         const modeDisplay = document.getElementById('mode-display');
+        const aiToast = document.getElementById('ai-toast');
         
         let tubes = [];
         let history = [];
@@ -196,11 +231,12 @@
         let coins = parseInt(localStorage.getItem('gameCoins')) || 0;
         let currentTheme = localStorage.getItem('gameTheme') || 'default';
         let isAnimating = false;
-        let difficulty = 'medium'; // easy, medium, hard
+        let difficulty = 'medium';
+        let mistakeCount = 0; // لتتبع الأخطاء لتشغيل AI
 
         coinsLabel.innerText = coins + " ⭐";
 
-        // الأصوات
+        // --- الأصوات ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playSound(type) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -246,39 +282,34 @@
             tubes = [];
             history = [];
             moves = 0;
+            mistakeCount = 0;
             movesLabel.innerText = moves;
             selectedTube = null;
             levelLabel.innerText = currentLevel;
             document.getElementById('win-screen').style.display = 'none';
 
-            // حساب عدد الألوان بناءً على المستوى والصعوبة
             let baseColors = 3 + Math.floor((currentLevel - 1) / 2);
             let numColors = 0;
             let emptyTubes = 2;
 
             if (difficulty === 'easy') {
                 numColors = Math.min(baseColors, 6);
-                emptyTubes = 3; // مساحة أكبر للحركة
+                emptyTubes = 3;
             } else if (difficulty === 'medium') {
                 numColors = Math.min(baseColors + 1, 8);
                 emptyTubes = 2;
             } else {
-                numColors = Math.min(baseColors + 2, 10); // صعب: ألوان أكثر
-                emptyTubes = 1; // مساحة أقل
+                numColors = Math.min(baseColors + 2, 10);
+                emptyTubes = 1;
             }
 
-            // توليد الألوان
             let levelColors = [];
             for(let i=0; i<numColors; i++) {
                 for(let j=0; j<4; j++) levelColors.push(colors[i % colors.length]);
             }
 
-            // خلط عشوائي (مع ضمان عدم وجود لونين متطابقين فوق بعض في البداية)
-            do {
-                levelColors.sort(() => Math.random() - 0.5);
-            } while (isTooEasyStart(levelColors));
+            levelColors.sort(() => Math.random() - 0.5);
 
-            // توزيع الألوان
             for (let i = 0; i < numColors; i++) {
                 let tubeData = levelColors.slice(i * 4, (i + 1) * 4);
                 tubes.push(tubeData);
@@ -290,16 +321,9 @@
             renderTubes();
         }
 
-        // دالة عشان ما يكون اللعب سهل بزيادة (ما نبدأ بلون مكرر جاهز)
-        function isTooEasyStart(arr) {
-            // إذا كانت أغلب الأنابيب فيها ألوان متطابقة فوق بعض
-            return false; // تبسيطاً، نخليها عشوائية بالكامل
-        }
-
         function renderTubes() {
             container.innerHTML = '';
             
-            // تحديد حجم الأنبوب بناءً على عددها
             let tubeSizeClass = '';
             if (tubes.length > 12) tubeSizeClass = 'tiny-tube';
             else if (tubes.length > 9) tubeSizeClass = 'small-tube';
@@ -343,9 +367,11 @@
                 let toTube = tubes[index];
 
                 if (toTube.length >= 4) {
+                    mistakeCount++;
                     playSound('error');
                     selectedTube = null;
                     renderTubes();
+                    checkSmartTubes();
                     return;
                 }
 
@@ -373,11 +399,86 @@
                     
                     setTimeout(checkWin, 300);
                 } else {
+                    mistakeCount++;
                     playSound('error');
                     selectedTube = null;
                     renderTubes();
+                    checkSmartTubes();
                 }
             }
+        }
+
+        // --- الأنابيب الذكية ---
+        function checkSmartTubes() {
+            if (mistakeCount >= 3 && difficulty !== 'easy') {
+                showAIToast("أنابيب ذكية: هل تريد مساعدة الذكاء الاصطناعي؟");
+                mistakeCount = 0; // تصفير العداد
+            }
+        }
+
+        function showAIToast(message) {
+            aiToast.innerText = message;
+            aiToast.style.display = 'block';
+            setTimeout(() => { aiToast.style.display = 'none'; }, 3000);
+        }
+
+        // --- الذكاء الاصطناعي (نصيحة) ---
+        function useAI() {
+            if (coins < 5) {
+                playSound('error');
+                showAIToast("تحتاج 5 نجوم لاستخدام المساعد!");
+                return;
+            }
+            
+            let bestMove = findBestMove();
+            if (bestMove) {
+                coins -= 5;
+                coinsLabel.innerText = coins + " ⭐";
+                localStorage.setItem('gameCoins', coins);
+                playSound('win');
+                
+                // إضاءة الأنبوبين المقترحين
+                let tube1 = container.children[bestMove.from];
+                let tube2 = container.children[bestMove.to];
+                
+                tube1.style.borderColor = '#00ffff';
+                tube2.style.borderColor = '#00ffff';
+                tube1.style.boxShadow = '0 0 20px #00ffff';
+                tube2.style.boxShadow = '0 0 20px #00ffff';
+                
+                showAIToast("انقل من الأنبوب الأيمن إلى الأيسر");
+                
+                setTimeout(() => {
+                    tube1.style.borderColor = ''; tube1.style.boxShadow = '';
+                    tube2.style.borderColor = ''; tube2.style.boxShadow = '';
+                }, 2000);
+            } else {
+                showAIToast("لا توجد حركة واضحة، جرب التراجع!");
+            }
+        }
+
+        // خوارزمية بسيطة لإيجاد حركة (تحاكي AI)
+        function findBestMove() {
+            // البحث عن أنبوبين فارغين أو متطابقين
+            for (let i = 0; i < tubes.length; i++) {
+                for (let j = 0; j < tubes.length; j++) {
+                    if (i === j) continue;
+                    let from = tubes[i];
+                    let to = tubes[j];
+                    
+                    if (from.length === 0) continue;
+                    if (to.length === 4) continue;
+                    
+                    let color = from[from.length - 1];
+                    if (to.length === 0 || to[to.length - 1] === color) {
+                        // التحقق من أن النقل سيفيد (لا ننقل من أنبوب كامل لفراغ)
+                        if (to.length > 0 || from.length > 1) {
+                            return { from: i, to: j };
+                        }
+                    }
+                }
+            }
+            return null;
         }
 
         function undoMove() {
@@ -405,15 +506,18 @@
                 isAnimating = true;
                 playSound('win');
                 
-                // مكافأة حسب الصعوبة
                 let reward = 20;
                 if (difficulty === 'easy') reward = 10;
                 if (difficulty === 'hard') reward = 30;
                 
-                coins += reward;
+                // مكافأة إضافية للحركات القليلة
+                let speedBonus = Math.max(0, 40 - moves) * 2;
+                coins += (reward + speedBonus);
+                
                 localStorage.setItem('gameCoins', coins);
                 coinsLabel.innerText = coins + " ⭐";
                 
+                document.getElementById('speed-reward').innerText = `+${reward + speedBonus} ⭐`;
                 document.getElementById('win-screen').style.display = 'flex';
                 createConfetti();
                 isAnimating = false;
@@ -441,21 +545,21 @@
                 applyTheme();
             } else {
                 playSound('error');
-                alert('لا تملك نجوم كافية!');
+                showAIToast('لا تملك نجوم كافية!');
             }
         }
 
         function applyTheme() {
-            if (currentTheme === 'gold') document.body.style.background = 'linear-gradient(to bottom, #2b1a00, #4a3000, #0f0c29)';
-            else if (currentTheme === 'neon') document.body.style.background = 'linear-gradient(to bottom, #001f2b, #00334a, #0f0c29)';
-            else if (currentTheme === 'space') document.body.style.background = 'linear-gradient(to bottom, #000000, #1a0033, #0f0c29)';
-            else document.body.style.background = 'linear-gradient(to bottom, #24243e, #302b63, #0f0c29)';
+            if (currentTheme === 'gold') document.body.style.background = 'linear-gradient(180deg, #2b1a00, #4a3000, #0f0c29)';
+            else if (currentTheme === 'neon') document.body.style.background = 'linear-gradient(180deg, #001f2b, #00334a, #0f0c29)';
+            else if (currentTheme === 'space') document.body.style.background = 'linear-gradient(180deg, #000000, #1a0033, #0f0c29)';
+            else document.body.style.background = 'linear-gradient(180deg, #24243e, #302b63, #0f0c29)';
         }
 
         function createConfetti() {
             for (let i = 0; i < 40; i++) {
                 let c = document.createElement('div');
-                c.style.position = 'absolute'; c.style.width = '8px'; c.style.height = '8px';
+                c.style.position = 'fixed'; c.style.width = '8px'; c.style.height = '8px';
                 c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
                 c.style.left = Math.random() * 100 + 'vw'; c.style.top = '-10px'; c.style.zIndex = '100';
                 c.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
@@ -476,7 +580,6 @@
         document.head.appendChild(style);
 
         applyTheme();
-        // اللعبة ما تبدأ لحد ما يختار الصعوبة
     </script>
 </body>
 </html>
