@@ -912,10 +912,15 @@ function shoot(){
     special:activePower
   };
 
-  if(activePower==="rainbow")power.rainbow=Math.max(0,power.rainbow-1);
-  if(activePower==="lightning")power.lightning=Math.max(0,power.lightning-1);
-  activePower=null;
-  updatePowerUI();
+  if(activePower==="bomb")power.bomb=Math.max(0,power.bomb-1);
+if(activePower==="rainbow")power.rainbow=Math.max(0,power.rainbow-1);
+if(activePower==="lightning")power.lightning=Math.max(0,power.lightning-1);
+
+activePower=null;
+
+updatePowerUI();
+updateHUD();
+saveGame(); // حفظ رصيد القدرات بعد الاستهلاك
 
   currentColor=nextColor;
   nextColor=availableColors()[rand(availableColors().length)];
