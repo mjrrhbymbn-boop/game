@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Bubble Tower 3D - By Osama</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #0a0a1a; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; touch-action: none; }
+        
+        #ui-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; display: flex; flex-direction: column; justify-content: space-between;
+            padding: 20px; box-sizing: border-box; z-index: 10;
+        }
+
+        #score-board {
+            color: #fff; font-size: 28px; font-weight: 900; text-shadow: 0 0 10px #00ffff;
+            text-align: center;
+        }
+        #score-board span { color: #00ffff; }
+
+        #credit {
+            align-self: flex-end; color: rgba(255,255,255,0.3); font-size: 14px; font-weight: bold;
+        }
+        #credit strong { color: #ff00ff; }
+
+        .overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 10, 26, 0.9); backdrop-filter: blur(5px);
+            display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 20;
+        }
+        .overlay h1 { margin: 0 0 10px 0; font-size: 42px; font-weight: 900; color: #00ffff; text-shadow: 0 0 20px #00ffff; }
+        .overlay p { margin: 0 0 30px 0; color: #aaa; font-size: 18px; }
+        button { padding: 12px 30px; font-size: 18px; font-weight: bold; background: #00ffff; color: #000; border: none; border-radius: 30px; cursor: pointer; pointer-events: auto; box-shadow: 0 0 15px #00ffff; }
+
+        /* مؤشر التصويب */
+        #aim-line {
+            position: absolute; bottom: 80px; left: 50%; width: 4px; height: 200px;
+            background: linear-gradient(to top, rgba(255,255,255,0), rgba(255,255,255,0.5));
+            transform-origin: bottom center; pointer-events: none; z-index: 5;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ui-layer">
+        <div id="score-board">SCORE: <span id="score-val">0</span></div>
+        <div id="credit">Programmed by <strong>Osama</strong></div>
+    </div>
+
+    <div id="aim-line"></div>
+
+    <div id="win-screen" class="overlay">
+        <h1>LEVEL CLEAR!</h1>
+        <p>You popped them all.</p>
+        <button onclick="location.reload()">PLAY AGAIN</button>
+    </div>
+
+    <div id="lose-screen" class="overlay">
+        <h1 style="color:#ff3333; text-shadow: 0 0 20px #ff3333;">GAME OVER</h1>
+        <p>The bubbles reached the bottom.</p>
+        <button onclick="location.reload()">TRY AGAIN</button>
+    </div>
+
+    <script type="importmap">
+        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+
+        // --- إعدادات المشهد ---
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x0a0a1a, 0.05);
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 0, 20);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        document.body.appendChild(renderer.domElement);
+
+        // --- الإضاءة ---
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        dirLight.position.set(5, 10, 10);
+        dirLight.castShadow = true;
+        scene.add(dirLight);
+
+        const pointLight = new THREE.PointLight(0x00ffff, 1, 50);
+        pointLight.position.set(0, -5, 10);
+        scene.add(pointLight);
+
+        // --- توليد الفقاعات ---
+        const colors = [0xff3333, 0x33ff33, 0x3333ff, 0xffff33, 0xff33ff];
+        const bubbleRadius = 1;
+        const gridCols = 11;
+        const gridRows = 8;
+        const spacingX = bubbleRadius * 2 + 0.1;
+        const spacingY = bubbleRadius * Math.sqrt(3) + 0.1;
+
+        let bubbles = [];
+        const bubbleGeo = new THREE.SphereGeometry(bubbleRadius, 32, 32);
+
+        // دالة إنشاء فقاعة
+        function createBubble(x, y, colorIndex) {
+            const mat = new THREE.MeshStandardMaterial({ 
+                color: colors[colorIndex], 
+                roughness: 0.2, 
+                metalness: 0.1,
+                emissive: colors[colorIndex],
+                emissiveIntensity: 0.3
+            });
+            const bubble = new THREE.Mesh(bubbleGeo, mat);
+            bubble.position.set(x, y, 0);
+            bubble.userData = { color: colorIndex };
+            scene.add(bubble);
+            return bubble;
+        }
+
+        // إنشاء الشبكة
+        for (let row = 0; row < gridRows; row++) {
+            for (let col = 0; col < gridCols; col++) {
+                // إزاحة الصفوف الفردية
+                let offsetX = (row % 2 === 0) ? 0 : spacingX / 2;
+                let x = (col * spacingX) - (gridCols * spacingX) / 2 + spacingX / 2 + offsetX;
+                let y = (row * spacingY) - (gridRows * spacingY) / 2 + spacingY / 2 + 5;
+                
+                // ترك بعض الفراغات عشوائياً
+                if (Math.random() > 0.1) {
+                    let colorIndex = Math.floor(Math.random() * colors.length);
+                    bubbles.push(createBubble(x, y, colorIndex));
+                }
+            }
+        }
+
+        // --- اللاعب والتصويب ---
+        let currentBubble = createBubble(0, -9, Math.floor(Math.random() * colors.length));
+        let nextBubbleColor = Math.floor(Math.random() * colors.length);
+        let isShooting = false;
+        let aimAngle = 0;
+
+        // خط التصويب
+        const aimLine = document.getElementById('aim-line');
+
+        // التحكم باللمس والماوس
+        let isDragging = false;
+
+        function handlePointerMove(e) {
+            if (isShooting) return;
+            let clientX = e.clientX || (e.touches && e.touches[0].clientX);
+            let clientY = e.clientY || (e.touches && e.touches[0].clientY);
+            if (!clientX) return;
+
+            // حساب الزاوية بناءً على موقع المؤشر
+            let rect = renderer.domElement.getBoundingClientRect();
+            let mouseX = clientX - rect.left;
+            let mouseY = clientY - rect.top;
+            
+            // تحويل إحداثيات الشاشة إلى إحداثيات المشهد
+            let vector = new THREE.Vector3(
+                (mouseX / window.innerWidth) * 2 - 1,
+                -(mouseY / window.innerHeight) * 2 + 1,
+                0.5
+            );
+            vector.unproject(camera);
+            let dir = vector.sub(camera.position).normalize();
+            
+            // حساب الزاوية بين الفقاعة والمؤشر
+            let dx = dir.x - currentBubble.position.x;
+            let dy = dir.y - currentBubble.position.y;
+            aimAngle = Math.atan2(dy, dx) - Math.PI / 2; // تعديل الزاوية
+
+            // تدوير خط التصويب
+            aimLine.style.transform = `translateX(-50%) rotate(${-aimAngle}rad)`;
+        }
+
+        document.addEventListener('mousemove', handlePointerMove);
+        document.addEventListener('touchmove', handlePointerMove, { passive: false });
+
+        function shootBubble() {
+            if (isShooting) return;
+            isShooting = true;
+
+            // سرعة الفقاعة بناءً على الزاوية
+            let speed = 0.5;
+            let vx = Math.sin(aimAngle) * speed;
+            let vy = Math.cos(aimAngle) * speed;
+
+            // تحريك الفقاعة
+            let shootInterval = setInterval(() => {
+                currentBubble.position.x += vx;
+                currentBubble.position.y += vy;
+
+                // ارتداد من الجدران
+                if (currentBubble.position.x > (gridCols * spacingX) / 2) vx = -vx;
+                if (currentBubble.position.x < -(gridCols * spacingX) / 2) vx = -vx;
+
+                // فحص الاصطدام بالفقاعات الأخرى
+                for (let i = 0; i < bubbles.length; i++) {
+                    let b = bubbles[i];
+                    let dist = currentBubble.position.distanceTo(b.position);
+                    if (dist < bubbleRadius * 2) {
+                        // التصق بجانب الفقاعة
+                        clearInterval(shootInterval);
+                        snapBubble(b);
+                        return;
+                    }
+                }
+
+                // فحص الوصول للأعلى (خسارة أو اصطدام بالسقف)
+                if (currentBubble.position.y > (gridRows * spacingY) / 2 + 5) {
+                    clearInterval(shootInterval);
+                    snapBubble();
+                }
+            }, 10);
+        }
+
+        document.addEventListener('mouseup', () => { if(!isShooting) shootBubble(); });
+        document.addEventListener('touchend', () => { if(!isShooting) shootBubble(); });
+
+        function snapBubble(hitBubble = null) {
+            // في نسخة مبسطة، الفقاعة تلتصق في مكانها الحالي
+            let newBubble = createBubble(
+                currentBubble.position.x, 
+                currentBubble.position.y, 
+                currentBubble.userData.color
+            );
+            bubbles.push(newBubble);
+
+            // إزالة الفقاعة القديمة (اللي كانت تحت)
+            scene.remove(currentBubble);
+
+            // فحص التطابق (Match-3)
+            checkMatches(newBubble);
+
+            // توليد فقاعة جديدة
+            currentBubble = createBubble(0, -9, nextBubbleColor);
+            nextBubbleColor = Math.floor(Math.random() * colors.length);
+            isShooting = false;
+        }
+
+        // دالة فحص التطابق (تبسيط: تختفي الفقاعات المتجاورة من نفس اللون)
+        function checkMatches(startBubble) {
+            let color = startBubble.userData.color;
+            let matches = [startBubble];
+
+            // بحث بسيط عن الفقاعات القريبة من نفس اللون
+            for (let i = 0; i < bubbles.length; i++) {
+                let b = bubbles[i];
+                if (b !== startBubble && b.userData.color === color) {
+                    if (b.position.distanceTo(startBubble.position) < bubbleRadius * 2.5) {
+                        matches.push(b);
+                    }
+                }
+            }
+
+            // إذا كان فيه 3 فقاعات أو أكثر، تختفي
+            if (matches.length >= 3) {
+                matches.forEach(m => {
+                    scene.remove(m);
+                    let index = bubbles.indexOf(m);
+                    if (index > -1) bubbles.splice(index, 1);
+                });
+                // زيادة النقاط
+                let scoreVal = document.getElementById('score-val');
+                scoreVal.innerText = parseInt(scoreVal.innerText) + matches.length * 10;
+            }
+        }
+
+        // --- دورة اللعبة ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // تدوير الفقاعات قليلاً لجمالية
+            bubbles.forEach(b => {
+                b.rotation.x += 0.01;
+                b.rotation.y += 0.01;
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
