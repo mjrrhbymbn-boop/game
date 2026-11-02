@@ -30,7 +30,6 @@
 
         #game-container { position: relative; width: 100%; max-width: 600px; height: 100%; display: flex; flex-direction: column; align-items: center; padding: 10px; z-index: 1; }
 
-        /* الشريط العلوي */
         .top-bar {
             width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 10px 15px;
             background: var(--glass-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
@@ -46,7 +45,6 @@
         .level-title { font-size: clamp(18px, 5vw, 22px); font-weight: 900; color: #fff; text-shadow: 0 0 15px rgba(255,255,255,0.4); text-align: center; line-height: 1.2; }
         .mode-badge { font-size: 11px; background: rgba(0,255,255,0.2); color: #00ffff; padding: 2px 8px; border-radius: 10px; border: 1px solid rgba(0,255,255,0.3); margin-top: 4px; display: inline-block; }
 
-        /* شبكة الأنابيب */
         #tubes-container {
             display: flex; flex-wrap: wrap; justify-content: center; align-content: center;
             gap: clamp(10px, 3vw, 20px); width: 100%; flex-grow: 1; margin-top: 15px; margin-bottom: 15px;
@@ -54,9 +52,7 @@
         }
 
         .tube {
-            width: clamp(45px, 12vw, 65px); 
-            height: clamp(160px, 28vh, 240px); 
-            position: relative;
+            width: clamp(45px, 12vw, 65px); height: clamp(160px, 28vh, 240px); position: relative;
             background: var(--glass-bg); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
             border: 2px solid rgba(255,255,255,0.2); border-top: none;
             border-radius: 0 0 25px 25px;
@@ -77,7 +73,6 @@
         }
         .tube.selected::before { border-color: var(--glow-color); }
 
-        /* تلميح المساعد AI */
         .tube.hint-from { border-color: #ffcc00; animation: hintPulse 1s infinite alternate; }
         .tube.hint-to { border-color: #00ff00; animation: hintPulse 1s infinite alternate; }
         @keyframes hintPulse { 0% { box-shadow: 0 0 10px currentColor; } 100% { box-shadow: 0 0 30px currentColor; } }
@@ -91,7 +86,6 @@
             transition: all 0.3s ease; position: relative;
         }
 
-        /* أزرار التحكم */
         .bottom-bar { display: flex; gap: 8px; width: 100%; justify-content: center; padding-bottom: 5px; flex-wrap: wrap; }
         .btn {
             padding: 10px 15px; font-size: clamp(12px, 3.5vw, 14px); font-weight: 700; font-family: 'Cairo', sans-serif;
@@ -104,7 +98,6 @@
         .btn-ai { background: linear-gradient(45deg, #ffcc00, #ff9900); color: #000; border: none; font-weight: 900; box-shadow: 0 0 15px rgba(255,204,0,0.4); }
         .btn-daily { background: linear-gradient(45deg, #ff00ff, #00ffff); color: #000; font-weight: 900; }
 
-        /* الشاشات المنبثقة */
         .overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(15, 12, 41, 0.95); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
@@ -116,7 +109,6 @@
         .diff-btn { width: 85%; max-width: 300px; margin-bottom: 12px; padding: 15px; font-size: 16px; border-radius: 20px; border: none; font-weight: 900; cursor: pointer; font-family: 'Cairo'; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: transform 0.2s; }
         .diff-btn:active { transform: scale(0.95); }
 
-        /* شاشة المساعد الذكي */
         #ai-toast {
             position: absolute; top: 90px; background: rgba(255, 204, 0, 0.95); color: #000;
             padding: 12px 20px; border-radius: 15px; font-weight: 900; font-size: 15px;
@@ -125,7 +117,6 @@
         }
         @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
-        /* تأثير Combo */
         #combo-text {
             position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
             font-size: 40px; font-weight: 900; color: #ff00ff; text-shadow: 0 0 20px #ff00ff;
@@ -181,7 +172,6 @@
 
         <div id="ai-toast"></div>
 
-        <!-- شاشة الفوز -->
         <div id="win-screen" class="overlay">
             <h1 id="win-title">أحسنت!</h1>
             <p>لقد رتبت الألوان بنجاح.</p>
@@ -192,14 +182,12 @@
             <button class="diff-btn" style="background:#00ffff; color:#000;" onclick="nextLevel()">المستوى التالي</button>
         </div>
 
-        <!-- شاشة الخسارة (الوقت) -->
         <div id="lose-screen" class="overlay">
             <h1 style="color:#ff4757; text-shadow: 0 0 20px #ff4757;">انتهى الوقت!</h1>
             <p>كن أسرع في المرة القادمة.</p>
             <button class="diff-btn" style="background:#ff4757; color:#fff;" onclick="restartLevel()">المحاولة مرة أخرى</button>
         </div>
 
-        <!-- المتجر -->
         <div id="shop-screen" class="overlay">
             <h1 style="color:#ffcc00; text-shadow: 0 0 20px #ffcc00;">المتجر</h1>
             <p>استخدم النجوم لتغيير المظهر</p>
@@ -220,7 +208,6 @@
             <button class="diff-btn" style="background: #ff3333; margin-top: 20px; width:85%;" onclick="closeShop()">إغلاق</button>
         </div>
 
-        <!-- شاشة اختيار الصعوبة -->
         <div id="diff-screen" class="overlay" style="display: flex;">
             <h1>Color Quest AI</h1>
             <p>اختر مستوى الصعوبة لتبدأ التحدي</p>
@@ -251,18 +238,15 @@
         let isAnimating = false;
         let difficulty = 'medium';
         
-        // نظام الوقت
-        let timeLeft = 120; // بالثواني
+        let timeLeft = 120;
         let timerInterval = null;
         let isDaily = false;
 
-        // نظام Combo
         let comboCount = 0;
         let lastMoveTime = 0;
 
         coinsLabel.innerText = coins + " ⭐";
 
-        // --- الأصوات ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playSound(type) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -307,7 +291,7 @@
             modeDisplay.innerText = 'تحدي يومي 🔥';
             timeLeft = 60;
             document.getElementById('diff-screen').style.display = 'none';
-            currentLevel = 5; // مستوى صعب
+            currentLevel = 5; 
             setupLevel();
             startTimer();
         }
@@ -356,38 +340,25 @@
             let numColors = 0;
             let emptyTubes = 2;
 
-            if (difficulty === 'easy') {
-                numColors = Math.min(baseColors, 6);
-                emptyTubes = 3;
-            } else if (difficulty === 'medium') {
-                numColors = Math.min(baseColors + 1, 8);
-                emptyTubes = 2;
-            } else {
-                numColors = Math.min(baseColors + 2, 10);
-                emptyTubes = 1;
-            }
+            if (difficulty === 'easy') { numColors = Math.min(baseColors, 6); emptyTubes = 3; }
+            else if (difficulty === 'medium') { numColors = Math.min(baseColors + 1, 8); emptyTubes = 2; }
+            else { numColors = Math.min(baseColors + 2, 10); emptyTubes = 1; }
 
             let levelColors = [];
-            for(let i=0; i<numColors; i++) {
-                for(let j=0; j<4; j++) levelColors.push(colors[i % colors.length]);
-            }
-
+            for(let i=0; i<numColors; i++) { for(let j=0; j<4; j++) levelColors.push(colors[i % colors.length]); }
             levelColors.sort(() => Math.random() - 0.5);
 
             for (let i = 0; i < numColors; i++) {
                 let tubeData = levelColors.slice(i * 4, (i + 1) * 4);
                 tubes.push(tubeData);
             }
-            for (let i = 0; i < emptyTubes; i++) {
-                tubes.push([]);
-            }
+            for (let i = 0; i < emptyTubes; i++) { tubes.push([]); }
 
             renderTubes();
         }
 
         function renderTubes() {
             container.innerHTML = '';
-            
             let tubeSizeClass = '';
             if (tubes.length > 12) tubeSizeClass = 'tiny-tube';
             else if (tubes.length > 9) tubeSizeClass = 'small-tube';
@@ -430,11 +401,7 @@
                 let toTube = tubes[index];
 
                 if (toTube.length >= 4) {
-                    playSound('error');
-                    selectedTube = null;
-                    comboCount = 0; // كسر الكومبو
-                    renderTubes();
-                    return;
+                    playSound('error'); selectedTube = null; comboCount = 0; renderTubes(); return;
                 }
 
                 let colorToMove = fromTube[fromTube.length - 1];
@@ -450,108 +417,61 @@
 
                     for (let i = 0; i < count; i++) toTube.push(fromTube.pop());
 
-                    moves++;
-                    movesLabel.innerText = moves;
-                    selectedTube = null;
-                    playSound('pour');
-                    renderTubes();
+                    moves++; movesLabel.innerText = moves; selectedTube = null; playSound('pour'); renderTubes();
                     
-                    // نظام الكومبو
                     let now = Date.now();
-                    if (now - lastMoveTime < 3000) { // إذا الحركة في أقل من 3 ثواني
+                    if (now - lastMoveTime < 3000) {
                         comboCount++;
                         if (comboCount >= 2) showCombo(comboCount);
-                    } else {
-                        comboCount = 1;
-                    }
+                    } else { comboCount = 1; }
                     lastMoveTime = now;
 
                     setTimeout(checkWin, 300);
                 } else {
-                    playSound('error');
-                    selectedTube = null;
-                    comboCount = 0;
-                    renderTubes();
+                    playSound('error'); selectedTube = null; comboCount = 0; renderTubes();
                 }
             }
         }
 
         function showCombo(count) {
             comboText.innerText = `Combo x${count}!`;
-            comboText.classList.remove('show');
-            void comboText.offsetWidth; // trigger reflow
-            comboText.classList.add('show');
-            // مكافأة نجوم صغيرة للكومبو
-            coins += 2;
-            coinsLabel.innerText = coins + " ⭐";
+            comboText.classList.remove('show'); void comboText.offsetWidth; comboText.classList.add('show');
+            coins += 2; coinsLabel.innerText = coins + " ⭐";
         }
 
-        // --- المساعد الذكي (حقيقي) ---
         function useAI() {
-            if (coins < 10) {
-                playSound('error');
-                showAIToast("تحتاج 10 نجوم لاستخدام المساعد!");
-                return;
-            }
+            if (coins < 10) { playSound('error'); showAIToast("تحتاج 10 نجوم لاستخدام المساعد!"); return; }
             
             let bestMove = findActualBestMove();
             if (bestMove) {
-                coins -= 10;
-                coinsLabel.innerText = coins + " ⭐";
-                localStorage.setItem('gameCoins', coins);
-                playSound('win');
+                coins -= 10; coinsLabel.innerText = coins + " ⭐"; localStorage.setItem('gameCoins', coins); playSound('win');
                 
                 let tube1 = container.children[bestMove.from];
                 let tube2 = container.children[bestMove.to];
                 
-                tube1.classList.add('hint-from');
-                tube2.classList.add('hint-to');
-                
+                tube1.classList.add('hint-from'); tube2.classList.add('hint-to');
                 showAIToast(`انقل من الأنبوب ${bestMove.from + 1} إلى الأنبوب ${bestMove.to + 1}`);
                 
-                setTimeout(() => {
-                    tube1.classList.remove('hint-from');
-                    tube2.classList.remove('hint-to');
-                }, 3500);
-            } else {
-                showAIToast("لا توجد حركة واضحة، جرب التراجع!");
-            }
+                setTimeout(() => { tube1.classList.remove('hint-from'); tube2.classList.remove('hint-to'); }, 3500);
+            } else { showAIToast("لا توجد حركة واضحة، جرب التراجع!"); }
         }
 
-        // خوارزمية ذكية: تبحث عن أفضل حركة (تكمل لون أو تفرغ أنبوب)
         function findActualBestMove() {
-            let bestScore = -1;
-            let bestMove = null;
-
+            let bestScore = -1; let bestMove = null;
             for (let i = 0; i < tubes.length; i++) {
                 for (let j = 0; j < tubes.length; j++) {
                     if (i === j) continue;
-                    let from = tubes[i];
-                    let to = tubes[j];
-                    
+                    let from = tubes[i]; let to = tubes[j];
                     if (from.length === 0 || to.length === 4) continue;
-                    
                     let color = from[from.length - 1];
                     if (to.length === 0 || to[to.length - 1] === color) {
                         let score = 0;
-                        
-                        // 1. إذا كان النقل سيكمل أنبوب (4 من نفس اللون)
                         if (to.length === 3 && to[0] === color) score += 100;
-                        
-                        // 2. إذا كان النقل سيفرغ أنبوب بالكامل
                         let count = 0;
-                        for (let k = from.length - 1; k >= 0; k--) {
-                            if (from[k] === color) count++; else break;
-                        }
+                        for (let k = from.length - 1; k >= 0; k--) { if (from[k] === color) count++; else break; }
                         if (count === from.length) score += 50;
-                        
-                        // 3. إذا كان الأنبوب المستقبل فيه نفس اللون
                         if (to.length > 0 && to[to.length - 1] === color) score += 20;
-
-                        if (score > bestScore) {
-                            bestScore = score;
-                            bestMove = { from: i, to: j };
-                        }
+                        if (score > bestScore) { bestScore = score; bestMove = { from: i, to: j }; }
                     }
                 }
             }
@@ -559,20 +479,14 @@
         }
 
         function showAIToast(message) {
-            aiToast.innerText = message;
-            aiToast.style.display = 'block';
+            aiToast.innerText = message; aiToast.style.display = 'block';
             setTimeout(() => { aiToast.style.display = 'none'; }, 3500);
         }
 
         function undoMove() {
             if (history.length > 0 && !isAnimating) {
-                tubes = history.pop();
-                moves = Math.max(0, moves - 1);
-                movesLabel.innerText = moves;
-                selectedTube = null;
-                comboCount = 0;
-                playSound('select');
-                renderTubes();
+                tubes = history.pop(); moves = Math.max(0, moves - 1); movesLabel.innerText = moves;
+                selectedTube = null; comboCount = 0; playSound('select'); renderTubes();
             }
         }
 
@@ -580,52 +494,27 @@
             let isWin = true;
             for (let tube of tubes) {
                 if (tube.length > 0) {
-                    if (tube.length !== 4 || new Set(tube).size !== 1) {
-                        isWin = false;
-                        break;
-                    }
+                    if (tube.length !== 4 || new Set(tube).size !== 1) { isWin = false; break; }
                 }
             }
             if (isWin) {
-                isAnimating = true;
-                clearInterval(timerInterval);
-                playSound('win');
-                
-                let reward = 20;
-                if (difficulty === 'easy') reward = 10;
-                if (difficulty === 'hard') reward = 30;
-                
-                // مكافأة الوقت المتبقي
-                let timeBonus = timeLeft * 1;
-                let totalReward = reward + timeBonus;
-                
-                if (isDaily) {
-                    totalReward *= 2; // تحديث مكافأة التحدي اليومي
-                    document.getElementById('win-title').innerText = 'بطل التحدي اليومي!';
-                }
-                
-                coins += totalReward;
-                localStorage.setItem('gameCoins', coins);
-                coinsLabel.innerText = coins + " ⭐";
-                
+                isAnimating = true; clearInterval(timerInterval); playSound('win');
+                let reward = 20; if (difficulty === 'easy') reward = 10; if (difficulty === 'hard') reward = 30;
+                let totalReward = reward + (timeLeft * 1);
+                if (isDaily) { totalReward *= 2; document.getElementById('win-title').innerText = 'بطل التحدي اليومي!'; }
+                coins += totalReward; localStorage.setItem('gameCoins', coins); coinsLabel.innerText = coins + " ⭐";
                 document.getElementById('speed-reward').innerText = `+${totalReward} ⭐`;
                 document.getElementById('win-screen').style.display = 'flex';
-                createConfetti();
-                isAnimating = false;
+                createConfetti(); isAnimating = false;
             }
         }
 
         function gameOver() {
-            isAnimating = true;
-            playSound('error');
-            document.getElementById('lose-screen').style.display = 'flex';
+            isAnimating = true; playSound('error'); document.getElementById('lose-screen').style.display = 'flex';
         }
 
         function nextLevel() {
-            currentLevel++;
-            timeLeft = 120; // إعادة تعيين الوقت
-            setupLevel();
-            startTimer();
+            currentLevel++; timeLeft = 120; setupLevel(); startTimer();
         }
 
         function openShop() { document.getElementById('shop-screen').style.display = 'flex'; }
@@ -634,6 +523,30 @@
         function buyTheme(theme, price) {
             if (currentTheme === theme) return;
             if (coins >= price) {
-                coins -= price;
-                currentTheme = theme;
-                localStorage.setItem('gameCoins', coins);
+                coins -= price; currentTheme = theme;
+                localStorage.setItem('gameCoins', coins); localStorage.setItem('gameTheme', theme);
+                coinsLabel.innerText = coins + " ⭐"; playSound('win'); renderTubes(); applyTheme();
+            } else { playSound('error'); showAIToast('لا تملك نجوم كافية!'); }
+        }
+
+        function applyTheme() {
+            if (currentTheme === 'neon') document.body.style.background = 'linear-gradient(180deg, #001f2b, #00334a, #0f0c29)';
+            else if (currentTheme === 'space') document.body.style.background = 'linear-gradient(180deg, #000000, #1a0033, #0f0c29)';
+            else document.body.style.background = 'linear-gradient(180deg, #24243e, #302b63, #0f0c29)';
+        }
+
+        function createConfetti() {
+            for (let i = 0; i < 40; i++) {
+                let c = document.createElement('div');
+                c.style.position = 'fixed'; c.style.width = '8px'; c.style.height = '8px';
+                c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                c.style.left = Math.random() * 100 + 'vw'; c.style.top = '-10px'; c.style.zIndex = '100';
+                c.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                document.body.appendChild(c);
+                let anim = c.animate([{ transform: `translateY(0) rotate(0deg)` }, { transform: `translateY(100vh) rotate(${Math.random() * 720}deg)` }], { duration: Math.random() * 2000 + 1000, easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' });
+                anim.onfinish = () => c.remove();
+            }
+        }
+
+        const style = document.createElement('style');
+        style.innerHTML = `.tube.neon-tube { border-color: #00ffff; box-shadow: inset 0 0 20px rgba(0,255,255,0.3), 0 10px 20px rgba(0,0,0,0.4); } .tube.neon-tube::before { border-color:
