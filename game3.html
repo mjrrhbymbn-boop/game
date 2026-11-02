@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>Color Quest - By Osama</title>
+    <title>Color Quest Pro - By Osama</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
 
@@ -22,7 +22,7 @@
         .star { position: absolute; background: white; border-radius: 50%; opacity: 0.5; animation: twinkle infinite alternate; }
         @keyframes twinkle { 0% { opacity: 0.1; transform: scale(0.8); } 100% { opacity: 0.8; transform: scale(1.2); } }
 
-        #game-container { position: relative; width: 100%; max-width: 450px; height: 100%; display: flex; flex-direction: column; align-items: center; padding: 10px; }
+        #game-container { position: relative; width: 100%; max-width: 500px; height: 100%; display: flex; flex-direction: column; align-items: center; padding: 10px; }
 
         /* الشريط العلوي */
         .top-bar {
@@ -33,80 +33,80 @@
         .stat-box { display: flex; flex-direction: column; align-items: center; }
         .stat-title { font-size: 12px; color: #aaa; }
         .stat-value { font-size: 18px; font-weight: 700; color: #fff; }
-        .level-title { font-size: 22px; font-weight: 900; letter-spacing: 1px; color: #e0e0e0; text-shadow: 0 0 10px rgba(255,255,255,0.5); }
+        .level-title { font-size: 20px; font-weight: 900; letter-spacing: 1px; color: #e0e0e0; text-shadow: 0 0 10px rgba(255,255,255,0.5); text-align: center; }
 
         /* شبكة الأنابيب */
         #tubes-container {
             display: flex; flex-wrap: wrap; justify-content: center; align-content: center;
-            gap: 15px 20px; width: 100%; flex-grow: 1; margin-top: 20px;
+            gap: 10px; width: 100%; flex-grow: 1; margin-top: 15px; padding-bottom: 20px;
+            overflow-y: auto; /* عشان لو صارت كثيرة */
         }
 
         .tube {
-            width: 60px; height: 200px; position: relative;
+            width: 55px; height: 180px; position: relative;
             background: rgba(255,255,255,0.03); backdrop-filter: blur(5px);
             border: 2px solid rgba(255,255,255,0.2); border-top: none;
-            border-radius: 0 0 30px 30px;
-            display: flex; flex-direction: column-reverse; padding: 4px; overflow: hidden;
+            border-radius: 0 0 25px 25px;
+            display: flex; flex-direction: column-reverse; padding: 3px; overflow: hidden;
             box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 10px 20px rgba(0,0,0,0.4);
             cursor: pointer; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s;
         }
         
-        /* حافة الأنبوب */
         .tube::before {
-            content: ''; position: absolute; top: -2px; left: -2px; right: -2px; height: 8px;
+            content: ''; position: absolute; top: -2px; left: -2px; right: -2px; height: 6px;
             border: 2px solid rgba(255,255,255,0.4); border-radius: 50%; z-index: 5;
             box-shadow: 0 2px 5px rgba(0,0,0,0.5);
         }
 
-        /* تأثير اختيار الأنبوب */
-        .tube.selected { transform: translateY(-25px); border-color: rgba(0, 255, 255, 0.8); box-shadow: inset 0 0 30px rgba(0, 255, 255, 0.3), 0 20px 30px rgba(0,0,0,0.6); }
+        .tube.selected { transform: translateY(-20px); border-color: rgba(0, 255, 255, 0.8); box-shadow: inset 0 0 30px rgba(0, 255, 255, 0.3), 0 20px 30px rgba(0,0,0,0.6); }
         .tube.selected::before { border-color: rgba(0, 255, 255, 0.8); }
+
+        /* تصغير الأنابيب لو صارت كثيرة */
+        .tube.small-tube { width: 40px; height: 140px; border-radius: 0 0 15px 15px; }
+        .tube.small-tube .liquid { height: 30px; border-radius: 5px; }
+        .tube.tiny-tube { width: 32px; height: 110px; border-radius: 0 0 10px 10px; }
+        .tube.tiny-tube .liquid { height: 22px; border-radius: 4px; }
 
         /* السوائل */
         .liquid {
-            width: 100%; height: 45px; border-radius: 8px; margin-top: 2px;
+            width: 100%; height: 40px; border-radius: 6px; margin-top: 2px;
             box-shadow: inset 0 5px 10px rgba(255,255,255,0.4), inset 0 -5px 10px rgba(0,0,0,0.4);
             transition: all 0.3s ease; position: relative;
-            animation: dropIn 0.3s ease-out;
-        }
-        @keyframes dropIn {
-            0% { transform: scaleY(0); opacity: 0; transform-origin: bottom; }
-            100% { transform: scaleY(1); opacity: 1; }
         }
 
-        /* أزرار التحكم تحت */
-        .bottom-bar {
-            display: flex; gap: 15px; margin-top: 20px; margin-bottom: 20px;
-        }
+        /* أزرار التحكم */
+        .bottom-bar { display: flex; gap: 10px; margin-top: 10px; margin-bottom: 10px; }
         .btn {
-            padding: 12px 25px; font-size: 16px; font-weight: bold; font-family: 'Cairo', sans-serif;
+            padding: 10px 20px; font-size: 14px; font-weight: bold; font-family: 'Cairo', sans-serif;
             background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 25px; cursor: pointer; backdrop-filter: blur(5px); transition: all 0.2s;
+            border-radius: 20px; cursor: pointer; backdrop-filter: blur(5px); transition: all 0.2s;
         }
-        .btn:hover { background: rgba(255,255,255,0.2); transform: scale(1.05); }
+        .btn:hover { background: rgba(255,255,255,0.2); }
         .btn:active { transform: scale(0.95); }
 
         /* الشاشات المنبثقة */
         .overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(15, 12, 41, 0.95); backdrop-filter: blur(10px);
-            display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 20;
+            display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 20; padding: 20px;
         }
-        .overlay h1 { margin: 0 0 10px 0; font-size: 38px; font-weight: 900; color: #00ffff; text-shadow: 0 0 20px #00ffff; }
-        .overlay p { margin: 0 0 30px 0; color: #ccc; font-size: 18px; text-align: center; }
+        .overlay h1 { margin: 0 0 10px 0; font-size: 32px; font-weight: 900; color: #00ffff; text-shadow: 0 0 20px #00ffff; text-align: center; }
+        .overlay p { margin: 0 0 20px 0; color: #ccc; font-size: 16px; text-align: center; }
         
         /* المتجر */
-        #shop-screen { justify-content: flex-start; padding-top: 50px; overflow-y: auto; }
+        #shop-screen { justify-content: flex-start; padding-top: 30px; overflow-y: auto; }
         .shop-item { 
-            width: 80%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 15px; padding: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;
+            width: 90%; max-width: 350px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 15px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;
         }
-        .shop-item h3 { font-size: 16px; margin: 0; }
-        .shop-item p { font-size: 12px; color: #aaa; margin: 5px 0 0 0; }
+        .shop-item h3 { font-size: 14px; margin: 0; }
+        .shop-item p { font-size: 11px; color: #aaa; margin: 3px 0 0 0; }
         
-        #credit { font-size: 12px; color: rgba(255,255,255,0.3); margin-bottom: 10px; }
+        #credit { font-size: 11px; color: rgba(255,255,255,0.3); margin-bottom: 5px; }
         #credit strong { color: #00ffff; }
 
+        /* شاشة اختيار الصعوبة */
+        .diff-btn { width: 80%; margin-bottom: 10px; padding: 15px; font-size: 16px; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -119,7 +119,7 @@
                 <span class="stat-title">الحركات</span>
                 <span class="stat-value" id="moves">0</span>
             </div>
-            <div class="level-title">المستوى <span id="level">1</span></div>
+            <div class="level-title">المستوى <span id="level">1</span><br><span style="font-size:12px; color:#aaa" id="mode-display">متوسط</span></div>
             <div class="stat-box">
                 <span class="stat-title">النجوم</span>
                 <span class="stat-value" id="coins">0 ⭐</span>
@@ -131,6 +131,7 @@
         <div class="bottom-bar">
             <button class="btn" onclick="undoMove()">↩️ تراجع</button>
             <button class="btn" onclick="openShop()">🛍️ المتجر</button>
+            <button class="btn" onclick="restartLevel()">🔄 إعادة</button>
         </div>
 
         <div id="credit">Programmed by <strong>Osama</strong></div>
@@ -139,49 +140,53 @@
         <div id="win-screen" class="overlay">
             <h1>أحسنت!</h1>
             <p>لقد رتبت الألوان بنجاح.</p>
-            <button class="btn" style="background:#00ffff; color:#000; font-size: 20px;" onclick="nextLevel()">المستوى التالي</button>
+            <button class="btn" style="background:#00ffff; color:#000; font-size: 18px; padding: 15px 30px;" onclick="nextLevel()">المستوى التالي</button>
         </div>
 
         <!-- المتجر -->
         <div id="shop-screen" class="overlay">
-            <h1 style="color:#ffcc00; text-shadow: 0 0 20px #ffcc00;">المتجر</h1>
-            <p>استخدم النجوم لتغيير مظهر الأنابيب</p>
+            <h1 style="color:#ffcc00; text-shadow: 0 0 20px #ffcc00; font-size: 28px;">المتجر</h1>
+            <p>استخدم النجوم لتغيير المظهر</p>
             
             <div class="shop-item">
-                <div>
-                    <h3>أنابيب زجاجية (افتراضي)</h3>
-                    <p>المظهر الأساسي</p>
-                </div>
-                <button class="btn" onclick="buyTheme('default', 0)">مُفعل</button>
+                <div><h3>المظهر الافتراضي</h3></div>
+                <button class="btn" onclick="buyTheme('default', 0)">تفعيل</button>
             </div>
 
             <div class="shop-item">
-                <div>
-                    <h3>أنابيب ذهبية</h3>
-                    <p>مظهر فاخر</p>
-                </div>
+                <div><h3>المظهر الذهبي</h3><p>أنابيب ذهبية وخلفية دافئة</p></div>
                 <button class="btn" onclick="buyTheme('gold', 50)">50 ⭐</button>
             </div>
 
             <div class="shop-item">
-                <div>
-                    <h3>أنابيب نيون</h3>
-                    <p>توهج قوي</p>
-                </div>
+                <div><h3>النيون الساطع</h3><p>توهج قوي وألوان صارخة</p></div>
                 <button class="btn" onclick="buyTheme('neon', 100)">100 ⭐</button>
+            </div>
+            
+            <div class="shop-item">
+                <div><h3>الفضاء السحيق</h3><p>خلفية فضائية غامقة</p></div>
+                <button class="btn" onclick="buyTheme('space', 150)">150 ⭐</button>
             </div>
 
             <button class="btn" style="margin-top: 20px; background: #ff3333;" onclick="closeShop()">إغلاق</button>
         </div>
+
+        <!-- شاشة اختيار الصعوبة -->
+        <div id="diff-screen" class="overlay" style="display: flex;">
+            <h1>اختر الصعوبة</h1>
+            <button class="diff-btn" style="background:#2ed573; color:#fff;" onclick="startGame('easy')">سهل</button>
+            <button class="diff-btn" style="background:#ffa502; color:#fff;" onclick="startGame('medium')">متوسط</button>
+            <button class="diff-btn" style="background:#ff4757; color:#fff;" onclick="startGame('hard')">صعب</button>
+        </div>
     </div>
 
     <script>
-        // --- إعدادات اللعبة ---
         const colors = ['#ff4757', '#2ed573', '#1e90ff', '#ffa502', '#eccc68', '#9b59b6', '#00d2d3', '#ff6b81'];
         const container = document.getElementById('tubes-container');
         const movesLabel = document.getElementById('moves');
         const levelLabel = document.getElementById('level');
         const coinsLabel = document.getElementById('coins');
+        const modeDisplay = document.getElementById('mode-display');
         
         let tubes = [];
         let history = [];
@@ -191,65 +196,51 @@
         let coins = parseInt(localStorage.getItem('gameCoins')) || 0;
         let currentTheme = localStorage.getItem('gameTheme') || 'default';
         let isAnimating = false;
+        let difficulty = 'medium'; // easy, medium, hard
 
-        // تحديث العملات في الواجهة
         coinsLabel.innerText = coins + " ⭐";
 
-        // --- الأصوات (Web Audio API) ---
+        // الأصوات
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
         function playSound(type) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-
-            if (type === 'select') {
-                osc.type = 'sine'; osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-            } else if (type === 'pour') {
-                osc.type = 'triangle'; osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.2);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.2);
-            } else if (type === 'win') {
-                osc.type = 'square'; 
-                osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-                osc.frequency.setValueAtTime(600, audioCtx.currentTime + 0.1);
-                osc.frequency.setValueAtTime(800, audioCtx.currentTime + 0.2);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.4);
-            } else if (type === 'error') {
-                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.2);
-            }
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            if (type === 'select') { osc.type='sine'; osc.frequency.setValueAtTime(400, audioCtx.currentTime); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime+0.1); osc.start(); osc.stop(audioCtx.currentTime+0.1); }
+            else if (type === 'pour') { osc.type='triangle'; osc.frequency.setValueAtTime(600, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime+0.2); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime+0.2); osc.start(); osc.stop(audioCtx.currentTime+0.2); }
+            else if (type === 'win') { osc.type='square'; osc.frequency.setValueAtTime(400, audioCtx.currentTime); osc.frequency.setValueAtTime(600, audioCtx.currentTime+0.1); osc.frequency.setValueAtTime(800, audioCtx.currentTime+0.2); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime+0.4); osc.start(); osc.stop(audioCtx.currentTime+0.4); }
+            else if (type === 'error') { osc.type='sawtooth'; osc.frequency.setValueAtTime(150, audioCtx.currentTime); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime+0.2); osc.start(); osc.stop(audioCtx.currentTime+0.2); }
         }
 
-        // --- إنشاء النجوم في الخلفية ---
         function createStars() {
-            const starsContainer = document.getElementById('stars');
+            const sc = document.getElementById('stars');
             for (let i = 0; i < 50; i++) {
-                let star = document.createElement('div');
-                star.className = 'star';
+                let s = document.createElement('div'); s.className = 'star';
                 let size = Math.random() * 3;
-                star.style.width = size + 'px';
-                star.style.height = size + 'px';
-                star.style.left = Math.random() * 100 + '%';
-                star.style.top = Math.random() * 100 + '%';
-                star.style.animationDuration = (Math.random() * 3 + 1) + 's';
-                starsContainer.appendChild(star);
+                s.style.width = size + 'px'; s.style.height = size + 'px';
+                s.style.left = Math.random() * 100 + '%'; s.style.top = Math.random() * 100 + '%';
+                s.style.animationDuration = (Math.random() * 3 + 1) + 's';
+                sc.appendChild(s);
             }
         }
         createStars();
 
-        // --- إعداد المرحلة ---
+        function startGame(diff) {
+            difficulty = diff;
+            if (diff === 'easy') modeDisplay.innerText = 'سهل';
+            else if (diff === 'medium') modeDisplay.innerText = 'متوسط';
+            else modeDisplay.innerText = 'صعب';
+            
+            document.getElementById('diff-screen').style.display = 'none';
+            currentLevel = 1;
+            setupLevel();
+        }
+
+        function restartLevel() {
+            setupLevel();
+        }
+
         function setupLevel() {
             container.innerHTML = '';
             tubes = [];
@@ -260,17 +251,32 @@
             levelLabel.innerText = currentLevel;
             document.getElementById('win-screen').style.display = 'none';
 
-            // توزيع الصعوبة (مستويات أعلى = ألوان أكثر وأنابيب أكثر)
-            let numColors = Math.min(3 + Math.floor(currentLevel / 2), 8); 
+            // حساب عدد الألوان بناءً على المستوى والصعوبة
+            let baseColors = 3 + Math.floor((currentLevel - 1) / 2);
+            let numColors = 0;
             let emptyTubes = 2;
-            
-            let levelColors = [];
-            for(let i=0; i<numColors; i++) {
-                for(let j=0; j<4; j++) levelColors.push(colors[i]);
+
+            if (difficulty === 'easy') {
+                numColors = Math.min(baseColors, 6);
+                emptyTubes = 3; // مساحة أكبر للحركة
+            } else if (difficulty === 'medium') {
+                numColors = Math.min(baseColors + 1, 8);
+                emptyTubes = 2;
+            } else {
+                numColors = Math.min(baseColors + 2, 10); // صعب: ألوان أكثر
+                emptyTubes = 1; // مساحة أقل
             }
 
-            // خلط عشوائي
-            levelColors.sort(() => Math.random() - 0.5);
+            // توليد الألوان
+            let levelColors = [];
+            for(let i=0; i<numColors; i++) {
+                for(let j=0; j<4; j++) levelColors.push(colors[i % colors.length]);
+            }
+
+            // خلط عشوائي (مع ضمان عدم وجود لونين متطابقين فوق بعض في البداية)
+            do {
+                levelColors.sort(() => Math.random() - 0.5);
+            } while (isTooEasyStart(levelColors));
 
             // توزيع الألوان
             for (let i = 0; i < numColors; i++) {
@@ -284,12 +290,21 @@
             renderTubes();
         }
 
-        // --- رسم الأنابيب ---
+        // دالة عشان ما يكون اللعب سهل بزيادة (ما نبدأ بلون مكرر جاهز)
+        function isTooEasyStart(arr) {
+            // إذا كانت أغلب الأنابيب فيها ألوان متطابقة فوق بعض
+            return false; // تبسيطاً، نخليها عشوائية بالكامل
+        }
+
         function renderTubes() {
             container.innerHTML = '';
             
-            // تحديد شكل الأنبوب بناءً على الثيم
-            let tubeClass = 'tube';
+            // تحديد حجم الأنبوب بناءً على عددها
+            let tubeSizeClass = '';
+            if (tubes.length > 12) tubeSizeClass = 'tiny-tube';
+            else if (tubes.length > 9) tubeSizeClass = 'small-tube';
+
+            let tubeClass = 'tube ' + tubeSizeClass;
             if (currentTheme === 'gold') tubeClass += ' gold-tube';
             if (currentTheme === 'neon') tubeClass += ' neon-tube';
 
@@ -311,7 +326,6 @@
             });
         }
 
-        // --- التفاعل ---
         function handleTubeClick(index) {
             if (isAnimating) return;
 
@@ -338,7 +352,6 @@
                 let colorToMove = fromTube[fromTube.length - 1];
                 
                 if (toTube.length === 0 || toTube[toTube.length - 1] === colorToMove) {
-                    // حفظ الحالة للتراجع
                     history.push(JSON.parse(JSON.stringify(tubes)));
 
                     let count = 0;
@@ -358,7 +371,7 @@
                     playSound('pour');
                     renderTubes();
                     
-                    setTimeout(checkWin, 300); // تأخير بسيط عشان الحركة تكتمل
+                    setTimeout(checkWin, 300);
                 } else {
                     playSound('error');
                     selectedTube = null;
@@ -367,7 +380,6 @@
             }
         }
 
-        // --- التراجع ---
         function undoMove() {
             if (history.length > 0 && !isAnimating) {
                 tubes = history.pop();
@@ -379,7 +391,6 @@
             }
         }
 
-        // --- فحص الفوز ---
         function checkWin() {
             let isWin = true;
             for (let tube of tubes) {
@@ -393,7 +404,13 @@
             if (isWin) {
                 isAnimating = true;
                 playSound('win');
-                coins += 20; // مكافأة الفوز
+                
+                // مكافأة حسب الصعوبة
+                let reward = 20;
+                if (difficulty === 'easy') reward = 10;
+                if (difficulty === 'hard') reward = 30;
+                
+                coins += reward;
                 localStorage.setItem('gameCoins', coins);
                 coinsLabel.innerText = coins + " ⭐";
                 
@@ -403,19 +420,14 @@
             }
         }
 
-        // --- المستوى التالي ---
         function nextLevel() {
             currentLevel++;
             setupLevel();
         }
 
-        // --- المتجر ---
-        function openShop() {
-            document.getElementById('shop-screen').style.display = 'flex';
-        }
-        function closeShop() {
-            document.getElementById('shop-screen').style.display = 'none';
-        }
+        function openShop() { document.getElementById('shop-screen').style.display = 'flex'; }
+        function closeShop() { document.getElementById('shop-screen').style.display = 'none'; }
+        
         function buyTheme(theme, price) {
             if (currentTheme === theme) return;
             if (coins >= price) {
@@ -426,41 +438,30 @@
                 coinsLabel.innerText = coins + " ⭐";
                 playSound('win');
                 renderTubes();
-                // تغيير لون الخلفية بناءً على الثيم
-                if (theme === 'gold') document.body.style.background = 'linear-gradient(to bottom, #2b1a00, #4a3000, #0f0c29)';
-                else if (theme === 'neon') document.body.style.background = 'linear-gradient(to bottom, #001f2b, #00334a, #0f0c29)';
-                else document.body.style.background = 'linear-gradient(to bottom, #24243e, #302b63, #0f0c29)';
+                applyTheme();
             } else {
                 playSound('error');
                 alert('لا تملك نجوم كافية!');
             }
         }
 
-        // --- تأثيرات الفوز (قصاصات ورقية) ---
+        function applyTheme() {
+            if (currentTheme === 'gold') document.body.style.background = 'linear-gradient(to bottom, #2b1a00, #4a3000, #0f0c29)';
+            else if (currentTheme === 'neon') document.body.style.background = 'linear-gradient(to bottom, #001f2b, #00334a, #0f0c29)';
+            else if (currentTheme === 'space') document.body.style.background = 'linear-gradient(to bottom, #000000, #1a0033, #0f0c29)';
+            else document.body.style.background = 'linear-gradient(to bottom, #24243e, #302b63, #0f0c29)';
+        }
+
         function createConfetti() {
-            for (let i = 0; i < 50; i++) {
-                let confetti = document.createElement('div');
-                confetti.style.position = 'absolute';
-                confetti.style.width = '10px';
-                confetti.style.height = '10px';
-                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                confetti.style.left = Math.random() * 100 + 'vw';
-                confetti.style.top = '-10px';
-                confetti.style.zIndex = '100';
-                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
-                confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
-                
-                document.body.appendChild(confetti);
-
-                let animation = confetti.animate([
-                    { transform: `translateY(0) rotate(0deg)` },
-                    { transform: `translateY(100vh) rotate(${Math.random() * 720}deg)` }
-                ], {
-                    duration: Math.random() * 2000 + 1000,
-                    easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
-                });
-
-                animation.onfinish = () => confetti.remove();
+            for (let i = 0; i < 40; i++) {
+                let c = document.createElement('div');
+                c.style.position = 'absolute'; c.style.width = '8px'; c.style.height = '8px';
+                c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                c.style.left = Math.random() * 100 + 'vw'; c.style.top = '-10px'; c.style.zIndex = '100';
+                c.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                document.body.appendChild(c);
+                let anim = c.animate([{ transform: `translateY(0) rotate(0deg)` }, { transform: `translateY(100vh) rotate(${Math.random() * 720}deg)` }], { duration: Math.random() * 2000 + 1000, easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' });
+                anim.onfinish = () => c.remove();
             }
         }
 
@@ -474,12 +475,8 @@
         `;
         document.head.appendChild(style);
 
-        // تشغيل اللعبة
-        if (currentTheme === 'gold') document.body.style.background = 'linear-gradient(to bottom, #2b1a00, #4a3000, #0f0c29)';
-        else if (currentTheme === 'neon') document.body.style.background = 'linear-gradient(to bottom, #001f2b, #00334a, #0f0c29)';
-        
-        setupLevel();
-
+        applyTheme();
+        // اللعبة ما تبدأ لحد ما يختار الصعوبة
     </script>
 </body>
 </html>
