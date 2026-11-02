@@ -1,254 +1,481 @@
 <!DOCTYPE html>
-<html>
+<html lang="ar">
 <head>
 <meta charset="UTF-8">
-<title>Gravity Inversion Bubble Shooter</title>
+<title>Neon Singularity</title>
 <style>
-  body { margin:0; background:#0a0a14; display:flex; justify-content:center; align-items:center; height:100vh; font-family:monospace; color:#0ff; }
-  canvas { border:2px solid #0ff; box-shadow:0 0 30px #0ff8; }
-  #hud { position:absolute; top:10px; left:10px; font-size:14px; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:100%; height:100%; overflow:hidden; background:#05010a; font-family:'Segoe UI',monospace; }
+  canvas { display:block; cursor:crosshair; }
+  #ui { position:fixed; inset:0; pointer-events:none; }
+  .hud { position:absolute; color:#0ff; font-size:14px; letter-spacing:1px; text-shadow:0 0 8px #0ff; }
+  #score { top:20px; left:24px; font-size:22px; }
+  #combo { top:20px; right:24px; font-size:18px; color:#f0f; text-shadow:0 0 8px #f0f; }
+  #energyBar { position:absolute; bottom:24px; left:50%; transform:translateX(-50%); width:300px; height:10px;
+    background:#1a0a2a; border:1px solid #0ff; border-radius:5px; overflow:hidden; box-shadow:0 0 12px #0ff5; }
+  #energyFill { height:100%; width:0%; background:linear-gradient(90deg,#0ff,#f0f); transition:width 0.2s; }
+  #ultReady { position:absolute; bottom:44px; left:50%; transform:translateX(-50%); color:#f0f;
+    font-size:12px; letter-spacing:3px; opacity:0; transition:opacity 0.3s; text-shadow:0 0 12px #f0f; }
+  #ultReady.show { opacity:1; animation:pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  #startScreen { position:fixed; inset:0; display:flex; flex-direction:column; justify-content:center;
+    align-items:center; background:radial-gradient(circle,#1a0030,#05010a); z-index:10; }
+  #startScreen h1 { color:#0ff; font-size:52px; text-shadow:0 0 30px #0ff, 0 0 60px #0ff; letter-spacing:8px; }
+  #startScreen p { color:#f0f; margin:20px 0; font-size:16px; letter-spacing:2px; }
+  #startScreen button { margin-top:30px; padding:16px 48px; background:transparent; color:#0ff;
+    border:2px solid #0ff; font-size:20px; letter-spacing:4px; cursor:pointer; border-radius:8px;
+    box-shadow:0 0 20px #0ff8; transition:all 0.2s; }
+  #startScreen button:hover { background:#0ff; color:#05010a; box-shadow:0 0 40px #0ff; }
 </style>
 </head>
 <body>
-<div id="hud">Gravity: <span id="gdir">DOWN</span> | Next flip: <span id="timer">10</span>s</div>
-<canvas id="c" width="480" height="640"></canvas>
+<canvas id="c"></canvas>
+<div id="ui">
+  <div id="score" class="hud">0</div>
+  <div id="combo" class="hud">x1</div>
+  <div id="energyBar"><div id="energyFill"></div></div>
+  <div id="ultReady">[ SPACE ] SINGULARITY PULSE</div>
+</div>
+<div id="startScreen">
+  <h1>SINGULARITY</h1>
+  <p>ram الفقاعات نحو النواة • ادمج الشحنات المتعاكسة</p>
+  <p style="color:#0ff;font-size:13px">🟦 موجب • 🟥 سالب • ⚪ محايد (عازل)</p>
+  <button id="startBtn">START</button>
+</div>
 <script>
+// ================= SETUP =================
 const c = document.getElementById('c'), ctx = c.getContext('2d');
-const COLS = 12, R = 20, ROW_H = Math.sqrt(3) * R;
-const W = c.width, H = c.height;
-const COLORS = ['#ff3366','#33ff88','#3399ff','#ffcc00','#cc33ff'];
+let W, H, CX, CY;
+function resize() {
+  W = c.width = window.innerWidth;
+  H = c.height = window.innerHeight;
+  CX = W/2; CY = H/2;
+}
+window.addEventListener('resize', resize); resize();
 
-let grid = [], shooter = {x: W/2, y: H - 40, angle: -Math.PI/2};
+// ================= AUDIO ENGINE =================
+const AC = new (window.AudioContext || window.webkitAudioContext)();
+function playTone(freq, dur=0.1, type='sine', vol=0.15, sweep=null) {
+  const o = AC.createOscillator(), g = AC.createGain();
+  o.type = type; o.frequency.value = freq;
+  if (sweep) o.frequency.exponentialRampToValueAtTime(sweep, AC.currentTime + dur);
+  g.gain.setValueAtTime(vol, AC.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + dur);
+  o.connect(g); g.connect(AC.destination);
+  o.start(); o.stop(AC.currentTime + dur);
+}
+function sfxShoot()  { playTone(600, 0.08, 'square', 0.08, 300); }
+function sfxHit()    { playTone(220, 0.05, 'triangle', 0.1); }
+function sfxPop(n)   { for(let i=0;i<n;i++) setTimeout(()=>playTone(400+i*80,0.12,'sine',0.12,800),i*40); }
+function sfxUlt()    { playTone(80, 1.2, 'sawtooth', 0.2, 40); playTone(200,1.0,'sine',0.15,800); }
+function sfxCombo()  { playTone(1200, 0.15, 'sine', 0.1, 1800); }
+
+// ================= CONSTANTS =================
+const CHARGES = [
+  { name:'pos', color:'#00e5ff', glow:'#00e5ff', sign: +1 },
+  { name:'neg', color:'#ff006e', glow:'#ff006e', sign: -1 },
+  { name:'neu', color:'#cccccc', glow:'#888888', sign:  0 },
+];
+const RING_RADII = [90, 165, 240];   // 3 rings from core
+const R = 20;                          // bubble radius
+const CORE_R = 55;
+
+// ================= STATE =================
+let bubbles = [];      // {ring, index, charge, angle, alive, spawnScale}
 let projectile = null;
-let gravityDir = 1;          // 1 = down, -1 = up
-let flipTimer = 10, lastFlip = performance.now();
-let score = 0;
+let particles = [];
+let waves = [];        // pulse waves from core
+let score = 0, combo = 1, energy = 0;
+let ultActive = 0;     // frames remaining of ult effect
+let shake = 0;
+let mouseAngle = -Math.PI/2;
+let gameState = 'menu'; // menu | playing | gameover
+let pulsePhase = 0;
+let bubblesPerRing = [8, 12, 16];
 
-// ---- init grid ----
-function initGrid() {
-  grid = [];
-  for (let r = 0; r < 8; r++) {
-    grid[r] = [];
-    for (let col = 0; col < COLS; col++) {
-      if (r % 2 === 0 || col < COLS - 1) {
-        grid[r][col] = { color: COLORS[(Math.random()*COLORS.length)|0], alive: true };
-      }
+// ================= INIT =================
+function initGame() {
+  bubbles = []; particles = []; waves = [];
+  score = 0; combo = 1; energy = 0; ultActive = 0;
+  for (let ri = 0; ri < RING_RADII.length; ri++) {
+    const count = bubblesPerRing[ri];
+    for (let i = 0; i < count; i++) {
+      const charge = CHARGES[(Math.random()*3)|0];
+      bubbles.push({
+        ring: ri, index: i, total: count,
+        angle: (i / count) * Math.PI * 2,
+        charge, alive: true, spawnScale: 0,
+      });
     }
   }
-}
-initGrid();
-
-// ---- geometry ----
-function cellPos(row, col) {
-  const x = col * (2*R) + R + (row % 2) * R;
-  const y = gravityDir === 1
-    ? row * ROW_H + R
-    : H - (row * ROW_H + R);
-  return {x, y};
+  updateHUD();
 }
 
-// ---- shooting ----
+// ================= RENDERING =================
+function drawCore() {
+  // pulsing core
+  const pulse = 1 + Math.sin(pulsePhase) * 0.08;
+  // outer glow
+  const grad = ctx.createRadialGradient(CX, CY, 0, CX, CY, CORE_R * 3 * pulse);
+  grad.addColorStop(0, 'rgba(255,0,255,0.6)');
+  grad.addColorStop(0.4, 'rgba(150,0,255,0.2)');
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = grad;
+  ctx.beginPath(); ctx.arc(CX, CY, CORE_R * 3 * pulse, 0, Math.PI*2); ctx.fill();
+  // core body
+  ctx.beginPath(); ctx.arc(CX, CY, CORE_R * pulse, 0, Math.PI*2);
+  const cg = ctx.createRadialGradient(CX, CY, 0, CX, CY, CORE_R * pulse);
+  cg.addColorStop(0, '#fff');
+  cg.addColorStop(0.5, '#f0f');
+  cg.addColorStop(1, '#300');
+  ctx.fillStyle = cg; ctx.fill();
+  ctx.strokeStyle = '#0ff'; ctx.lineWidth = 2; ctx.stroke();
+}
+
+function drawWaves() {
+  for (let i = waves.length-1; i >= 0; i--) {
+    const w = waves[i];
+    w.radius += w.speed;
+    w.alpha *= 0.97;
+    ctx.beginPath(); ctx.arc(CX, CY, w.radius, 0, Math.PI*2);
+    ctx.strokeStyle = `rgba(0,255,255,${w.alpha})`;
+    ctx.lineWidth = w.width; ctx.stroke();
+    if (w.alpha < 0.02) waves.splice(i,1);
+  }
+}
+
+function drawBubbles() {
+  for (const b of bubbles) {
+    if (!b.alive) continue;
+    if (b.spawnScale < 1) b.spawnScale = Math.min(1, b.spawnScale + 0.08);
+    const radius = RING_RADII[b.ring];
+    const x = CX + Math.cos(b.angle) * radius;
+    const y = CY + Math.sin(b.angle) * radius;
+    const drawR = R * b.spawnScale;
+    // glow
+    const gg = ctx.createRadialGradient(x, y, 0, x, y, drawR * 2);
+    gg.addColorStop(0, b.charge.glow + 'aa');
+    gg.addColorStop(1, b.charge.glow + '00');
+    ctx.fillStyle = gg;
+    ctx.beginPath(); ctx.arc(x, y, drawR * 2, 0, Math.PI*2); ctx.fill();
+    // body
+    ctx.beginPath(); ctx.arc(x, y, drawR, 0, Math.PI*2);
+    ctx.fillStyle = b.charge.color; ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+    // charge symbol
+    ctx.fillStyle = '#000'; ctx.font = `bold ${drawR}px monospace`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const sym = b.charge.sign > 0 ? '+' : b.charge.sign < 0 ? '−' : 'o';
+    ctx.fillText(sym, x, y);
+  }
+}
+
+function drawShooter() {
+  const sx = CX + Math.cos(mouseAngle) * (Math.min(W,H)/2 - 30);
+  const sy = CY + Math.sin(mouseAngle) * (Math.min(W,H)/2 - 30);
+  // aim line
+  ctx.beginPath();
+  ctx.moveTo(sx, sy);
+  ctx.lineTo(CX + Math.cos(mouseAngle) * CORE_R, CY + Math.sin(mouseAngle) * CORE_R);
+  ctx.strokeStyle = 'rgba(0,255,255,0.3)'; ctx.lineWidth = 2;
+  ctx.setLineDash([6,6]); ctx.stroke(); ctx.setLineDash([]);
+  // shooter base
+  ctx.beginPath(); ctx.arc(sx, sy, R*1.3, 0, Math.PI*2);
+  ctx.fillStyle = '#0ff'; ctx.shadowColor = '#0ff'; ctx.shadowBlur = 20;
+  ctx.fill(); ctx.shadowBlur = 0;
+  // next charge indicator
+  if (!projectile) {
+    ctx.beginPath(); ctx.arc(sx, sy, R*0.7, 0, Math.PI*2);
+    ctx.fillStyle = nextCharge.color; ctx.fill();
+  }
+}
+
+function drawProjectile() {
+  if (!projectile) return;
+  const gg = ctx.createRadialGradient(projectile.x,projectile.y,0,projectile.x,projectile.y,R*2);
+  gg.addColorStop(0, projectile.charge.color + 'ff');
+  gg.addColorStop(1, projectile.charge.color + '00');
+  ctx.fillStyle = gg;
+  ctx.beginPath(); ctx.arc(projectile.x, projectile.y, R*2, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(projectile.x, projectile.y, R, 0, Math.PI*2);
+  ctx.fillStyle = projectile.charge.color; ctx.fill();
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = '#000'; ctx.font = `bold ${R}px monospace`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  const sym = projectile.charge.sign > 0 ? '+' : projectile.charge.sign < 0 ? '−' : 'o';
+  ctx.fillText(sym, projectile.x, projectile.y);
+}
+
+function drawParticles() {
+  for (let i = particles.length-1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx; p.y += p.vy;
+    p.vy += 0.05; p.vx *= 0.98; p.vy *= 0.98;
+    p.life -= 0.02;
+    if (p.life <= 0) { particles.splice(i,1); continue; }
+    ctx.globalAlpha = p.life;
+    ctx.fillStyle = p.color;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI*2); ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+}
+
+function spawnExplosion(x, y, color, n=15) {
+  for (let i = 0; i < n; i++) {
+    const ang = Math.random() * Math.PI * 2;
+    const sp = 2 + Math.random() * 5;
+    particles.push({
+      x, y, vx: Math.cos(ang)*sp, vy: Math.sin(ang)*sp,
+      size: 3 + Math.random()*3, color, life: 1,
+    });
+  }
+}
+
+// ================= LOGIC =================
+let nextCharge = CHARGES[0];
+function pickNextCharge() { nextCharge = CHARGES[(Math.random()*3)|0]; }
+pickNextCharge();
+
 c.addEventListener('mousemove', e => {
-  const rect = c.getBoundingClientRect();
-  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
-  shooter.angle = Math.atan2(my - shooter.y, mx - shooter.x);
-  shooter.angle = Math.max(-Math.PI + 0.2, Math.min(-0.2, shooter.angle));
+  mouseAngle = Math.atan2(e.clientY - CY, e.clientX - CX);
 });
 c.addEventListener('click', () => {
-  if (projectile) return;
-  const color = COLORS[(Math.random()*COLORS.length)|0];
+  if (projectile || gameState !== 'playing') return;
+  // start from shooter position
+  const sx = CX + Math.cos(mouseAngle) * (Math.min(W,H)/2 - 30);
+  const sy = CY + Math.sin(mouseAngle) * (Math.min(W,H)/2 - 30);
+  // velocity points TOWARD the core direction (inward)
+  const dir = Math.atan2(CY - sy, CX - sx);
   projectile = {
-    x: shooter.x, y: shooter.y,
-    vx: Math.cos(shooter.angle) * 9,
-    vy: Math.sin(shooter.angle) * 9,
-    color
+    x: sx, y: sy,
+    vx: Math.cos(dir) * 11, vy: Math.sin(dir) * 11,
+    charge: nextCharge,
   };
+  pickNextCharge();
+  sfxShoot();
 });
 
-// ---- physics & collision ----
-function dist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space' && energy >= 100 && gameState === 'playing') {
+    triggerUltimate();
+  }
+});
 
-function snapToGrid(p) {
-  let best = null, bestD = Infinity;
-  for (let r = 0; r < 20; r++) {
-    if (!grid[r]) grid[r] = [];
-    for (let col = 0; col < COLS; col++) {
-      if (grid[r][col]?.alive) continue;
-      const {x, y} = cellPos(r, col);
-      if (y < -R || y > H + R) continue;
-      const d = dist(p, {x, y});
-      if (d < bestD) { bestD = d; best = {r, col, x, y}; }
+function triggerUltimate() {
+  energy = 0;
+  ultActive = 90;
+  waves.push({ radius: CORE_R, speed: 8, alpha: 1, width: 6 });
+  waves.push({ radius: CORE_R, speed: 5, alpha: 0.7, width: 3 });
+  sfxUlt();
+  shake = 20;
+  // destroy all in outer two rings
+  let killed = 0;
+  for (const b of bubbles) {
+    if (b.alive && b.ring >= 1) {
+      b.alive = false; killed++;
+      const rad = RING_RADII[b.ring];
+      const x = CX + Math.cos(b.angle)*rad, y = CY + Math.sin(b.angle)*rad;
+      spawnExplosion(x, y, b.charge.color, 10);
     }
   }
-  if (best && bestD < 2*R) {
-    if (!grid[best.r]) grid[best.r] = [];
-    grid[best.r][best.col] = { color: p.color, alive: true };
-    return best;
+  score += killed * 30;
+  updateHUD();
+  // respawn after delay
+  setTimeout(() => { if (gameState === 'playing') refill(); }, 800);
+}
+
+function refill() {
+  // restore missing bubbles on all rings
+  for (let ri = 0; ri < RING_RADII.length; ri++) {
+    const count = bubblesPerRing[ri];
+    for (let i = 0; i < count; i++) {
+      const existing = bubbles.find(b => b.ring===ri && b.index===i);
+      if (!existing) {
+        bubbles.push({
+          ring: ri, index: i, total: count,
+          angle: (i/count)*Math.PI*2,
+          charge: CHARGES[(Math.random()*3)|0], alive: true, spawnScale: 0,
+        });
+      } else if (!existing.alive) {
+        existing.alive = true;
+        existing.charge = CHARGES[(Math.random()*3)|0];
+        existing.spawnScale = 0;
+      }
+    }
   }
-  return null;
 }
 
-function neighbors(r, col) {
-  const odd = r % 2;
-  return [
-    [r, col-1],[r, col+1],[r-1, col-1+odd],[r-1, col+odd],
-    [r+1, col-1+odd],[r+1, col+odd]
-  ].filter(([rr,cc]) => rr>=0 && cc>=0 && cc<COLS && grid[rr]?.[cc]?.alive);
+function findHitBubble(px, py) {
+  let best = null, bestD = R * 2;
+  for (const b of bubbles) {
+    if (!b.alive) continue;
+    const rad = RING_RADII[b.ring];
+    const bx = CX + Math.cos(b.angle)*rad;
+    const by = CY + Math.sin(b.angle)*rad;
+    const d = Math.hypot(px-bx, py-by);
+    if (d < bestD) { bestD = d; best = b; }
+  }
+  return best;
 }
 
-function popCluster(r, col, color) {
-  const stack = [[r,col]], seen = new Set(), cluster = [];
+function getNeighbors(b) {
+  // neighbors = adjacent indices on same ring, plus nearest on adjacent rings
+  const out = [];
+  for (const other of bubbles) {
+    if (!other.alive || other === b) continue;
+    if (other.ring === b.ring) {
+      let diff = Math.abs(other.index - b.index);
+      diff = Math.min(diff, b.total - diff);
+      if (diff === 1) out.push(other);
+    } else if (Math.abs(other.ring - b.ring) === 1) {
+      // angular proximity
+      let da = Math.abs(other.angle - b.angle);
+      da = Math.min(da, Math.PI*2 - da);
+      if (da < Math.PI / 6) out.push(other);
+    }
+  }
+  return out;
+}
+
+function resolveHit(hit, incomingCharge) {
+  sfxHit();
+  // opposite charges -> merge & explode
+  if (hit.charge.sign !== 0 && incomingCharge.sign !== 0 && hit.charge.sign !== incomingCharge.sign) {
+    // cascade: explode cluster of same charge as hit
+    explodeCluster(hit);
+    return;
+  }
+  // same charge -> nothing special, just small pop if 3+ chain
+  if (hit.charge.sign === incomingCharge.sign && incomingCharge.sign !== 0) {
+    explodeCluster(hit);
+    return;
+  }
+  // neutral — small visual reaction only
+  const rad = RING_RADII[hit.ring];
+  const x = CX + Math.cos(hit.angle)*rad, y = CY + Math.sin(hit.angle)*rad;
+  spawnExplosion(x, y, hit.charge.color, 5);
+}
+
+function explodeCluster(start) {
+  // BFS on same-charge neighbors
+  const toKill = new Set();
+  const stack = [start];
+  const targetCharge = start.charge;
   while (stack.length) {
-    const [rr,cc] = stack.pop();
-    const k = rr+','+cc;
-    if (seen.has(k)) continue;
-    seen.add(k);
-    if (grid[rr]?.[cc]?.alive && grid[rr][cc].color === color) {
-      cluster.push([rr,cc]);
-      for (const n of neighbors(rr,cc)) stack.push(n);
-    }
+    const b = stack.pop();
+    if (toKill.has(b) || !b.alive || b.charge !== targetCharge) continue;
+    toKill.add(b);
+    for (const n of getNeighbors(b)) if (!toKill.has(n)) stack.push(n);
   }
-  if (cluster.length >= 3) {
-    cluster.forEach(([rr,cc]) => grid[rr][cc].alive = false);
-    score += cluster.length * 10;
-    return true;
+  if (toKill.size < 2) {
+    // not enough for a chain — just one explodes if it was direct hit
+    toKill.clear(); toKill.add(start);
   }
-  return false;
+  let count = 0;
+  for (const b of toKill) {
+    b.alive = false;
+    const rad = RING_RADII[b.ring];
+    const x = CX + Math.cos(b.angle)*rad, y = CY + Math.sin(b.angle)*rad;
+    spawnExplosion(x, y, b.charge.color, 12);
+    count++;
+  }
+  const gain = count * 20 * combo;
+  score += gain;
+  combo = Math.min(combo + (count > 3 ? 1 : 0.3), 10);
+  energy = Math.min(100, energy + count * 5);
+  sfxPop(Math.min(count, 6));
+  if (count >= 4) sfxCombo();
+  shake = Math.min(shake + count * 1.5, 15);
+  updateHUD();
 }
 
-// ---- gravity inversion: drop floating bubbles ----
-function dropFloating() {
-  const anchored = new Set();
-  // anchor row is the one closest to "ceiling" (top if gravity down, bottom if up)
-  const startRow = gravityDir === 1 ? 0 : 7;
-  for (let col = 0; col < COLS; col++) {
-    if (grid[startRow]?.[col]?.alive) {
-      const stack = [[startRow,col]];
-      while (stack.length) {
-        const [r,cc] = stack.pop();
-        const k = r+','+cc;
-        if (anchored.has(k)) continue;
-        anchored.add(k);
-        for (const [rr,ccc] of neighbors(r,cc)) stack.push([rr,ccc]);
-      }
-    }
-  }
-  // any alive cell not in anchored set falls
-  for (let r = 0; r < grid.length; r++) {
-    if (!grid[r]) continue;
-    for (let col = 0; col < COLS; col++) {
-      const cell = grid[r][col];
-      if (cell?.alive && !anchored.has(r+','+col)) {
-        // fell off — simulate by removing and reapplying at opposite side
-        cell.alive = false;
-        // spawn a new one from opposite side (living inversion)
-        const newR = gravityDir === 1 ? 7 : 0;
-        for (let cc = 0; cc < COLS; cc++) {
-          if (!grid[newR]) grid[newR] = [];
-          if (!grid[newR][cc]?.alive) {
-            grid[newR][cc] = {color: cell.color, alive: true};
-            break;
-          }
-        }
-        score += 25;
-      }
-    }
-  }
+function updateHUD() {
+  document.getElementById('score').textContent = Math.floor(score).toLocaleString();
+  document.getElementById('combo').textContent = 'x' + combo.toFixed(1);
+  document.getElementById('energyFill').style.width = energy + '%';
+  document.getElementById('ultReady').classList.toggle('show', energy >= 100);
 }
 
-// ---- main loop ----
-function loop(now) {
-  // timer
-  if (now - lastFlip > 1000) {
-    lastFlip = now;
-    flipTimer--;
-    document.getElementById('timer').textContent = flipTimer;
-    if (flipTimer <= 0) {
-      flipTimer = 10;
-      gravityDir *= -1;
-      document.getElementById('gdir').textContent = gravityDir === 1 ? 'DOWN' : 'UP';
-      dropFloating();
-    }
-  }
+// ================= MAIN LOOP =================
+let lastTime = 0;
+function loop(t) {
+  const dt = t - lastTime; lastTime = t;
+  pulsePhase += 0.05;
 
-  // projectile
-  if (projectile) {
-    projectile.x += projectile.vx;
-    projectile.y += projectile.vy;
-    // wall bounce
-    if (projectile.x < R || projectile.x > W - R) projectile.vx *= -1;
-    // ceiling / floor
-    if (projectile.y < R || projectile.y > H - R) {
-      const hit = snapToGrid(projectile);
-      if (hit) popCluster(hit.r, hit.col, projectile.color);
-      projectile = null;
-    } else {
-      // collision with existing bubbles
-      for (let r = 0; r < grid.length; r++) {
-        if (!grid[r]) continue;
-        for (let col = 0; col < COLS; col++) {
-          if (grid[r][col]?.alive) {
-            const p = cellPos(r,col);
-            if (dist(projectile, p) < 2*R - 2) {
-              const hit = snapToGrid(projectile);
-              if (hit) popCluster(hit.r, hit.col, projectile.color);
-              projectile = null;
-              r = grid.length; break;
-            }
-          }
-        }
+  // rotate bubbles slowly (orbit)
+  if (gameState === 'playing') {
+    const speed = 0.0015 * (1 + ultActive/90);
+    for (const b of bubbles) b.angle += speed;
+    if (ultActive > 0) ultActive--;
+
+    // shoot update
+    if (projectile) {
+      projectile.x += projectile.vx;
+      projectile.y += projectile.vy;
+      // collision with bubbles
+      const hit = findHitBubble(projectile.x, projectile.y);
+      if (hit) {
+        resolveHit(hit, projectile.charge);
+        projectile = null;
+      } else if (Math.hypot(projectile.x - CX, projectile.y - CY) < CORE_R) {
+        // hit core
+        sfxHit();
+        spawnExplosion(projectile.x, projectile.y, projectile.charge.color, 8);
+        combo = 1;
+        projectile = null;
+        updateHUD();
+      }
+      // went off screen
+      else if (projectile.x < -50 || projectile.x > W+50 || projectile.y < -50 || projectile.y > H+50) {
+        projectile = null;
       }
     }
-  }
 
-  // ---- render ----
-  ctx.fillStyle = '#0a0a14';
-  ctx.fillRect(0,0,W,H);
+    // combo decay
+    combo = Math.max(1, combo - 0.003);
 
-  // grid
-  for (let r = 0; r < grid.length; r++) {
-    if (!grid[r]) continue;
-    for (let col = 0; col < COLS; col++) {
-      const cell = grid[r][col];
-      if (!cell?.alive) continue;
-      const {x,y} = cellPos(r,col);
-      if (y < -R || y > H+R) continue;
-      ctx.beginPath();
-      ctx.arc(x, y, R-2, 0, Math.PI*2);
-      ctx.fillStyle = cell.color;
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(255,255,255,0.4)';
-      ctx.stroke();
+    // randomly spawn pulse waves
+    if (Math.random() < 0.005) {
+      waves.push({ radius: CORE_R, speed: 2, alpha: 0.4, width: 2 });
     }
   }
 
-  // shooter
-  ctx.beginPath();
-  ctx.arc(shooter.x, shooter.y, R, 0, Math.PI*2);
-  ctx.fillStyle = '#fff';
-  ctx.fill();
-  ctx.beginPath();
-  ctx.moveTo(shooter.x, shooter.y);
-  ctx.lineTo(shooter.x + Math.cos(shooter.angle)*40, shooter.y + Math.sin(shooter.angle)*40);
-  ctx.strokeStyle = '#0ff';
-  ctx.stroke();
+  // ---- DRAW ----
+  ctx.fillStyle = '#05010a';
+  ctx.fillRect(0, 0, W, H);
+  // bg radial
+  const bg = ctx.createRadialGradient(CX,CY,0,CX,CY,Math.max(W,H)/2);
+  bg.addColorStop(0, 'rgba(50,0,80,0.5)');
+  bg.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
-  // projectile
-  if (projectile) {
-    ctx.beginPath();
-    ctx.arc(projectile.x, projectile.y, R-2, 0, Math.PI*2);
-    ctx.fillStyle = projectile.color;
-    ctx.fill();
+  // shake
+  ctx.save();
+  if (shake > 0.5) {
+    ctx.translate((Math.random()-0.5)*shake, (Math.random()-0.5)*shake);
+    shake *= 0.9;
   }
 
-  // score
-  ctx.fillStyle = '#0ff';
-  ctx.font = '14px monospace';
-  ctx.fillText('Score: ' + score, 10, 20);
+  drawWaves();
+  drawCore();
+  drawBubbles();
+  if (gameState === 'playing') drawShooter();
+  drawProjectile();
+  drawParticles();
+
+  ctx.restore();
 
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
+
+// ================= START =================
+document.getElementById('startBtn').addEventListener('click', () => {
+  AC.resume();
+  document.getElementById('startScreen').style.display = 'none';
+  gameState = 'playing';
+  initGame();
+});
 </script>
 </body>
 </html>
