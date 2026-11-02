@@ -1,1474 +1,314 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#101525">
-<title>Bubble Shooter - AlphaX ULTRA</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0b1020">
+<title>تدمير الفقاعات | OS GAMES</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@500;800&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800;900&display=swap');
-
-:root{
-  --bg:#101525;
-  --panel:rgba(27,37,59,.86);
-  --line:rgba(255,255,255,.12);
-  --gold:#ffc857;
-  --green:#4ade80;
-  --muted:#aab4ca;
-}
-*{
-  margin:0;padding:0;box-sizing:border-box;
-  -webkit-tap-highlight-color:transparent;
-  user-select:none;
-}
-html,body{
-  width:100%;height:100%;
-  overflow:hidden;
-  background:var(--bg);
-  color:white;
-  font-family:'Cairo',sans-serif;
-  touch-action:none;
-}
-body{
-  position:fixed;
-  inset:0;
-  height:100dvh;
-}
-canvas#gameCanvas{
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-  display:block;
-  touch-action:none;
-}
-#ui{
-  position:absolute;
-  inset:0;
-  z-index:5;
-  pointer-events:none;
-  padding:
-    max(10px,env(safe-area-inset-top))
-    12px
-    max(8px,env(safe-area-inset-bottom));
-}
-.topbar{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  gap:8px;
-}
-.left-info,.right-info{
-  display:flex;
-  gap:8px;
-  align-items:center;
-}
-.panel{
-  background:var(--panel);
-  border:1px solid var(--line);
-  border-radius:16px;
-  padding:7px 12px;
-  backdrop-filter:blur(14px);
-  -webkit-backdrop-filter:blur(14px);
-  box-shadow:0 7px 25px #0005;
-}
-.stat-label{
-  font-size:9px;
-  color:var(--muted);
-  letter-spacing:1px;
-}
-.stat-value{
-  font-size:20px;
-  font-weight:900;
-  line-height:1.3;
-  text-align:center;
-}
-#scoreDisplay{color:var(--green)}
-#coinDisplay{color:var(--gold)}
-#levelDisplay{color:#93c5fd}
-.next-panel{
-  display:flex;
-  align-items:center;
-  gap:5px;
-  min-width:76px;
-}
-#nextBubbleCanvas{width:39px;height:39px}
-.icon-btn{
-  pointer-events:auto;
-  border:1px solid var(--line);
-  background:var(--panel);
-  color:white;
-  width:43px;height:43px;
-  border-radius:14px;
-  font-size:19px;
-  display:grid;place-items:center;
-  cursor:pointer;
-  backdrop-filter:blur(10px);
-}
-.icon-btn:active,.power-btn:active{transform:scale(.94)}
-#comboText{
-  position:absolute;
-  top:39%;
-  left:50%;
-  transform:translate(-50%,-50%) scale(.5);
-  font-size:clamp(32px,9vw,60px);
-  color:#ffe36a;
-  font-weight:900;
-  text-shadow:0 0 25px #f59e0b,0 4px 8px #000;
-  opacity:0;
-  transition:.25s;
-  white-space:nowrap;
-}
-#comboText.show{
-  opacity:1;
-  transform:translate(-50%,-50%) scale(1);
-}
-.bottom-ui{
-  position:absolute;
-  bottom:calc(max(10px,env(safe-area-inset-bottom)) + 4px);
-  left:12px;right:12px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:9px;
-  pointer-events:auto;
-}
-.power-btn{
-  min-width:52px;
-  height:52px;
-  border:1px solid var(--line);
-  background:rgba(27,37,59,.94);
-  border-radius:16px;
-  color:white;
-  font-family:inherit;
-  font-size:19px;
-  position:relative;
-  box-shadow:0 5px 20px #0005;
-}
-.power-btn small{
-  display:block;
-  font-size:9px;
-  color:var(--muted);
-  line-height:1;
-}
-.power-btn.active{
-  border-color:var(--gold);
-  box-shadow:0 0 15px #facc1555;
-}
-.power-count{
-  position:absolute;
-  top:-5px;right:-5px;
-  border-radius:50%;
-  background:#ef4444;
-  width:19px;height:19px;
-  font-size:10px;
-  display:grid;place-items:center;
-}
-#fireBtn{
-  width:64px;height:64px;
-  border-radius:50%;
-  background:linear-gradient(145deg,#fb923c,#ea580c);
-  border:3px solid #fed7aa;
-  font-size:25px;
-  box-shadow:0 0 25px #f9731666;
-}
-#statusLine{
-  position:absolute;
-  bottom:calc(max(75px,env(safe-area-inset-bottom) + 70px));
-  left:50%;
-  transform:translateX(-50%);
-  color:#cbd5e1;
-  font-size:10px;
-  white-space:nowrap;
-  opacity:.8;
-}
-.modal{
-  position:absolute;
-  inset:0;
-  background:#050916d9;
-  backdrop-filter:blur(12px);
-  z-index:20;
-  display:none;
-  align-items:center;
-  justify-content:center;
-  padding:20px;
-  pointer-events:auto;
-}
-.modal.active{display:flex}
-.modal-content{
-  width:100%;
-  max-width:390px;
-  max-height:85dvh;
-  overflow:auto;
-  background:linear-gradient(155deg,#222e49,#131b2e);
-  border:1px solid var(--line);
-  border-radius:25px;
-  padding:20px;
-  box-shadow:0 20px 70px #0009;
-  text-align:center;
-}
-.modal h2{
-  color:var(--gold);
-  font-size:23px;
-  margin-bottom:5px;
-}
-.sub{
-  color:var(--muted);
-  font-size:12px;
-  margin-bottom:17px;
-}
-.shop-item{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  text-align:right;
-  padding:12px;
-  margin:9px 0;
-  background:#ffffff09;
-  border:1px solid var(--line);
-  border-radius:15px;
-}
-.shop-item h3{font-size:14px}
-.shop-item p{font-size:10px;color:var(--muted)}
-.shop-item button,.main-btn{
-  border:0;
-  border-radius:10px;
-  padding:9px 13px;
-  background:linear-gradient(135deg,#4ade80,#16a34a);
-  color:#07150b;
-  font-family:inherit;
-  font-weight:900;
-  white-space:nowrap;
-}
-.main-btn{
-  display:block;width:100%;
-  margin-top:10px;
-  padding:13px;
-  font-size:15px;
-}
-.secondary-btn{
-  background:#ffffff13;
-  color:white;
-  border:1px solid var(--line);
-}
-.close-btn{
-  margin-top:13px;
-  background:#ef4444;
-  color:white;
-  border:0;
-  border-radius:11px;
-  padding:11px;
-  width:100%;
-  font-family:inherit;
-  font-weight:bold;
-}
-.reward{
-  color:var(--gold);
-  font-size:28px;
-  font-weight:900;
-  margin:12px;
-}
-.hidden{display:none!important}
-@media(max-width:380px){
-  .panel{padding:6px 9px}
-  .stat-value{font-size:17px}
-  .icon-btn{width:38px;height:40px}
-  .power-btn{min-width:45px;height:48px}
-  #fireBtn{width:57px;height:57px}
-}
+:root{--bg:#0b1020;--panel:rgba(21,28,51,.9);--line:#26305a;--text:#eef2ff;--muted:#9aa5c9;--cyan:#38bdf8;--gold:#fbbf24;--green:#4ade80}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:"Tajawal",system-ui,sans-serif;touch-action:none}
+body{position:fixed;inset:0}
+#c{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+#ui{position:absolute;inset:0;z-index:5;pointer-events:none;padding:max(10px,env(safe-area-inset-top)) 12px 0}
+#hud{display:flex;flex-direction:column;gap:8px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.g{display:flex;gap:6px;align-items:center}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:4px 10px;text-align:center;min-width:64px}
+.panel small{display:block;font-size:10px;color:var(--muted)}
+.panel b{font-size:18px;font-weight:800;line-height:1.2}
+#score{color:var(--green)}#coins{color:var(--gold)}
+.ib{pointer-events:auto;width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:#fff;font-size:17px;display:grid;place-items:center;text-decoration:none;font-family:inherit;cursor:pointer}
+.pill{font-size:12px;font-weight:800;padding:3px 11px;border-radius:99px;background:var(--panel);border:1px solid var(--line);color:var(--muted)}
+.pill b{color:var(--cyan)}
+#gold{color:var(--gold);display:none}
+#combo{position:absolute;top:42%;left:50%;transform:translate(-50%,-50%) scale(.5);font-size:clamp(30px,9vw,56px);font-weight:800;color:#ffe36a;text-shadow:0 0 24px #f59e0b,0 4px 8px #000;opacity:0;transition:.25s;white-space:nowrap}
+#combo.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+#hint{position:absolute;left:0;right:0;text-align:center;font-size:12px;color:var(--muted)}
+.bar{position:absolute;bottom:max(12px,env(safe-area-inset-bottom));left:12px;right:12px;display:flex;justify-content:center;gap:10px;pointer-events:auto}
+.pw{position:relative;width:58px;height:56px;border-radius:16px;border:1px solid var(--line);background:var(--panel);color:#fff;font-family:inherit;font-size:20px;line-height:1.1}
+.pw small{display:block;font-size:10px;color:var(--muted)}
+.pw:active,.ib:active{transform:scale(.93)}
+.pw.on{border-color:var(--gold);box-shadow:0 0 16px #fbbf2466}
+.cnt{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:#ef4444;font-size:11px;display:grid;place-items:center}
+.modal{position:absolute;inset:0;z-index:20;background:#050916d9;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;padding:20px;pointer-events:auto}
+.modal.on{display:flex}
+.box{width:100%;max-width:390px;max-height:86dvh;overflow:auto;background:linear-gradient(155deg,#1a2342,#111833);border:1px solid var(--line);border-radius:24px;padding:20px;text-align:center}
+.box h2{color:var(--gold);font-size:24px;margin-bottom:4px}
+.sub{color:var(--muted);font-size:13px;margin-bottom:14px}
+.item{display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:right;padding:11px;margin:8px 0;background:#ffffff09;border:1px solid var(--line);border-radius:14px}
+.item h3{font-size:15px}.item p{font-size:11px;color:var(--muted)}
+.item button,.mb{border:0;border-radius:12px;padding:9px 14px;background:var(--cyan);color:#06121f;font-family:inherit;font-weight:800;font-size:14px;white-space:nowrap}
+.mb{display:block;width:100%;margin-top:10px;padding:13px;font-size:16px;text-align:center;text-decoration:none}
+.mb.alt{background:#ffffff14;color:#fff;border:1px solid var(--line)}
+.rw{color:var(--gold);font-size:30px;font-weight:800;margin:10px}
+.chips{display:flex;gap:8px;margin-bottom:14px}.chips button{flex:1;padding:10px;border-radius:12px;border:1px solid var(--line);background:#ffffff0d;color:#fff;font-family:inherit;font-weight:800;font-size:14px}.chips button.sel{background:var(--cyan);color:#06121f;border-color:var(--cyan)}
+#lvG{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.lv{border-radius:12px;border:1px solid var(--line);background:#ffffff0d;color:#fff;font-family:inherit;min-height:54px;padding:6px 0}.lv b{font-size:18px;display:block}.lv small{font-size:10px;display:block;min-height:12px}.lv.cu{border-color:var(--gold)}.lv.lk{opacity:.45}
 </style>
 </head>
 <body>
-
-<canvas id="gameCanvas"></canvas>
-
+<canvas id="c"></canvas>
 <div id="ui">
-  <div class="topbar">
-    <div class="left-info">
-      <div class="panel">
-        <div class="stat-label">SCORE</div>
-        <div class="stat-value" id="scoreDisplay">0</div>
+  <div id="hud">
+    <div class="row">
+      <div class="g">
+        <div class="panel"><small>النقاط</small><b id="score">0</b></div>
+        <div class="panel"><small>العملات</small><b id="coins">0</b></div>
       </div>
-      <div class="panel">
-        <div class="stat-label">COINS</div>
-        <div class="stat-value" id="coinDisplay">1500</div>
-      </div>
-    </div>
-
-    <div class="right-info">
-      <button class="icon-btn" id="pauseBtn">Ⅱ</button>
-      <button class="icon-btn" id="openStoreBtn">🛒</button>
-      <div class="panel next-panel">
-        <div>
-          <div class="stat-label">NEXT</div>
-          <div class="stat-value" id="levelDisplay">1</div>
-        </div>
-        <canvas id="nextBubbleCanvas" width="80" height="80"></canvas>
+      <div class="g">
+        <a class="ib" href="index.html" aria-label="القائمة">🏠</a>
+        <button class="ib" id="pauseB" aria-label="إيقاف">⏸</button>
+        <button class="ib" id="sndB" aria-label="الصوت">🔊</button>
+        <button class="ib" id="shopB" aria-label="المتجر">🛒</button>
       </div>
     </div>
+    <div class="g">
+      <span class="pill">المرحلة <b id="lvl">1</b></span>
+      <span class="pill">نزول الصف بعد <b id="dropn">5</b></span>
+      <span class="pill" id="gold">✨ نقاط ×2</span>
+      <button class="pill" id="menuB" style="pointer-events:auto;font-family:inherit">🗺 المراحل</button>
+    </div>
   </div>
-
-  <div id="comboText">COMBO!</div>
-  <div id="statusLine">اسحب للتصويب واترك إصبعك للإطلاق</div>
-
-  <div class="bottom-ui">
-    <button class="power-btn" id="bombBtn">
-      💣<small>قنبلة</small>
-      <span class="power-count" id="bombCount">0</span>
-    </button>
-    <button class="power-btn" id="rainbowBtn">
-      🌈<small>ملونة</small>
-      <span class="power-count" id="rainbowCount">0</span>
-    </button>
-    <button class="power-btn" id="swapBtn">
-      🔄<small>تبديل</small>
-    </button>
-    <button class="power-btn" id="fireBtn">🚀</button>
-    <button class="power-btn" id="lightningBtn">
-      ⚡<small>برق</small>
-      <span class="power-count" id="lightningCount">0</span>
-    </button>
+  <div id="combo"></div>
+  <div id="hint">اسحب للتصويب وارفع إصبعك للإطلاق · المس المدفع للتبديل</div>
+  <div class="bar">
+    <button class="pw" id="bombB">💣<small>قنبلة</small><span class="cnt" id="bombN">0</span></button>
+    <button class="pw" id="rainbowB">🌈<small>ملونة</small><span class="cnt" id="rainbowN">0</span></button>
+    <button class="pw" id="lightningB">⚡<small>صاعقة</small><span class="cnt" id="lightningN">0</span></button>
+    <button class="pw" id="swapB">🔄<small>تبديل</small></button>
   </div>
 </div>
 
-<!-- STORE -->
-<div class="modal" id="storeModal">
-  <div class="modal-content">
-    <h2>🛒 متجر AlphaX</h2>
-    <p class="sub">اشترِ القدرات وساعد نفسك في تجاوز المراحل</p>
-    <div class="shop-item">
-      <div><h3>💣 قنبلة</h3><p>تدمير مجموعة من الفقاعات</p></div>
-      <button id="buyBomb">شراء 250</button>
-    </div>
-    <div class="shop-item">
-      <div><h3>🌈 كرة ملونة</h3><p>تطابق أي لون</p></div>
-      <button id="buyRainbow">شراء 350</button>
-    </div>
-    <div class="shop-item">
-      <div><h3>⚡ صاعقة</h3><p>إزالة مجموعة من الفقاعات في مسارها</p></div>
-      <button id="buyLightning">شراء 400</button>
-    </div>
-    <div class="shop-item">
-      <div><h3>🎯 مساعد التصويب</h3><p>خط تصويب أطول</p></div>
-      <button id="buyAim">شراء 500</button>
-    </div>
-    <div class="shop-item">
-      <div><h3>✨ مضاعف النقاط</h3><p>مضاعفة النقاط لمدة 60 ثانية</p></div>
-      <button id="buyGold">شراء 700</button>
-    </div>
-    <button class="close-btn" id="closeStoreBtn">إغلاق المتجر</button>
-  </div>
-</div>
+<div class="modal" id="shopM"><div class="box">
+  <h2>🛒 المتجر</h2><p class="sub">اشترِ قدرات تساعدك في المراحل الصعبة</p>
+  <div class="item"><div><h3>💣 قنبلة</h3><p>تدمّر الفقاعات حولها</p></div><button data-b="bomb">250</button></div>
+  <div class="item"><div><h3>🌈 كرة ملونة</h3><p>تأخذ لون أفضل مجموعة</p></div><button data-b="rainbow">350</button></div>
+  <div class="item"><div><h3>⚡ صاعقة</h3><p>تمسح العمود كامل</p></div><button data-b="lightning">400</button></div>
+  <div class="item"><div><h3>🎯 مساعد التصويب</h3><p>خط أطول مع ارتدادات أكثر</p></div><button data-b="aim" id="aimBtn">500</button></div>
+  <div class="item"><div><h3>✨ مضاعف النقاط</h3><p>×2 لمدة 60 ثانية</p></div><button data-b="gold">700</button></div>
+  <button class="mb alt" id="shopX">إغلاق</button>
+</div></div>
 
-<!-- PAUSE -->
-<div class="modal" id="pauseModal">
-  <div class="modal-content">
-    <h2>⏸️ اللعبة متوقفة</h2>
-    <p class="sub">خذ وقتك، لعبتك محفوظة</p>
-    <button class="main-btn" id="resumeBtn">متابعة اللعب</button>
-    <button class="main-btn secondary-btn" id="restartBtn">إعادة المرحلة</button>
-    <button class="close-btn" id="pauseCloseBtn">إغلاق</button>
-  </div>
-</div>
+<div class="modal" id="menuM"><div class="box">
+  <h2>🗺 اختر مرحلتك</h2><p class="sub">الصعوبة تؤثر على الألوان وسرعة نزول الصفوف والمكافآت</p>
+  <div class="chips"><button data-d="0">سهل</button><button data-d="1">عادي</button><button data-d="2">صعب</button></div>
+  <div id="lvG"></div>
+  <button class="mb alt" id="menuX">إغلاق</button>
+</div></div>
 
-<!-- END -->
-<div class="modal" id="endModal">
-  <div class="modal-content">
-    <h2 id="endTitle">انتهت المرحلة!</h2>
-    <p class="sub" id="endDescription">أحسنت اللعب</p>
-    <div class="reward" id="endReward">+100 🪙</div>
-    <button class="main-btn" id="nextLevelBtn">المرحلة التالية</button>
-    <button class="main-btn secondary-btn" id="retryBtn">إعادة المحاولة</button>
-  </div>
-</div>
+<div class="modal" id="pauseM"><div class="box">
+  <h2>⏸ اللعبة متوقفة</h2><p class="sub">تقدمك يُحفظ تلقائياً</p>
+  <button class="mb" id="resumeB">متابعة</button>
+  <button class="mb alt" id="restartB">إعادة المرحلة</button>
+  <a class="mb alt" href="index.html">القائمة الرئيسية</a>
+</div></div>
+
+<div class="modal" id="endM"><div class="box">
+  <h2 id="endT"></h2><p class="sub" id="endD"></p>
+  <div class="rw" id="endR"></div>
+  <button class="mb" id="nextB">المرحلة التالية</button>
+  <button class="mb" id="retryB">إعادة المحاولة</button>
+  <a class="mb alt" href="index.html">القائمة الرئيسية</a>
+</div></div>
 
 <script>
 "use strict";
-
-// ========================================
-// ALPHAX ULTRA - CORE
-// ========================================
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
-
-const $ = id => document.getElementById(id);
-
-const COLORS = [
- {main:"#ef4444",light:"#fecaca",dark:"#991b1b"},
- {main:"#3b82f6",light:"#bfdbfe",dark:"#1e3a8a"},
- {main:"#22c55e",light:"#bbf7d0",dark:"#14532d"},
- {main:"#eab308",light:"#fef08a",dark:"#713f12"},
- {main:"#a855f7",light:"#e9d5ff",dark:"#581c87"},
- {main:"#f97316",light:"#fed7aa",dark:"#9a3412"},
- {main:"#94a3b8",light:"#e2e8f0",dark:"#334155"}
-];
-
-const COLS = 11;
-const SAVE_KEY = "alphax_ultra_v3";
-
-let W=0,H=0,DPR=1,CX=0;
-let R=16,ROW_H=27;
-let topY=120,shooterY=0,bottomLimit=0;
-
-let grid=[];
-let particles=[];
-let floaters=[];
-let projectile=null;
-let score=0,coins=1500,level=1;
-let best=0;
-let shotsUntilDrop=5;
-let currentColor=0,nextColor=0;
-let gameState="playing";
-let isAiming=false;
-let aimAssist=false;
-let goldMode=false;
-let goldUntil=0;
-let activePower=null;
-let power={
- bomb:0,
- rainbow:0,
- lightning:0
-};
-let shooter={angle:-Math.PI/2};
-let lastTime=0;
-let comboTimer=0;
-let comboCount=0;
-let roundStartGrid=[];
-let roundStartScore=0;
-let screenShake=0;
-let stars=[];
-let audioCtx=null;
-let soundEnabled=true;
-let animationId=0;
-let ending=false;
-
-function clamp(v,min,max){return Math.max(min,Math.min(max,v));}
-function rand(n){return Math.floor(Math.random()*n);}
-function dist(x1,y1,x2,y2){return Math.hypot(x1-x2,y1-y2);}
-
-function saveGame(){
-  try{
-    localStorage.setItem(SAVE_KEY,JSON.stringify({
-      score,coins,level,best,power,aimAssist,goldMode
-    }));
-  }catch(e){}
-}
-
-function loadGame(){
-  try{
-    const data=JSON.parse(localStorage.getItem(SAVE_KEY)||"null");
-    if(!data)return;
-    score=Number(data.score)||0;
-    coins=Number(data.coins)||1500;
-    level=Number(data.level)||1;
-    best=Number(data.best)||0;
-    power=Object.assign(power,data.power||{});
-    aimAssist=!!data.aimAssist;
-    goldMode=!!data.goldMode;
-  }catch(e){}
-}
-
-// ========================================
-// AUDIO
-// ========================================
-function audio(){
-  if(!soundEnabled)return null;
-  try{
-    if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-    if(audioCtx.state==="suspended")audioCtx.resume();
-    return audioCtx;
-  }catch(e){return null;}
-}
-
-function tone(freq=440,duration=.1,type="sine",volume=.07,endFreq=null){
-  const ac=audio();
-  if(!ac)return;
-  const osc=ac.createOscillator();
-  const gain=ac.createGain();
-  osc.type=type;
-  osc.frequency.setValueAtTime(freq,ac.currentTime);
-  if(endFreq)osc.frequency.exponentialRampToValueAtTime(Math.max(1,endFreq),ac.currentTime+duration);
-  gain.gain.setValueAtTime(volume,ac.currentTime);
-  gain.gain.exponentialRampToValueAtTime(.001,ac.currentTime+duration);
-  osc.connect(gain);gain.connect(ac.destination);
-  osc.start();osc.stop(ac.currentTime+duration);
-}
-
-function sound(type){
-  if(type==="shoot")tone(300,.12,"sine",.07,520);
-  if(type==="pop")tone(650,.15,"triangle",.09,230);
-  if(type==="combo"){
-    tone(500,.18,"sine",.09,850);
-    setTimeout(()=>tone(800,.2,"sine",.07,1200),90);
-  }
-  if(type==="buy")tone(450,.12,"triangle",.07,900);
-  if(type==="error")tone(170,.15,"square",.035,100);
-  if(type==="win"){
-    [500,650,800,1000].forEach((f,i)=>setTimeout(()=>tone(f,.2,"sine",.07),i*100));
-  }
-}
-
-// ========================================
-// RESPONSIVE CANVAS
-// ========================================
-function resize(){
-  const oldW=W,oldH=H;
-  W=window.innerWidth;
-  H=window.innerHeight;
-  CX=W/2;
-  DPR=Math.min(window.devicePixelRatio||1,2);
-  canvas.width=Math.round(W*DPR);
-  canvas.height=Math.round(H*DPR);
-  ctx.setTransform(DPR,0,0,DPR,0,0);
-
-  R=Math.min(27,(W-16)/(COLS*2+1));
-  R=Math.max(12,R);
-  ROW_H=R*Math.sqrt(3);
-
-  const safeTop=parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--unused"))||0;
-  topY=Math.max(105,H*.14);
-  shooterY=H-Math.max(105,Math.min(145,H*.16));
-  bottomLimit=shooterY-R*2.5;
-
-  if(grid.length===0)initGrid();
-  updateNextUI();
-  createStars();
-
-  if(oldW&&oldH&&oldW!==W){
-    // Grid remains in logical rows and adapts to the new width.
-  }
-}
-
-function createStars(){
-  stars=[];
-  for(let i=0;i<65;i++){
-    stars.push({
-      x:Math.random()*W,
-      y:Math.random()*H,
-      size:Math.random()*1.6+.3,
-      alpha:Math.random()*.5+.15,
-      phase:Math.random()*6
-    });
-  }
-}
-
-window.addEventListener("resize",resize);
-window.addEventListener("orientationchange",()=>setTimeout(resize,250));
-
-// ========================================
-// GRID
-// ========================================
-function getGridPos(r,c){
-  const offset=(r%2)?R:0;
-  const start=CX-COLS*R;
-  return {
-    x:start+R+c*R*2+offset,
-    y:topY+R+r*ROW_H
-  };
-}
-
-function validCell(r,c){
-  return r>=0&&r<grid.length&&c>=0&&c<COLS;
-}
-
-function getNeighbors(r,c){
-  const dirs=(r%2)
-   ?[[0,-1],[0,1],[-1,-1],[-1,0],[1,-1],[1,0]]
-   :[[0,-1],[0,1],[-1,0],[-1,1],[1,0],[1,1]];
-  const out=[];
-  for(const [dr,dc] of dirs){
-    const nr=r+dr,nc=c+dc;
-    if(validCell(nr,nc)&&grid[nr]&&grid[nr][nc]){
-      out.push({r:nr,c:nc});
-    }
-  }
-  return out;
-}
-
-function makeBubble(color){
-  return {color,scale:0,age:0};
-}
-
-function initGrid(){
-  const usable=Math.max(4,Math.floor((H*.38)/ROW_H));
-  const rows=Math.min(8,usable);
-  grid=Array.from({length:rows+12},()=>Array(COLS).fill(null));
-
-  const colors=availableColors();
-  const initialRows=Math.min(5,rows);
-
-  for(let r=0;r<initialRows;r++){
-    for(let c=0;c<COLS;c++){
-      if(r%2&&c===COLS-1)continue;
-      grid[r][c]=makeBubble(colors[rand(colors.length)]);
-    }
-  }
-  currentColor=rand(COLORS.length);
-  nextColor=rand(COLORS.length);
-  shotsUntilDrop=5;
-  projectile=null;
-  particles=[];
-  floaters=[];
-  ending=false;
-  shooter.angle=-Math.PI/2;
-  updateNextUI();
-  updateHUD();
-  saveRoundSnapshot();
-}
-
-function availableColors(){
-  const found=new Set();
-  for(const row of grid){
-    if(!row)continue;
-    for(const b of row)if(b)found.add(b.color);
-  }
-  return found.size?[...found]:[0,1,2,3,4];
-}
-
-function saveRoundSnapshot(){
-  roundStartGrid=grid.map(row=>row.map(b=>b?{...b}:null));
-  roundStartScore=score;
-}
-
-function findNearestEmpty(px,py){
-  let bestCell=null,bestDist=Infinity;
-
-  // Prefer a vacant neighbor of the collided bubble.
-  let hitCell=null,hitDist=Infinity;
-  for(let r=0;r<grid.length;r++){
-    for(let c=0;c<COLS;c++){
-      const b=grid[r]?.[c];
-      if(!b)continue;
-      const p=getGridPos(r,c);
-      const d=dist(px,py,p.x,p.y);
-      if(d<hitDist){hitDist=d;hitCell={r,c};}
-    }
-  }
-
-  if(hitCell){
-    for(const n of getEmptyNeighbors(hitCell.r,hitCell.c)){
-      const p=getGridPos(n.r,n.c);
-      const d=dist(px,py,p.x,p.y);
-      if(d<bestDist){bestDist=d;bestCell=n;}
-    }
-  }
-
-  if(bestCell)return bestCell;
-
-  for(let r=0;r<grid.length;r++){
-    for(let c=0;c<COLS;c++){
-      if(grid[r]?.[c])continue;
-      const p=getGridPos(r,c);
-      const d=dist(px,py,p.x,p.y);
-      if(d<bestDist){bestDist=d;bestCell={r,c};}
-    }
-  }
-  return bestCell;
-}
-
-function getEmptyNeighbors(r,c){
-  const dirs=(r%2)
-   ?[[0,-1],[0,1],[-1,-1],[-1,0],[1,-1],[1,0]]
-   :[[0,-1],[0,1],[-1,0],[-1,1],[1,0],[1,1]];
-  return dirs.map(([dr,dc])=>({r:r+dr,c:c+dc}))
-    .filter(p=>validCell(p.r,p.c)&&!grid[p.r]?.[p.c]);
-}
-
-// ========================================
-// DRAWING
-// ========================================
-function drawBackground(t){
-  const bg=ctx.createLinearGradient(0,0,0,H);
-  bg.addColorStop(0,"#101525");
-  bg.addColorStop(.55,"#18243a");
-  bg.addColorStop(1,"#101827");
-  ctx.fillStyle=bg;
-  ctx.fillRect(0,0,W,H);
-
-  for(const s of stars){
-    const pulse=.65+Math.sin(t*.001+s.phase)*.25;
-    ctx.globalAlpha=s.alpha*pulse;
-    ctx.fillStyle="#b9d4ff";
-    ctx.beginPath();
-    ctx.arc(s.x,s.y,s.size,0,Math.PI*2);
-    ctx.fill();
-  }
-  ctx.globalAlpha=1;
-
-  // Play field edges
-  ctx.strokeStyle="rgba(180,205,255,.13)";
-  ctx.lineWidth=1;
-  ctx.beginPath();
-  ctx.moveTo(5,topY-10);
-  ctx.lineTo(5,shooterY-20);
-  ctx.moveTo(W-5,topY-10);
-  ctx.lineTo(W-5,shooterY-20);
-  ctx.stroke();
-
-  const dangerY=bottomLimit;
-  ctx.setLineDash([5,9]);
-  ctx.strokeStyle="rgba(248,113,113,.23)";
-  ctx.beginPath();
-  ctx.moveTo(8,dangerY);
-  ctx.lineTo(W-8,dangerY);
-  ctx.stroke();
-  ctx.setLineDash([]);
-}
-
-function drawBubble(x,y,colorIdx,radius,scale=1){
-  const color=COLORS[colorIdx]||COLORS[0];
-  const r=radius*scale;
-  if(r<=0)return;
-  ctx.save();
-  ctx.translate(x,y);
-
-  ctx.shadowColor=color.main;
-  ctx.shadowBlur=5;
-  const grad=ctx.createRadialGradient(-r*.35,-r*.4,r*.05,0,0,r);
-  grad.addColorStop(0,color.light);
-  grad.addColorStop(.5,color.main);
-  grad.addColorStop(1,color.dark);
-
-  ctx.beginPath();
-  ctx.arc(0,0,r,0,Math.PI*2);
-  ctx.fillStyle=grad;
-  ctx.fill();
-  ctx.shadowBlur=0;
-
-  ctx.beginPath();
-  ctx.ellipse(-r*.23,-r*.4,r*.42,r*.18,-.6,0,Math.PI*2);
-  ctx.fillStyle="rgba(255,255,255,.65)";
-  ctx.fill();
-
-  ctx.beginPath();
-  ctx.arc(r*.35,r*.42,r*.12,0,Math.PI*2);
-  ctx.fillStyle="rgba(255,255,255,.18)";
-  ctx.fill();
-  ctx.restore();
-}
-
-function drawSpecialBubble(x,y,type){
-  if(type==="rainbow"){
-    const grad=ctx.createConicGradient(performance.now()*.002,x,y);
-    ["#ef4444","#facc15","#22c55e","#3b82f6","#a855f7","#ef4444"].forEach((c,i)=>grad.addColorStop(i/5,c));
-    ctx.beginPath();ctx.arc(x,y,R,0,Math.PI*2);
-    ctx.fillStyle=grad;ctx.fill();
-    ctx.strokeStyle="#fff";ctx.lineWidth=2;ctx.stroke();
-  }else{
-    drawBubble(x,y,type.color,R);
-  }
-}
-
-function drawGrid(){
-  for(let r=0;r<grid.length;r++){
-    for(let c=0;c<COLS;c++){
-      const b=grid[r]?.[c];
-      if(!b)continue;
-      const p=getGridPos(r,c);
-      b.scale=Math.min(1,b.scale+.16);
-      drawBubble(p.x,p.y,b.color,R,b.scale);
-    }
-  }
-}
-
-function traceAim(){
-  const sx=CX,sy=shooterY;
-  let x=sx,y=sy;
-  let vx=Math.cos(shooter.angle),vy=Math.sin(shooter.angle);
-  const maxDistance=H*1.5;
-  let travelled=0;
-  let points=[{x,y}];
-  let bounces=0;
-  const maxBounces=aimAssist?5:2;
-
-  while(travelled<maxDistance&&points.length<120){
-    const step=Math.max(3,R*.22);
-    x+=vx*step;y+=vy*step;travelled+=step;
-
-    if(x<R){
-      x=R;vx=Math.abs(vx);bounces++;
-      points.push({x,y});
-    }
-    if(x>W-R){
-      x=W-R;vx=-Math.abs(vx);bounces++;
-      points.push({x,y});
-    }
-
-    let hit=false;
-    for(let r=0;r<grid.length&&!hit;r++){
-      for(let c=0;c<COLS;c++){
-        if(!grid[r]?.[c])continue;
-        const p=getGridPos(r,c);
-        if(dist(x,y,p.x,p.y)<R*1.85){hit=true;break;}
-      }
-    }
-    if(hit||y<topY-R*.5||bounces>maxBounces)break;
-  }
-  points.push({x,y});
-  return points;
-}
-
-function drawAim(){
-  if(!isAiming||projectile||gameState!=="playing")return;
-  const pts=traceAim();
-  ctx.save();
-  ctx.beginPath();
-  pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
-  ctx.setLineDash([5,8]);
-  ctx.lineWidth=aimAssist?3:2;
-  ctx.strokeStyle=aimAssist?"#4ade80":"rgba(255,255,255,.65)";
-  ctx.stroke();
-  ctx.setLineDash([]);
-  const end=pts[pts.length-1];
-  ctx.beginPath();
-  ctx.arc(end.x,end.y,R*.7,0,Math.PI*2);
-  ctx.strokeStyle="rgba(255,255,255,.7)";
-  ctx.lineWidth=2;
-  ctx.stroke();
-  ctx.restore();
-}
-
-function drawShooter(){
-  const x=CX,y=shooterY;
-  ctx.save();
-
-  // Launcher base
-  const grad=ctx.createRadialGradient(x,y,2,x,y,R*2.5);
-  grad.addColorStop(0,"#475569");
-  grad.addColorStop(1,"#101827");
-  ctx.beginPath();ctx.arc(x,y,R*1.8,0,Math.PI*2);
-  ctx.fillStyle=grad;ctx.fill();
-  ctx.strokeStyle="rgba(255,255,255,.3)";
-  ctx.lineWidth=2;ctx.stroke();
-
-  ctx.translate(x,y);
-  ctx.rotate(shooter.angle+Math.PI/2);
-  ctx.fillStyle="#64748b";
-  ctx.beginPath();
-  ctx.roundRect(-R*.35,-R*2.1,R*.7,R*2.3,8);
-  ctx.fill();
-  ctx.restore();
-
-  if(!projectile){
-    if(activePower==="rainbow")drawSpecialBubble(x,y,"rainbow");
-    else drawBubble(x,y,currentColor,R);
-  }
-}
-
-function drawParticles(dt){
-  for(let i=particles.length-1;i>=0;i--){
-    const p=particles[i];
-    p.x+=p.vx*dt;
-    p.y+=p.vy*dt;
-    p.vy+=.00035*dt;
-    p.life-=dt/p.duration;
-    if(p.life<=0){particles.splice(i,1);continue;}
-    ctx.globalAlpha=clamp(p.life,0,1);
-    ctx.fillStyle=p.color;
-    ctx.beginPath();
-    ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
-    ctx.fill();
-  }
-  ctx.globalAlpha=1;
-}
-
-function drawFloaters(dt){
-  for(let i=floaters.length-1;i>=0;i--){
-    const f=floaters[i];
-    f.vy+=.001*dt;
-    f.y+=f.vy*dt;
-    f.rotation+=.003*dt;
-    if(f.y>H+R){floaters.splice(i,1);continue;}
-    ctx.save();
-    ctx.translate(f.x,f.y);
-    ctx.rotate(f.rotation);
-    drawBubble(0,0,f.color,R);
-    ctx.restore();
-  }
-}
-
-// ========================================
-// GAMEPLAY
-// ========================================
-function handleAim(x,y){
-  const dx=x-CX,dy=y-shooterY;
-  let angle=Math.atan2(dy,dx);
-  angle=clamp(angle,-Math.PI+.15,-.15);
-  shooter.angle=angle;
-}
-
-function shoot(){
-  if(projectile||gameState!=="playing"||ending)return;
-  if(shooter.angle>-.05)shooter.angle=-.05;
-  if(shooter.angle<-Math.PI+.05)shooter.angle=-Math.PI+.05;
-
-  projectile={
-    x:CX,y:shooterY,
-    vx:Math.cos(shooter.angle)*12,
-    vy:Math.sin(shooter.angle)*12,
-    color:currentColor,
-    special:activePower
-  };
-
-  if(activePower==="bomb")power.bomb=Math.max(0,power.bomb-1);
-if(activePower==="rainbow")power.rainbow=Math.max(0,power.rainbow-1);
-if(activePower==="lightning")power.lightning=Math.max(0,power.lightning-1);
-
-activePower=null;
-
-updatePowerUI();
-updateHUD();
-saveGame(); // حفظ رصيد القدرات بعد الاستهلاك
-
-  currentColor=nextColor;
-  nextColor=availableColors()[rand(availableColors().length)];
-  updateNextUI();
-
-  shotsUntilDrop--;
-  sound("shoot");
-  updateHUD();
-}
-
-function updateProjectile(dt){
-  if(!projectile)return;
-  const p=projectile;
-  const stepScale=dt/16.67;
-  const steps=Math.max(1,Math.ceil(stepScale*2));
-
-  for(let i=0;i<steps;i++){
-    p.x+=p.vx*stepScale/steps;
-    p.y+=p.vy*stepScale/steps;
-
-    if(p.x<R){p.x=R;p.vx=Math.abs(p.vx);}
-    if(p.x>W-R){p.x=W-R;p.vx=-Math.abs(p.vx);}
-
-    let hit=false;
-    for(let r=0;r<grid.length&&!hit;r++){
-      for(let c=0;c<COLS;c++){
-        if(!grid[r]?.[c])continue;
-        const pos=getGridPos(r,c);
-        if(dist(p.x,p.y,pos.x,pos.y)<R*1.85){
-          hit=true;break;
-        }
-      }
-    }
-
-    if(hit||p.y<topY){
-      attachProjectile();
-      return;
-    }
-  }
-}
-
-function attachProjectile(){
-  if(!projectile)return;
-  const p=projectile;
-  const cell=findNearestEmpty(p.x,p.y);
-  projectile=null;
-  if(!cell){
-    gameOver(false);
-    return;
-  }
-  grid[cell.r][cell.c]=makeBubble(
-    p.special==="rainbow"?-1:p.color
-  );
-
-  if(p.special==="lightning"){
-    lightningEffect(cell.r,cell.c);
-  }else if(p.special==="bomb"){
-    bombEffect(cell.r,cell.c);
-  }else{
-    checkMatches(cell.r,cell.c);
-  }
-
-  if(shotsUntilDrop<=0&&gameState==="playing"){
-    dropNewRow();
-    shotsUntilDrop=5;
-  }
-
-  checkWin();
-  updateHUD();
-  saveGame();
-}
-
-function connectedSameColor(r,c,color){
-  const queue=[{r,c}],visited=new Set(),matches=[];
-  while(queue.length){
-    const p=queue.pop(),key=p.r+","+p.c;
-    if(visited.has(key))continue;
-    visited.add(key);
-    const b=grid[p.r]?.[p.c];
-    if(!b)continue;
-    if(color!==-1&&b.color!==color)continue;
-    matches.push(p);
-    for(const n of getNeighbors(p.r,p.c)){
-      if(!visited.has(n.r+","+n.c))queue.push(n);
-    }
-  }
-  return matches;
-}
-
-function checkMatches(r,c){
-  const b=grid[r]?.[c];
-  if(!b)return;
-  const color=b.color;
-  const matches=connectedSameColor(r,c,color);
-  const threshold=3;
-
-  if(color===-1){
-    // Rainbow selects the largest adjacent color group.
-    const groups=[];
-    for(const n of getNeighbors(r,c)){
-      const nb=grid[n.r][n.c];
-      if(nb&&nb.color!==-1){
-        const group=connectedSameColor(n.r,n.c,nb.color);
-        if(!groups.some(g=>g[0]?.r===group[0]?.r&&g[0]?.c===group[0]?.c)){
-          groups.push(group);
-        }
-      }
-    }
-    groups.sort((a,b)=>b.length-a.length);
-    if(groups.length&&groups[0].length>=2){
-      const all=[{r,c},...groups[0]];
-      removeBubbles(all);
-      return;
-    }
-    grid[r][c].color=rand(COLORS.length);
-    return;
-  }
-
-  if(matches.length>=threshold){
-    removeBubbles(matches);
-  }
-}
-
-function removeBubbles(list){
-  let removed=0;
-  const color=list.length?COLORS[Math.max(0,grid[list[0].r]?.[list[0].c]?.color||0)].main:"#fff";
-  for(const p of list){
-    const b=grid[p.r]?.[p.c];
-    if(!b)continue;
-    const pos=getGridPos(p.r,p.c);
-    createExplosion(pos.x,pos.y,b.color>=0?COLORS[b.color].main:"#fff");
-    grid[p.r][p.c]=null;
-    removed++;
-  }
-
-  if(removed===0)return;
-  const points=removed*10*(goldMode&&Date.now()<goldUntil?2:1);
-  score+=points;
-  coins+=Math.max(1,Math.floor(removed/3))*5;
-
-  if(removed>=4){
-    comboCount++;
-    triggerCombo(removed);
-    sound("combo");
-  }else{
-    comboCount=0;
-    sound("pop");
-  }
-
-  checkFloatingBubbles();
-  updateHUD();
-  saveGame();
-}
-
-function checkFloatingBubbles(){
-  const connected=new Set(),queue=[];
-  for(let c=0;c<COLS;c++){
-    if(grid[0]?.[c])queue.push({r:0,c});
-  }
-
-  while(queue.length){
-    const p=queue.pop(),key=p.r+","+p.c;
-    if(connected.has(key))continue;
-    connected.add(key);
-    for(const n of getNeighbors(p.r,p.c))queue.push(n);
-  }
-
-  for(let r=0;r<grid.length;r++){
-    for(let c=0;c<COLS;c++){
-      const b=grid[r]?.[c];
-      if(b&&!connected.has(r+","+c)){
-        const pos=getGridPos(r,c);
-        floaters.push({x:pos.x,y:pos.y,vy:-.03,color:b.color,rotation:0});
-        grid[r][c]=null;
-        score+=15;
-      }
-    }
-  }
-}
-
-function dropNewRow(){
-  for(let r=grid.length-1;r>0;r--){
-    grid[r]=grid[r-1].map(b=>b?{...b}:null);
-  }
-  grid[0]=Array(COLS).fill(null);
-  const colors=availableColors();
-  for(let c=0;c<COLS;c++){
-    if(c===COLS-1)continue;
-    grid[0][c]=makeBubble(colors[rand(colors.length)]);
-  }
-  sound("pop");
-  checkDanger();
-}
-
-function checkDanger(){
-  for(let r=0;r<grid.length;r++){
-    for(let c=0;c<COLS;c++){
-      if(grid[r]?.[c]){
-        if(getGridPos(r,c).y+R>bottomLimit){
-          gameOver(false);
-          return;
-        }
-      }
-    }
-  }
-}
-
-function checkWin(){
-  if(gameState!=="playing")return;
-  let count=0;
-  for(const row of grid)for(const b of row)if(b)count++;
-  if(count===0)gameOver(true);
-}
-
-// ========================================
-// SPECIAL POWERS
-// ========================================
-function bombEffect(r,c){
-  const targets=[];
-  for(let rr=Math.max(0,r-2);rr<=Math.min(grid.length-1,r+2);rr++){
-    for(let cc=Math.max(0,c-2);cc<=Math.min(COLS-1,c+2);cc++){
-      if(grid[rr]?.[cc]&&Math.abs(rr-r)+Math.abs(cc-c)<=3){
-        targets.push({r:rr,c:cc});
-      }
-    }
-  }
-  removeBubbles(targets);
-  screenShake=8;
-}
-
-function lightningEffect(r,c){
-  const targets=[];
-  for(let rr=Math.max(0,r-3);rr<=Math.min(grid.length-1,r+3);rr++){
-    for(let cc=0;cc<COLS;cc++){
-      if(grid[rr]?.[cc]&&Math.abs(cc-c)<=1){
-        targets.push({r:rr,c:cc});
-      }
-    }
-  }
-  removeBubbles(targets);
-  screenShake=10;
-}
-
-function usePower(type){
-  if(gameState!=="playing"||projectile)return;
-  if(type==="swap"){
-    [currentColor,nextColor]=[nextColor,currentColor];
-    updateNextUI();
-    updateHUD();
-    sound("buy");
-    return;
-  }
-  if(type==="bomb"&&power.bomb>0){
-    activePower=activePower===type?null:type;
-  }else if(type==="rainbow"&&power.rainbow>0){
-    activePower=activePower===type?null:type;
-  }else if(type==="lightning"&&power.lightning>0){
-    activePower=activePower===type?null:type;
-  }else{
-    sound("error");
-    return;
-  }
-  updatePowerUI();
-}
-
-// ========================================
-// PARTICLES AND COMBO
-// ========================================
-function createExplosion(x,y,color){
-  for(let i=0;i<13;i++){
-    const a=Math.random()*Math.PI*2;
-    const speed=1+Math.random()*4;
-    particles.push({
-      x,y,
-      vx:Math.cos(a)*speed,
-      vy:Math.sin(a)*speed,
-      size:1.5+Math.random()*3,
-      color,
-      life:1,
-      duration:350+Math.random()*300
-    });
-  }
-}
-
-function triggerCombo(count){
-  const el=$("comboText");
-  el.textContent=count>=10?"MEGA COMBO!":`COMBO x${count}!`;
-  el.classList.add("show");
-  clearTimeout(comboTimer);
-  comboTimer=setTimeout(()=>el.classList.remove("show"),850);
-  screenShake=Math.min(12,count*.8);
-}
-
-// ========================================
-// UI
-// ========================================
-function updateHUD(){
-  $("scoreDisplay").textContent=score.toLocaleString("en");
-  $("coinDisplay").textContent=coins.toLocaleString("en");
-  $("levelDisplay").textContent=level;
-  $("bombCount").textContent=power.bomb;
-  $("rainbowCount").textContent=power.rainbow;
-  $("lightningCount").textContent=power.lightning;
-  best=Math.max(best,score);
-}
-
-function updatePowerUI(){
-  $("bombBtn").classList.toggle("active",activePower==="bomb");
-  $("rainbowBtn").classList.toggle("active",activePower==="rainbow");
-  $("lightningBtn").classList.toggle("active",activePower==="lightning");
-}
-
-function updateNextUI(){
-  const c=$("nextBubbleCanvas").getContext("2d");
-  c.clearRect(0,0,80,80);
-  const color=COLORS[nextColor];
-  const g=c.createRadialGradient(27,24,3,40,40,29);
-  g.addColorStop(0,color.light);
-  g.addColorStop(.6,color.main);
-  g.addColorStop(1,color.dark);
-  c.beginPath();c.arc(40,40,28,0,Math.PI*2);
-  c.fillStyle=g;c.fill();
-  c.beginPath();c.ellipse(31,28,12,5,-.6,0,Math.PI*2);
-  c.fillStyle="#ffffff99";c.fill();
-}
-
-function showModal(id){$(id).classList.add("active");}
-function hideModal(id){$(id).classList.remove("active");}
-
-function buy(type,cost){
-  if(coins<cost){sound("error");return false;}
-  coins-=cost;
-  if(type==="bomb")power.bomb++;
-  if(type==="rainbow")power.rainbow++;
-  if(type==="lightning")power.lightning++;
-  if(type==="aim")aimAssist=true;
-  if(type==="gold"){
-    goldMode=true;
-    goldUntil=Date.now()+60000;
-  }
-  updateHUD();
-  updatePowerUI();
-  saveGame();
-  sound("buy");
-  return true;
-}
-
-$("buyBomb").onclick=()=>buy("bomb",250);
-$("buyRainbow").onclick=()=>buy("rainbow",350);
-$("buyLightning").onclick=()=>buy("lightning",400);
-$("buyAim").onclick=()=>{
-  if(aimAssist){sound("error");return;}
-  if(buy("aim",500))$("buyAim").textContent="تم الشراء";
-};
-$("buyGold").onclick=()=>buy("gold",700);
-
-$("openStoreBtn").onclick=()=>showModal("storeModal");
-$("closeStoreBtn").onclick=()=>hideModal("storeModal");
-
-function pauseGame(){
-  if(gameState!=="playing")return;
-  gameState="paused";
-  showModal("pauseModal");
-}
-function resumeGame(){
-  gameState="playing";
-  hideModal("pauseModal");
-}
-$("pauseBtn").onclick=pauseGame;
-$("resumeBtn").onclick=resumeGame;
-$("pauseCloseBtn").onclick=resumeGame;
-
-$("restartBtn").onclick=()=>{
-  hideModal("pauseModal");
-  grid=roundStartGrid.map(row=>row.map(b=>b?{...b}:null));
-  score=roundStartScore;
-  projectile=null;
-  particles=[];
-  floaters=[];
-  shotsUntilDrop=5;
-  gameState="playing";
-  ending=false;
-  updateHUD();
-};
-
-$("bombBtn").onclick=()=>usePower("bomb");
-$("rainbowBtn").onclick=()=>usePower("rainbow");
-$("lightningBtn").onclick=()=>usePower("lightning");
-$("swapBtn").onclick=()=>usePower("swap");
-$("fireBtn").onclick=()=>shoot();
-
-// ========================================
-// GAME END / LEVELS
-// ========================================
-function gameOver(won){
-  if(ending)return;
-  ending=true;
-  gameState=won?"won":"gameover";
-  const reward=won?150+level*25:Math.max(10,Math.floor(score/30));
-  coins+=reward;
-  best=Math.max(best,score);
-  saveGame();
-  updateHUD();
-
-  $("endTitle").textContent=won?"🏆 انتصرت!":"💥 انتهت اللعبة";
-  $("endDescription").textContent=won
-    ?`أنهيت المرحلة ${level} بنجاح`
-    :"حاول مرة أخرى، تستطيع تحقيق نتيجة أفضل!";
-  $("endReward").textContent=`+${reward} 🪙`;
-  $("nextLevelBtn").textContent=won?"المرحلة التالية":"إعادة المحاولة";
-  $("nextLevelBtn").style.display=won?"block":"none";
-  showModal("endModal");
-  if(won)sound("win");
-}
-
-function startNextLevel(){
-  level++;
-  gameState="playing";
-  ending=false;
-  projectile=null;
-  particles=[];
-  floaters=[];
-  shotsUntilDrop=5;
-  initGrid();
-  saveRoundSnapshot();
-  updateHUD();
-  hideModal("endModal");
-  saveGame();
-}
-
-$("nextLevelBtn").onclick=startNextLevel;
-$("retryBtn").onclick=()=>{
-  hideModal("endModal");
-  if(gameState==="won"){
-    startNextLevel();
-  }else{
-    score=roundStartScore;
-    grid=roundStartGrid.map(row=>row.map(b=>b?{...b}:null));
-    gameState="playing";
-    ending=false;
-    projectile=null;
-    shotsUntilDrop=5;
-    particles=[];
-    floaters=[];
-    updateHUD();
-  }
-};
-
-// ========================================
-// INPUT - POINTER EVENTS
-// ========================================
-let pointerDown=false;
-let pointerId=null;
-let moved=false;
-let startX=0,startY=0;
-
-canvas.addEventListener("pointerdown",e=>{
-  if(gameState!=="playing"||projectile)return;
-  if(e.pointerType==="mouse"&&e.button!==0)return;
-  pointerDown=true;
-  pointerId=e.pointerId;
-  moved=false;
-  startX=e.clientX;startY=e.clientY;
-  isAiming=true;
-  handleAim(e.clientX,e.clientY);
-  try{canvas.setPointerCapture(e.pointerId);}catch(err){}
-  e.preventDefault();
-});
-
-canvas.addEventListener("pointermove",e=>{
-  if(!pointerDown||e.pointerId!==pointerId)return;
-  if(dist(startX,startY,e.clientX,e.clientY)>5)moved=true;
-  handleAim(e.clientX,e.clientY);
-  e.preventDefault();
-});
-
-canvas.addEventListener("pointerup",e=>{
-  if(!pointerDown||e.pointerId!==pointerId)return;
-  pointerDown=false;
-  pointerId=null;
-  isAiming=false;
-  handleAim(e.clientX,e.clientY);
-  shoot();
-  e.preventDefault();
-});
-
-canvas.addEventListener("pointercancel",()=>{
-  pointerDown=false;
-  pointerId=null;
-  isAiming=false;
-});
-
-window.addEventListener("contextmenu",e=>e.preventDefault());
-
-// ========================================
-// MAIN LOOP
-// ========================================
-function draw(t){
-  const dt=Math.min(35,t-(lastTime||t));
-  lastTime=t;
-
-  ctx.save();
-  if(screenShake>0){
-    ctx.translate((Math.random()-.5)*screenShake,(Math.random()-.5)*screenShake);
-    screenShake*=.85;
-    if(screenShake<.3)screenShake=0;
-  }
-
-  drawBackground(t);
-  drawGrid();
-  drawAim();
-  drawShooter();
-  updateProjectile(dt);
-
-  if(projectile){
-    if(projectile.special==="rainbow"){
-      drawSpecialBubble(projectile.x,projectile.y,"rainbow");
-    }else{
-      drawBubble(projectile.x,projectile.y,projectile.color,R);
-    }
-  }
-
-  drawFloaters(dt);
-  drawParticles(dt);
-
-  // Gold effect countdown
-  if(goldMode&&Date.now()>goldUntil)goldMode=false;
-
-  ctx.restore();
-  animationId=requestAnimationFrame(draw);
-}
-
-// ========================================
-// START
-// ========================================
-loadGame();
+const $=i=>document.getElementById(i),cv=$("c"),ctx=cv.getContext("2d");
+const COLORS=[["#fecaca","#ef4444","#991b1b"],["#bfdbfe","#3b82f6","#1e3a8a"],["#bbf7d0","#22c55e","#14532d"],["#fef08a","#eab308","#713f12"],["#e9d5ff","#a855f7","#581c87"],["#fed7aa","#f97316","#9a3412"],["#e2e8f0","#94a3b8","#334155"]];
+const COLS=11,ROWS=30,KEY="osgames_bubbles_v4";
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),rand=n=>Math.floor(Math.random()*n),dist=(a,b,c,d)=>Math.hypot(a-c,b-d),fmt=n=>Math.round(n).toLocaleString("en");
+
+let W,H,DPR,CX,R,RH,topY,shooterY,bottomY,sx,spr=[],stars=[];
+let grid=[],shift=0,parts=[],rings=[],texts=[],floaters=[],bolts=[],proj=null;
+let score=0,coins=1500,level=1,best=0,levelScore=0,cur=0,nxt=0,drop=5,dropMax=5;
+let state="playing",aiming=false,aimOn=false,goldUntil=0,active=null,chain=0,shake=0,muted=false,danger=false,angle=-Math.PI/2,last=0,comboT=0;
+let pw={bomb:0,rainbow:0,lightning:0};
+let diff=1,maxLevel=1,rec={},shots=0,day="";
+
+/* ---------- save / load ---------- */
+function save(){try{localStorage.setItem(KEY,JSON.stringify({score,coins,level,best,diff,maxLevel,rec,day,pw,aimOn,muted,goldUntil,levelScore,drop,shift,cur,nxt,g:state==="playing"?grid.map(r=>r.map(b=>b?b.c:-9)):null}))}catch(e){}}
+function load(){try{const d=JSON.parse(localStorage.getItem(KEY));if(!d)return false;
+  score=+d.score||0;coins=typeof d.coins==="number"?d.coins:1500;level=+d.level||1;best=+d.best||0;
+  pw=Object.assign(pw,d.pw||{});diff=[0,1,2].includes(d.diff)?d.diff:1;maxLevel=+d.maxLevel||1;rec=d.rec||{};day=d.day||"";aimOn=!!d.aimOn;muted=!!d.muted;goldUntil=+d.goldUntil||0;levelScore=+d.levelScore||0;
+  if(Array.isArray(d.g)&&d.g.length===ROWS){shift=d.shift&1;grid=d.g.map(r=>r.map(v=>v>=0?{c:v,s:1}:null));drop=d.drop||5;dropMax=dmax();cur=d.cur||0;nxt=d.nxt||0;return true}
+}catch(e){}return false}
+
+/* ---------- audio / haptics ---------- */
+let ac=null;
+function tone(f,d,t,v,e){if(muted)return;try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();if(ac.state==="suspended")ac.resume();const o=ac.createOscillator(),g=ac.createGain(),n=ac.currentTime;o.type=t;o.frequency.setValueAtTime(f,n);if(e)o.frequency.exponentialRampToValueAtTime(e,n+d);g.gain.setValueAtTime(v,n);g.gain.exponentialRampToValueAtTime(.001,n+d);o.connect(g);g.connect(ac.destination);o.start();o.stop(n+d)}catch(x){}}
+function snd(k){if(k==="shoot")tone(300,.12,"sine",.07,520);if(k==="pop")tone(650,.15,"triangle",.09,230);if(k==="combo"){tone(500,.18,"sine",.09,850);setTimeout(()=>tone(800,.2,"sine",.07,1200),90)}
+  if(k==="buy")tone(450,.12,"triangle",.07,900);if(k==="err")tone(170,.15,"square",.04,100);if(k==="boom")tone(140,.35,"sawtooth",.1,40);
+  if(k==="win")[500,650,800,1000].forEach((f,i)=>setTimeout(()=>tone(f,.2,"sine",.07),i*100));if(k==="lose")tone(300,.5,"sawtooth",.07,80)}
+const vib=ms=>{if(!muted&&navigator.vibrate)navigator.vibrate(ms)};
+
+/* ---------- layout ---------- */
+function resize(){W=innerWidth;H=innerHeight;CX=W/2;DPR=Math.min(devicePixelRatio||1,2);cv.width=W*DPR;cv.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);
+  R=clamp((W-14)/(COLS*2+1),12,26);RH=R*1.732;sx=CX-(COLS*2+1)*R/2;
+  topY=Math.max(110,$("hud").getBoundingClientRect().bottom+12);shooterY=H-Math.max(135,H*.17);bottomY=shooterY-R*2.6;
+  $("hint").style.top=(shooterY-R*3.6)+"px";
+  stars=Array.from({length:60},()=>({x:Math.random()*W,y:Math.random()*H,s:Math.random()*1.5+.3,a:Math.random()*.5+.15,p:Math.random()*6}));
+  spr=COLORS.map(k=>{const s=Math.ceil(R*2*DPR)+4,o=document.createElement("canvas");o.width=o.height=s;const c=o.getContext("2d"),m=s/2,r=R*DPR,g=c.createRadialGradient(m-r*.35,m-r*.4,r*.05,m,m,r);
+    g.addColorStop(0,k[0]);g.addColorStop(.5,k[1]);g.addColorStop(1,k[2]);c.fillStyle=g;c.beginPath();c.arc(m,m,r,0,7);c.fill();
+    c.fillStyle="rgba(255,255,255,.6)";c.beginPath();c.ellipse(m-r*.23,m-r*.4,r*.42,r*.18,-.6,0,7);c.fill();return o})}
+addEventListener("resize",()=>setTimeout(resize,50));
+
+/* ---------- grid ---------- */
+const par=r=>(r+shift)&1;
+const valid=(r,c)=>r>=0&&r<ROWS&&c>=0&&c<COLS&&!(par(r)&&c===COLS-1);
+const pos=(r,c)=>({x:sx+R+c*2*R+(par(r)?R:0),y:topY+R+r*RH});
+function nbrs(r,c){const d=par(r)?[[0,-1],[0,1],[-1,0],[-1,1],[1,0],[1,1]]:[[0,-1],[0,1],[-1,-1],[-1,0],[1,-1],[1,0]];
+  return d.map(([a,b])=>({r:r+a,c:c+b})).filter(p=>valid(p.r,p.c))}
+const levelN=()=>clamp(2+level+diff,3,7);
+const dmax=()=>Math.max(3,9-diff*2-(level>>1));
+function inPlay(){const s=new Set();for(const row of grid)for(const b of row)if(b)s.add(b.c);return s.size?[...s]:[...Array(levelN()).keys()]}
+const pick=()=>{const a=inPlay();return a[rand(a.length)]};
+function initLevel(){shift=0;grid=Array.from({length:ROWS},()=>Array(COLS).fill(null));
+  const n=levelN(),rows=Math.min(9,3+level+diff);shots=0;
+  for(let r=0;r<rows;r++)for(let c=0;c<COLS;c++)if(valid(r,c))grid[r][c]={c:rand(n),s:0};
+  dropMax=dmax();drop=dropMax;proj=null;parts=[];rings=[];texts=[];floaters=[];bolts=[];chain=0;active=null;state="playing";
+  cur=pick();nxt=pick();levelScore=score;hud();save()}
+function hit(x,y){const r0=Math.round((y-topY-R)/RH);
+  for(let r=Math.max(0,r0-1);r<=Math.min(ROWS-1,r0+1);r++)for(let c=0;c<COLS;c++){if(!grid[r][c])continue;const p=pos(r,c);if(dist(x,y,p.x,p.y)<R*1.75)return true}return false}
+function flood(r,c,col){const seen=new Set([r*100+c]),q=[[r,c]],out=[];
+  while(q.length){const [a,b]=q.pop();out.push([a,b]);for(const n of nbrs(a,b)){const k=n.r*100+n.c,x=grid[n.r][n.c];if(x&&x.c===col&&!seen.has(k)){seen.add(k);q.push([n.r,n.c])}}}return out}
+function detach(){const seen=new Set(),q=[];for(let c=0;c<COLS;c++)if(grid[0][c]){seen.add(c);q.push([0,c])}
+  while(q.length){const [a,b]=q.pop();for(const n of nbrs(a,b)){const k=n.r*100+n.c;if(grid[n.r][n.c]&&!seen.has(k)){seen.add(k);q.push([n.r,n.c])}}}
+  let n=0;for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){const b=grid[r][c];if(b&&!seen.has(r*100+c)){const p=pos(r,c);floaters.push({x:p.x,y:p.y,vx:(Math.random()-.5)*3,vy:-3,c:b.c});grid[r][c]=null;n++}}return n}
+
+/* ---------- effects ---------- */
+function burst(x,y,ci){const col=COLORS[ci][1];rings.push({x,y,r:R*.5,l:1,col});
+  for(let i=0;i<10;i++){const a=Math.random()*6.28,s=1+Math.random()*4;parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,s:1.5+Math.random()*3,col,l:1})}}
+function showCombo(t){const e=$("combo");e.textContent=t;e.classList.add("show");clearTimeout(comboT);comboT=setTimeout(()=>e.classList.remove("show"),850)}
+
+/* ---------- gameplay ---------- */
+function pop(list,kind){let n=0,fx=0,fy=0;
+  for(const [r,c] of list){const b=grid[r][c];if(!b)continue;const p=pos(r,c);if(!n){fx=p.x;fy=p.y}burst(p.x,p.y,b.c);grid[r][c]=null;n++}
+  if(!n)return 0;const det=detach();chain++;
+  const mult=(Date.now()<goldUntil?2:1)*Math.min(3,1+(chain-1)*.5),pts=Math.round((n*10+det*20)*mult);
+  score+=pts;coins+=Math.round(Math.ceil((n+det)/3)*3*(1+diff*.5));texts.push({x:fx,y:fy,t:"+"+pts,l:1});
+  if(kind){shake=12;snd("boom");vib(40)}else{snd("pop");vib(12)}
+  if(chain>=2||n+det>=8){showCombo(chain>=2?"كومبو ×"+chain:"رائع!");snd("combo");shake=Math.max(shake,6)}
+  return n+det}
+function attach(){const p=proj;proj=null;let best=null,bd=1e9;
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){if(!valid(r,c)||grid[r][c])continue;const q=pos(r,c),d=dist(p.x,p.y,q.x,q.y);
+    if(d<bd&&(r===0||nbrs(r,c).some(n=>grid[n.r][n.c]))){bd=d;best=[r,c]}}
+  if(!best){end(false);return}
+  const [r,c]=best,b=grid[r][c]={c:p.col,s:0};let removed=0;
+  if(p.sp==="rainbow"){const cols=[...new Set(nbrs(r,c).map(n=>grid[n.r][n.c]).filter(Boolean).map(x=>x.c))];let m=0;
+    for(const col of cols){const s=flood(r,c,col).length;if(s>m){m=s;b.c=col}}}
+  if(p.sp==="bomb"){const o=pos(r,c),l=[];for(let a=0;a<ROWS;a++)for(let k=0;k<COLS;k++){if(grid[a][k]){const q=pos(a,k);if(dist(o.x,o.y,q.x,q.y)<R*4.3)l.push([a,k])}}removed=pop(l,"bomb")}
+  else if(p.sp==="lightning"){const o=pos(r,c),l=[];for(let a=0;a<ROWS;a++)for(let k=0;k<COLS;k++){if(grid[a][k]&&Math.abs(pos(a,k).x-o.x)<R*1.1)l.push([a,k])}
+    const z=[{x:o.x,y:topY}];for(let y=topY;y<shooterY;y+=22)z.push({x:o.x+(Math.random()-.5)*16,y});bolts.push({z,l:1});removed=pop(l,"zap")}
+  else{const g=flood(r,c,b.c);if(g.length>=3)removed=pop(g)}
+  if(!removed){chain=0;drop--;snd("pop")}
+  if(drop<=0){dropRow();drop=dropMax}
+  checkLose();if(state==="playing"&&!grid.some(row=>row.some(Boolean)))end(true);
+  hud();save()}
+function dropRow(){shift^=1;grid.unshift(Array(COLS).fill(null));grid.pop();const a=inPlay();
+  for(let c=0;c<COLS;c++)if(valid(0,c))grid[0][c]={c:a[rand(a.length)],s:0};shake=8;tone(220,.2,"triangle",.08,120);vib(25)}
+function checkLose(){danger=false;for(let r=ROWS-1;r>=0;r--){if(grid[r].some(Boolean)){const y=pos(r,0).y+R;if(y>bottomY){end(false)}else if(y+RH*2>bottomY)danger=true;return}}}
+function shoot(){if(proj||state!=="playing")return;
+  proj={x:CX,y:shooterY,vx:Math.cos(angle)*13,vy:Math.sin(angle)*13,col:cur,sp:active,tr:[]};
+  if(active)pw[active]=Math.max(0,pw[active]-1);active=null;cur=nxt;nxt=pick();$("hint").style.display="none";shots++;snd("shoot");hud();save()}
+function swap(){if(proj||state!=="playing")return;[cur,nxt]=[nxt,cur];snd("buy")}
+function usePower(t){if(state!=="playing"||proj)return;if(pw[t]>0)active=active===t?null:t;else snd("err");hud()}
+function end(won){if(state!=="playing")return;state=won?"won":"lost";proj=null;
+  const rw=Math.round((won?150+level*25:Math.max(10,score/30|0))*[.8,1,1.5][diff]),par=18+level*3+[6,0,-3][diff],st=won?(shots<=par?3:shots<=par*1.4?2:1):0;coins+=rw;best=Math.max(best,score);
+  if(won){const k=diff+"_"+level;rec[k]=Math.max(rec[k]||0,st);maxLevel=Math.max(maxLevel,level+1)}
+  $("endT").textContent=won?"🏆 انتصرت!":"💥 انتهت اللعبة";
+  $("endD").textContent=won?"⭐".repeat(st)+"☆".repeat(3-st)+" · "+shots+" طلقة (الهدف "+par+")":"أفضل نتيجة لك "+fmt(best);
+  $("endR").textContent="+"+rw+" 🪙";$("nextB").style.display=won?"block":"none";$("retryB").style.display=won?"none":"block";
+  $("endM").classList.add("on");snd(won?"win":"lose");vib(won?[30,40,30]:80);hud();save()}
+
+/* ---------- ui ---------- */
+function hud(){best=Math.max(best,score);$("score").textContent=fmt(score);$("coins").textContent=fmt(coins);$("lvl").textContent=level+" · "+["سهل","عادي","صعب"][diff];$("dropn").textContent=Math.max(0,drop);
+  for(const k in pw){$(k+"N").textContent=pw[k];$(k+"B").classList.toggle("on",active===k)}
+  $("gold").style.display=Date.now()<goldUntil?"inline":"none";$("sndB").textContent=muted?"🔇":"🔊";$("aimBtn").textContent=aimOn?"تم":"500"}
+const show=i=>$(i).classList.add("on"),hide=i=>$(i).classList.remove("on");
+document.querySelectorAll("[data-b]").forEach(b=>b.onclick=()=>{const t=b.dataset.b,cost={bomb:250,rainbow:350,lightning:400,aim:500,gold:700}[t];
+  if(t==="aim"&&aimOn||coins<cost){snd("err");return}coins-=cost;if(t==="aim")aimOn=true;else if(t==="gold")goldUntil=Date.now()+60000;else pw[t]++;snd("buy");hud();save()});
+$("shopB").onclick=()=>show("shopM");$("shopX").onclick=()=>hide("shopM");
+function pause(){if(state!=="playing")return;state="paused";show("pauseM")}
+const resume=()=>{state="playing";hide("pauseM")};
+$("pauseB").onclick=pause;$("resumeB").onclick=resume;
+$("restartB").onclick=()=>{hide("pauseM");score=levelScore;initLevel()};
+$("sndB").onclick=()=>{muted=!muted;hud();save()};
+$("nextB").onclick=()=>{hide("endM");level++;initLevel()};
+$("retryB").onclick=()=>{hide("endM");score=levelScore;initLevel()};
+["bomb","rainbow","lightning"].forEach(k=>$(k+"B").onclick=()=>usePower(k));$("swapB").onclick=swap;
+document.addEventListener("visibilitychange",()=>{if(document.hidden)pause()});
+
+function buildMenu(){document.querySelectorAll("[data-d]").forEach(b=>b.classList.toggle("sel",+b.dataset.d===diff));const g=$("lvG");g.innerHTML="";
+  for(let i=1;i<=24;i++){const b=document.createElement("button"),s=rec[diff+"_"+i]||0,lk=i>maxLevel;b.className="lv"+(lk?" lk":"")+(i===level?" cu":"");
+    b.innerHTML=lk?"🔒":"<b>"+i+"</b><small>"+"⭐".repeat(s)+"</small>";
+    b.onclick=()=>{if(lk){snd("err");return}hide("menuM");level=i;score=0;initLevel()};g.appendChild(b)}}
+function openMenu(){if(state==="playing")state="paused";buildMenu();show("menuM")}
+document.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{diff=+b.dataset.d;buildMenu();snd("buy");save()});
+$("menuB").onclick=openMenu;$("menuX").onclick=()=>{hide("menuM");if(state==="paused")state="playing";hud()};
+
+/* ---------- input ---------- */
+let down=false,pid=null;
+const aim=e=>{angle=clamp(Math.atan2(e.clientY-shooterY,e.clientX-CX),-Math.PI+.15,-.15)};
+cv.addEventListener("pointerdown",e=>{if(state!=="playing"||proj)return;
+  if(dist(e.clientX,e.clientY,CX,shooterY)<R*2||dist(e.clientX,e.clientY,CX+R*4,shooterY+R*.4)<R*1.6){swap();return}
+  down=true;pid=e.pointerId;aiming=true;aim(e);try{cv.setPointerCapture(pid)}catch(x){}e.preventDefault()});
+cv.addEventListener("pointermove",e=>{if(down&&e.pointerId===pid){aim(e);e.preventDefault()}});
+cv.addEventListener("pointerup",e=>{if(down&&e.pointerId===pid){down=false;aiming=false;aim(e);shoot();e.preventDefault()}});
+cv.addEventListener("pointercancel",()=>{down=false;aiming=false});
+addEventListener("contextmenu",e=>e.preventDefault());
+
+/* ---------- drawing ---------- */
+function bub(x,y,i,sc=1){if(sc<=0)return;const o=spr[i],d=o.width/DPR*sc;ctx.drawImage(o,x-d/2,y-d/2,d,d)}
+function rainbow(x,y){let g="#a855f7";if(ctx.createConicGradient){g=ctx.createConicGradient(performance.now()/500,x,y);["#ef4444","#facc15","#22c55e","#38bdf8","#a855f7","#ef4444"].forEach((c,i)=>g.addColorStop(i/5,c))}
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,R,0,7);ctx.fill();ctx.strokeStyle="#fff";ctx.lineWidth=2;ctx.stroke()}
+function emoji(x,y,t){ctx.font=R*1.1+"px serif";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillStyle="#fff";ctx.fillText(t,x,y+1)}
+function drawBg(t){const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,"#0b1020");g.addColorStop(.6,"#141d3a");g.addColorStop(1,"#0b1020");ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  for(const s of stars){ctx.globalAlpha=s.a*(.65+Math.sin(t*.001+s.p)*.3);ctx.fillStyle="#b9d4ff";ctx.beginPath();ctx.arc(s.x,s.y,s.s,0,7);ctx.fill()}ctx.globalAlpha=1;
+  ctx.strokeStyle="rgba(120,160,255,.14)";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(sx,topY);ctx.lineTo(sx,shooterY-R);ctx.moveTo(sx+(COLS*2+1)*R,topY);ctx.lineTo(sx+(COLS*2+1)*R,shooterY-R);ctx.stroke();
+  ctx.setLineDash([6,9]);ctx.strokeStyle=danger?`rgba(248,113,113,${.4+Math.sin(t*.008)*.35})`:"rgba(248,113,113,.22)";ctx.lineWidth=danger?3:1.5;
+  ctx.beginPath();ctx.moveTo(sx,bottomY);ctx.lineTo(W-sx,bottomY);ctx.stroke();ctx.setLineDash([])}
+function drawGrid(){for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){const b=grid[r][c];if(!b)continue;b.s=Math.min(1,b.s+.14);const p=pos(r,c);bub(p.x,p.y,b.c,1-Math.pow(1-b.s,3))}}
+function traceAim(){let x=CX,y=shooterY,vx=Math.cos(angle),vy=Math.sin(angle),len=0,bn=0;const max=aimOn?H*1.6:H*.55,mb=aimOn?5:1,pts=[{x,y}];
+  while(len<max){x+=vx*R*.35;y+=vy*R*.35;len+=R*.35;
+    if(x<sx+R){x=sx+R;vx=Math.abs(vx);bn++;pts.push({x,y})}if(x>W-sx-R){x=W-sx-R;vx=-Math.abs(vx);bn++;pts.push({x,y})}
+    if(hit(x,y)||y<topY+R||bn>mb)break}pts.push({x,y});return pts}
+function drawAim(){if(!aiming||proj||state!=="playing")return;const p=traceAim();ctx.save();ctx.beginPath();p.forEach((q,i)=>i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y));
+  ctx.setLineDash([5,8]);ctx.lineWidth=aimOn?3:2;ctx.strokeStyle=aimOn?"#4ade80":"rgba(255,255,255,.65)";ctx.stroke();ctx.setLineDash([]);
+  const e=p[p.length-1];ctx.beginPath();ctx.arc(e.x,e.y,R*.7,0,7);ctx.strokeStyle="rgba(255,255,255,.7)";ctx.stroke();ctx.restore()}
+function drawShooter(){ctx.save();const g=ctx.createRadialGradient(CX,shooterY,2,CX,shooterY,R*2.4);g.addColorStop(0,"#475b8a");g.addColorStop(1,"#0f1730");
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(CX,shooterY,R*1.8,0,7);ctx.fill();ctx.strokeStyle="rgba(120,180,255,.35)";ctx.lineWidth=2;ctx.stroke();
+  ctx.translate(CX,shooterY);ctx.rotate(angle+Math.PI/2);ctx.fillStyle="#64779f";ctx.fillRect(-R*.32,-R*2.2,R*.64,R*2.1);ctx.restore();
+  if(!proj){if(active==="rainbow")rainbow(CX,shooterY);else{bub(CX,shooterY,cur);if(active)emoji(CX,shooterY,active==="bomb"?"💣":"⚡")}}
+  ctx.font="800 11px Tajawal,sans-serif";ctx.textAlign="center";ctx.fillStyle="#9aa5c9";ctx.fillText("التالي",CX+R*4,shooterY-R*.9);bub(CX+R*4,shooterY+R*.4,nxt,.75)}
+function drawFx(dt){const k=dt/16.67;
+  if(proj){proj.tr.forEach((t,i)=>{ctx.globalAlpha=i/proj.tr.length*.35;if(proj.sp==="rainbow")ctx.fillStyle="#fff";else ctx.fillStyle=COLORS[proj.col][1];ctx.beginPath();ctx.arc(t.x,t.y,R*(.3+i/proj.tr.length*.4),0,7);ctx.fill()});ctx.globalAlpha=1;
+    if(proj.sp==="rainbow")rainbow(proj.x,proj.y);else{bub(proj.x,proj.y,proj.col);if(proj.sp)emoji(proj.x,proj.y,proj.sp==="bomb"?"💣":"⚡")}}
+  for(let i=floaters.length-1;i>=0;i--){const f=floaters[i];f.x+=f.vx*k;f.y+=f.vy*k;f.vy+=.45*k;if(f.y>H+R){floaters.splice(i,1);continue}bub(f.x,f.y,f.c)}
+  for(let i=parts.length-1;i>=0;i--){const p=parts[i];p.x+=p.vx*k;p.y+=p.vy*k;p.vy+=.12*k;p.l-=dt/600;if(p.l<=0){parts.splice(i,1);continue}ctx.globalAlpha=p.l;ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(p.x,p.y,p.s,0,7);ctx.fill()}
+  for(let i=rings.length-1;i>=0;i--){const q=rings[i];q.r+=1.8*k;q.l-=dt/350;if(q.l<=0){rings.splice(i,1);continue}ctx.globalAlpha=q.l;ctx.strokeStyle=q.col;ctx.lineWidth=3;ctx.beginPath();ctx.arc(q.x,q.y,q.r,0,7);ctx.stroke()}
+  for(let i=bolts.length-1;i>=0;i--){const b=bolts[i];b.l-=dt/300;if(b.l<=0){bolts.splice(i,1);continue}ctx.globalAlpha=b.l;ctx.strokeStyle="#fef08a";ctx.lineWidth=4;ctx.shadowColor="#facc15";ctx.shadowBlur=14;ctx.beginPath();b.z.forEach((p,j)=>j?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke();ctx.shadowBlur=0}
+  ctx.font="800 17px Tajawal,sans-serif";ctx.textAlign="center";
+  for(let i=texts.length-1;i>=0;i--){const t=texts[i];t.y-=.7*k;t.l-=dt/900;if(t.l<=0){texts.splice(i,1);continue}ctx.globalAlpha=Math.min(1,t.l*1.5);ctx.fillStyle="#ffe36a";ctx.fillText(t.t,t.x,t.y)}
+  ctx.globalAlpha=1}
+function stepProj(dt){const p=proj;if(!p)return;const k=dt/16.67,n=Math.max(1,Math.ceil(k*3));
+  for(let i=0;i<n;i++){p.x+=p.vx*k/n;p.y+=p.vy*k/n;if(p.x<sx+R){p.x=sx+R;p.vx=Math.abs(p.vx)}if(p.x>W-sx-R){p.x=W-sx-R;p.vx=-Math.abs(p.vx)}
+    if(hit(p.x,p.y)||p.y<=topY+R){attach();return}}
+  p.tr.push({x:p.x,y:p.y});if(p.tr.length>9)p.tr.shift()}
+function frame(t){requestAnimationFrame(frame);const dt=Math.min(35,t-(last||t));last=t;
+  if(state==="playing")stepProj(dt);
+  if(goldUntil&&Date.now()>goldUntil){goldUntil=0;hud()}
+  ctx.save();if(shake>0){ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);shake*=.86;if(shake<.3)shake=0}
+  drawBg(t);drawGrid();drawAim();drawShooter();drawFx(dt);ctx.restore()}
+
+/* ---------- start ---------- */
 resize();
-initGrid();
-updateHUD();
-updatePowerUI();
-saveRoundSnapshot();
-animationId=requestAnimationFrame(draw);
-
-// Resume audio after first interaction.
-document.addEventListener("pointerdown",()=>audio(),{once:true});
-document.addEventListener("visibilitychange",()=>{
-  if(document.hidden&&gameState==="playing")pauseGame();
-});
+if(!load())initLevel();
+const today=new Date().toDateString();
+if(day!==today){const fresh=!day;day=today;if(fresh)setTimeout(openMenu,300);else{coins+=150;setTimeout(()=>showCombo("🎁 هدية يومية +150"),600)}}
+checkLose();hud();save();requestAnimationFrame(frame);
 </script>
 </body>
 </html>
