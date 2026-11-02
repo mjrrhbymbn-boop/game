@@ -5,202 +5,327 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#080d1b">
-<title>Color Quest - فرز الألوان</title>
+<title>Color Quest Ultimate</title>
 <style>
 :root{
---bg:#080d1b;--panel:#111a2d;--text:#f5f7ff;
---muted:#9eacc7;--accent:#8b70ff;--accent2:#39d7c4;
---tubeW:58px;--tubeH:190px;
+--bg:#070b19;
+--panel:#111a31;
+--line:#34466b;
+--purple:#916aff;
+--cyan:#38e5ff;
+--gold:#ffd45c;
+--tubeW:65px;
+--tubeH:205px;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{
-margin:0;width:100%;min-height:100%;
-background:var(--bg);color:var(--text);
-font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif;
-overscroll-behavior:none
-}
 body{
-min-height:100svh;
-background:radial-gradient(ellipse at 50% -15%,#28366b 0,transparent 43%),radial-gradient(ellipse at 90% 70%,#102b42 0,transparent 35%),var(--bg);
-overflow-x:hidden
+margin:0;min-height:100svh;color:#fff;
+font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;
+background:
+radial-gradient(ellipse at 50% 0%,#30266c 0%,transparent 38%),
+radial-gradient(ellipse at 100% 65%,#103653 0%,transparent 38%),
+#070b19;
 }
 button{font:inherit;color:inherit;border:0;cursor:pointer;touch-action:manipulation}
-button:focus-visible{outline:3px solid var(--accent2);outline-offset:3px}
 .app{
-width:min(100%,760px);min-height:100svh;margin:auto;
-padding:env(safe-area-inset-top) 14px calc(18px + env(safe-area-inset-bottom));
-display:flex;flex-direction:column
+width:min(100%,760px);margin:auto;min-height:100svh;
+padding:env(safe-area-inset-top) 13px calc(20px + env(safe-area-inset-bottom));
+display:flex;flex-direction:column;
 }
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 2px 8px;gap:10px}
-.brand{display:flex;align-items:center;gap:10px;font-weight:900;font-size:20px}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:13px 3px}
+.brand{display:flex;align-items:center;gap:10px;font-size:21px;font-weight:950}
 .logo{
-width:40px;height:40px;border-radius:14px;display:grid;place-items:center;
-background:linear-gradient(145deg,#9b7bff,#5b47d9);
-box-shadow:0 7px 24px #765cff55;font-size:22px
+width:44px;height:44px;border-radius:16px;display:grid;place-items:center;
+background:linear-gradient(145deg,#b49aff,#6244db);
+box-shadow:0 0 25px #7959ff66;font-size:24px
 }
-.top-actions{display:flex;gap:8px}
+.actions{display:flex;gap:8px}
 .icon-btn{
-width:42px;height:42px;border-radius:14px;background:#18243b;
-border:1px solid #30405e;display:grid;place-items:center;font-size:18px
+width:43px;height:43px;border-radius:15px;
+background:linear-gradient(145deg,#1c2a49,#101a30);
+border:1px solid #52668d;font-size:19px;
+box-shadow:0 5px 15px #0005
 }
 .hero{
-margin-top:7px;padding:15px 16px;border:1px solid #334467;
-background:linear-gradient(135deg,#1c2c4cdd,#121c32ee);
-border-radius:22px;box-shadow:0 14px 36px #0004
+padding:17px;border-radius:25px;
+background:linear-gradient(145deg,#1d2b4b,#111a31);
+border:1px solid #455b85;
+box-shadow:0 15px 35px #0005,inset 0 1px #ffffff17;
 }
-.hero-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.eyebrow{font-size:12px;color:#aab8d3;font-weight:700}
-.level{font-size:24px;font-weight:950;margin-top:2px}
-.level small{font-size:12px;color:var(--muted);font-weight:600}
-.progress-wrap{height:8px;background:#0b1427;border-radius:20px;margin-top:13px;overflow:hidden}
-.progress{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:20px;transition:width .35s}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
-.stat{background:#0d172b99;border:1px solid #2c3b58;border-radius:13px;padding:9px 7px;text-align:center}
-.stat b{display:block;font-size:16px;font-variant-numeric:tabular-nums}
-.stat span{font-size:11px;color:var(--muted)}
-.game-area{flex:1;display:flex;flex-direction:column;justify-content:center;min-height:300px;padding:20px 0 8px}
-.instruction{text-align:center;color:#b5c2da;font-size:13px;margin:0 0 18px;min-height:20px}
+.hero-top{display:flex;justify-content:space-between;align-items:center}
+.small{font-size:12px;color:#aebbd5}
+.level{font-size:27px;font-weight:950}
+.coins{font-size:24px;font-weight:900;color:var(--gold)}
+.progress{
+height:9px;background:#080e20;border-radius:20px;
+margin:14px 0;overflow:hidden;border:1px solid #283b60
+}
+.progress div{
+height:100%;width:0%;
+background:linear-gradient(90deg,#7957ff,#39e6ff);
+border-radius:20px;transition:.3s
+}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.stat{
+padding:10px 4px;text-align:center;border-radius:17px;
+background:#0b1429;border:1px solid #34466b
+}
+.stat b{font-size:18px;display:block}
+.stat span{font-size:11px;color:#aebbd5}
+.game-area{flex:1;display:flex;flex-direction:column;justify-content:center;padding:22px 0}
+.instruction{text-align:center;color:#c4cce0;font-size:14px;margin:0 0 24px}
+
+/* شبكة الأنابيب */
 .board{
-display:grid;grid-template-columns:repeat(var(--cols,4),var(--tubeW));
-justify-content:center;align-items:end;
-gap:clamp(10px,3.5vw,23px) clamp(9px,3vw,20px);
-padding:7px 0 15px;min-height:210px
+display:grid;
+grid-template-columns:repeat(var(--cols,4),var(--tubeW));
+justify-content:center;
+align-items:end;
+gap:clamp(17px,4vw,28px) clamp(13px,4vw,25px);
+padding:12px 0 20px;
 }
+
+/* تصميم القارورة الزجاجية الجديدة */
 .tube{
-width:var(--tubeW);height:var(--tubeH);position:relative;
-border:3px solid #9fb0d355;border-top:3px solid #d4def088;
-border-radius:9px 9px 18px 18px;
-background:linear-gradient(90deg,#ffffff0b,#ffffff02 35%,#ffffff0d);
-box-shadow:inset 0 0 12px #b4c9ff0c,0 9px 15px #0003;
-display:flex;flex-direction:column-reverse;align-items:center;
-justify-content:flex-start;padding:5px 3px 6px;gap:3px;
-transition:transform .16s,border-color .16s;overflow:hidden
+width:var(--tubeW);
+height:var(--tubeH);
+position:relative;
+border:3px solid rgba(164,191,255,.55);
+border-top:5px solid rgba(221,237,255,.85);
+border-radius:20px 20px 36px 36px;
+background:
+linear-gradient(90deg,
+rgba(255,255,255,.18) 0%,
+rgba(110,160,255,.035) 16%,
+rgba(255,255,255,.025) 50%,
+rgba(255,255,255,.14) 90%,
+rgba(255,255,255,.03) 100%);
+box-shadow:
+inset 5px 0 9px #ffffff12,
+inset -5px 0 9px #ffffff12,
+inset 0 -12px 18px #6c8fff18,
+0 10px 24px #0007,
+0 0 13px #629bff25;
+display:flex;
+flex-direction:column-reverse;
+align-items:center;
+justify-content:flex-start;
+gap:4px;
+padding:7px 4px 9px;
+overflow:visible;
+transition:transform .2s,filter .2s;
 }
+
+/* فوهة القارورة */
 .tube:before{
-content:"";position:absolute;top:-5px;left:-4px;right:-4px;height:8px;
-border:2px solid #d5e2ff88;border-radius:7px;background:#1a2844;z-index:3
+content:"";
+position:absolute;
+top:-8px;
+left:-5px;
+right:-5px;
+height:13px;
+border-radius:50%;
+background:linear-gradient(180deg,#e9f4ff,#667aab 45%,#172440 75%);
+border:3px solid #b7d2ff;
+box-shadow:
+0 0 9px #9cbfff88,
+inset 0 2px 4px #fff;
+z-index:4;
 }
+
+/* قاعدة القارورة */
+.tube:after{
+content:"";
+position:absolute;
+bottom:-8px;
+left:15%;
+width:70%;
+height:11px;
+border-radius:50%;
+border:2px solid #8faeff;
+background:linear-gradient(90deg,#17284d,#b6d8ff,#182a50);
+box-shadow:0 5px 12px #527eff55;
+z-index:-1;
+}
+
+/* الانعكاس الزجاجي */
+.tube .glass-shine{
+position:absolute;
+left:6px;
+top:17px;
+bottom:17px;
+width:4px;
+border-radius:10px;
+background:linear-gradient(180deg,transparent,#ffffff70,transparent);
+pointer-events:none;
+z-index:3;
+}
+
 .tube.selected{
-transform:translateY(-10px);border-color:#b6a6ff;
-box-shadow:0 0 0 3px #8b70ff33,0 12px 24px #0005
+transform:translateY(-13px) scale(1.035);
+border-color:#c7a8ff;
+box-shadow:
+0 0 0 3px #946aff44,
+0 0 25px #946aff88,
+inset 5px 0 9px #ffffff22,
+0 10px 25px #0008;
 }
-.tube.target{border-color:#4de4cb;box-shadow:0 0 0 3px #39d7c433}
-.tube.shake{animation:shake .28s}
+
+.tube.target{
+border-color:#3dffff;
+box-shadow:0 0 22px #38e5ff99;
+}
+
+.tube.shake{animation:shake .3s}
+
+/* الكرات الزجاجية */
 .ball{
-width:100%;height:calc((100% - 7px)/4);max-height:39px;min-height:13px;
-border-radius:50%;position:relative;
-box-shadow:inset -5px -6px 8px #0004,inset 4px 4px 7px #ffffff55,0 2px 4px #0005;
-flex:1 1 0;animation:pop .18s ease-out
+width:91%;
+flex:1 1 0;
+min-height:12px;
+max-height:43px;
+position:relative;
+border-radius:50%;
+box-shadow:
+inset -7px -8px 12px #0005,
+inset 5px 5px 9px #ffffff75,
+inset 0 0 8px #ffffff22,
+0 4px 8px #0006;
+animation:ballPop .2s ease-out;
+z-index:1;
 }
+
+.ball:before{
+content:"";
+position:absolute;
+width:35%;
+height:21%;
+top:12%;
+left:19%;
+background:linear-gradient(90deg,#ffffffb9,#ffffff20);
+border-radius:50%;
+filter:blur(1px);
+transform:rotate(-35deg);
+}
+
 .ball:after{
-content:"";position:absolute;top:14%;left:23%;width:28%;height:17%;
-border-radius:50%;background:#fff8;filter:blur(1px);transform:rotate(-30deg)
+content:"";
+position:absolute;
+width:13%;
+height:13%;
+top:19%;
+left:56%;
+background:#ffffffa0;
+border-radius:50%;
+filter:blur(2px);
 }
-.controls{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:5px 0 10px}
+
+/* أزرار التحكم */
+.controls{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
 .action{
-min-height:56px;border-radius:16px;background:#182640;border:1px solid #344767;
+min-height:67px;
+border-radius:20px;
+background:linear-gradient(145deg,#1e3154,#101b34);
+border:1px solid #435a86;
+box-shadow:0 6px 15px #0005,inset 0 1px #ffffff15;
 display:flex;flex-direction:column;align-items:center;justify-content:center;
-gap:3px;font-size:19px;transition:transform .12s
+gap:4px;font-size:23px;
 }
-.action:active,.icon-btn:active,.primary:active{transform:scale(.96)}
-.action span{font-size:11px;color:#c3cde0;font-weight:700}
-.action:disabled{opacity:.35;cursor:not-allowed}
+.action span{font-size:11px;color:#d3dcef;font-weight:700}
+.action:disabled{opacity:.3}
 .primary{
-width:100%;min-height:54px;border-radius:17px;
-background:linear-gradient(100deg,#8268ff,#5e55e9);
-font-weight:900;font-size:16px;box-shadow:0 9px 25px #6655ed44
+width:100%;margin-top:12px;min-height:55px;
+border-radius:18px;
+background:linear-gradient(100deg,#7957f6,#4a5fe9);
+font-weight:900;font-size:17px;
+box-shadow:0 8px 25px #624fff55;
 }
-.bottom-note{text-align:center;color:#71819f;font-size:11px;padding:13px 0 2px}
+.bottom-note{text-align:center;color:#7f91b4;font-size:11px;padding:15px 0}
+
 .toast{
-position:fixed;z-index:20;left:50%;
-bottom:calc(28px + env(safe-area-inset-bottom));
-transform:translate(-50%,20px);opacity:0;pointer-events:none;
-background:#eef3ff;color:#142039;border-radius:30px;
-padding:11px 18px;font-weight:800;font-size:13px;
-box-shadow:0 9px 30px #0006;transition:.25s;white-space:nowrap
+position:fixed;z-index:50;bottom:35px;left:50%;
+transform:translate(-50%,20px);opacity:0;
+background:#f2f4ff;color:#18213a;padding:12px 20px;
+border-radius:30px;font-weight:800;transition:.2s;
+white-space:nowrap;pointer-events:none;
 }
 .toast.show{opacity:1;transform:translate(-50%,0)}
+
 .modal{
-position:fixed;inset:0;background:#030714c9;backdrop-filter:blur(10px);
-z-index:30;display:none;align-items:center;justify-content:center;padding:20px
+position:fixed;inset:0;background:#020617d9;backdrop-filter:blur(10px);
+display:none;align-items:center;justify-content:center;
+padding:20px;z-index:60
 }
 .modal.show{display:flex}
 .dialog{
-width:min(100%,390px);background:linear-gradient(145deg,#1b2a48,#111a2e);
-border:1px solid #43577c;border-radius:25px;padding:22px;text-align:center;
-box-shadow:0 25px 80px #0009;animation:rise .25s
+width:min(100%,390px);padding:24px;text-align:center;
+border-radius:25px;border:1px solid #586da1;
+background:linear-gradient(145deg,#26365e,#111a32);
+box-shadow:0 20px 70px #0009;
 }
-.dialog h2{margin:3px 0 8px;font-size:24px}
-.dialog p{color:#b5c3db;line-height:1.7;font-size:14px;margin:5px 0 18px}
-.dialog .primary{margin-top:8px}
+.dialog h2{font-size:25px}
+.dialog p{color:#c3cde0;line-height:1.8;font-size:14px}
 .secondary{
-width:100%;margin-top:9px;min-height:48px;border-radius:15px;
-background:#243451;border:1px solid #405477;font-weight:800
+width:100%;margin-top:9px;padding:13px;
+border-radius:15px;background:#263958;border:1px solid #455a7f
 }
-.settings-row{
-display:flex;justify-content:space-between;align-items:center;
-padding:13px 0;border-bottom:1px solid #34435f;text-align:right
-}
-.toggle{background:#34435e;border-radius:20px;padding:4px;width:48px;height:28px;text-align:left}
-.toggle i{display:block;width:20px;height:20px;background:white;border-radius:50%;transition:.2s}
-.toggle.on{background:#6d5be8}
-.toggle.on i{transform:translateX(20px)}
 .confetti{
-position:fixed;top:-15px;width:8px;height:13px;z-index:40;
-pointer-events:none;animation:fall 1.8s linear forwards
+position:fixed;top:-15px;width:8px;height:13px;z-index:90;
+animation:fall 1.8s linear forwards;pointer-events:none
 }
-@keyframes pop{from{transform:scale(.72)}to{transform:scale(1)}}
-@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
-@keyframes rise{from{transform:translateY(18px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes ballPop{from{transform:scale(.65)}to{transform:scale(1)}}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
 @keyframes fall{to{transform:translateY(110vh) rotate(650deg);opacity:.2}}
+
 @media(max-width:390px){
-:root{--tubeW:51px;--tubeH:174px}
+:root{--tubeW:53px;--tubeH:175px}
 .app{padding-left:10px;padding-right:10px}
-.board{gap:10px 9px}.brand{font-size:18px}
+.board{gap:17px 12px}
+.brand{font-size:18px}
 }
 @media(min-width:600px){
-:root{--tubeW:66px;--tubeH:215px}
-.game-area{padding-top:28px}.board{gap:18px 24px}.hero{padding:19px 21px}
+:root{--tubeW:72px;--tubeH:225px}
+.board{gap:25px 30px}
 }
-@media(max-height:700px){
+@media(max-height:720px){
 :root{--tubeH:150px}
-.game-area{padding-top:10px;min-height:245px}
-.hero{padding:11px 14px}.stats{margin-top:8px}
-.instruction{margin-bottom:10px}
+.game-area{padding:10px 0}
+.hero{padding:12px}
 }
 @media(prefers-reduced-motion:reduce){
 *,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}
 }
 </style>
 </head>
-<body>
 
+<body>
 <div class="app">
+
 <header class="topbar">
 <div class="brand">
 <div class="logo">🫧</div>
-<div>Color <span style="color:#a995ff">Quest</span>
-<div class="eyebrow">رحلة فرز الألوان</div></div>
+<div>Color <span style="color:#ae91ff">Quest</span>
+<div class="small">رحلة فرز الألوان</div></div>
 </div>
-<div class="top-actions">
+<div class="actions">
 <button class="icon-btn" id="soundBtn">🔊</button>
 <button class="icon-btn" id="settingsBtn">⚙️</button>
 </div>
 </header>
 
 <section class="hero">
-<div class="hero-row">
+<div class="hero-top">
 <div>
-<div class="eyebrow">تحدّيك الحالي</div>
-<div class="level">المستوى <b id="levelNum">1</b>
-<small id="difficulty">• بداية الرحلة</small></div>
+<div class="small">تحدّيك الحالي</div>
+<div class="level">المستوى <b id="levelNum">1</b></div>
+<div class="small" id="difficulty">بداية الرحلة</div>
 </div>
-<div style="text-align:left">
-<div class="eyebrow">🪙 رصيدك</div>
-<div class="level" style="font-size:21px" id="coins">120</div>
+<div>
+<div class="small">🪙 رصيدك</div>
+<div class="coins" id="coins">120</div>
 </div>
 </div>
-<div class="progress-wrap"><div class="progress" id="progress"></div></div>
+<div class="progress"><div id="progress"></div></div>
 <div class="stats">
 <div class="stat"><b id="moves">0</b><span>الحركات</span></div>
 <div class="stat"><b id="timer">00:00</b><span>الوقت</span></div>
@@ -209,19 +334,19 @@ pointer-events:none;animation:fall 1.8s linear forwards
 </section>
 
 <main class="game-area">
-<p class="instruction" id="instruction">اضغط على أنبوب لاختيار الكرة العلوية، ثم اختر أنبوباً آخر</p>
+<p class="instruction" id="instruction">رتّب كل لون في قارورة مستقلة ✨</p>
 <div class="board" id="board"></div>
 </main>
 
 <div class="controls">
 <button class="action" id="undoBtn">↶<span>تراجع</span></button>
 <button class="action" id="hintBtn">💡<span>تلميح · 10</span></button>
-<button class="action" id="extraBtn">＋<span>أنبوب · 35</span></button>
+<button class="action" id="extraBtn">🧪<span>قارورة · 35</span></button>
 <button class="action" id="restartBtn">⟳<span>إعادة</span></button>
 </div>
 
 <button class="primary" id="nextBtn" style="display:none">المستوى التالي ←</button>
-<div class="bottom-note">تقدمك محفوظ تلقائياً · العب واستمتع</div>
+<div class="bottom-note">Color Quest Ultimate · اجمع الألوان وحقق أعلى النتائج</div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -232,85 +357,72 @@ pointer-events:none;animation:fall 1.8s linear forwards
 'use strict';
 
 const $=id=>document.getElementById(id);
-
 const palette=[
-'#ff526f','#28c7e8','#ffc83d','#9b67ff','#37d67a',
-'#ff8a43','#ed62c7','#68a5ff','#b6df45','#a98a72'
+'#ff4f78','#27dafa','#ffd13d','#a66aff',
+'#39df86','#ff914d','#f26ad1','#699cff',
+'#b8e64c','#b58a75'
 ];
 
 let level=1,coins=120,tubes=[],selected=-1,moves=0;
 let history=[],extraUsed=false,won=false;
-let startedAt=0,elapsed=0,tick=null;
-let sound=true,best={};
+let startedAt=0,elapsed=0,tick=null,sound=true,best={};
 
-const colors=palette;
-const saveKey='colorQuestSave_v1';
-
-function load(){
-try{
-const s=JSON.parse(localStorage.getItem(saveKey)||'{}');
-level=s.level||1;
-coins=s.coins??120;
-best=s.best||{};
-sound=s.sound!==false;
-if(s.tubes&&s.level){
-tubes=s.tubes;
-moves=s.moves||0;
-elapsed=s.elapsed||0;
-extraUsed=!!s.extraUsed;
-history=s.history||[];
-}
-}catch(e){}
-}
+const KEY='colorQuestUltimate_v2';
 
 function save(){
 try{
-localStorage.setItem(saveKey,JSON.stringify({
-level,coins,best,sound,tubes,moves,elapsed,extraUsed,
-history:history.slice(-30)
+localStorage.setItem(KEY,JSON.stringify({
+level,coins,tubes,moves,history:history.slice(-30),
+extraUsed,elapsed,best,sound
 }));
 }catch(e){}
 }
 
-function countColors(){
-return Math.min(
-3+Math.floor((level-1)/3),
-Math.min(10,Math.floor((window.innerWidth-38)/65)*2)
-);
+function load(){
+try{
+const s=JSON.parse(localStorage.getItem(KEY)||'{}');
+level=s.level||1;
+coins=s.coins??120;
+best=s.best||{};
+sound=s.sound!==false;
+if(s.tubes){
+tubes=s.tubes;
+moves=s.moves||0;
+history=s.history||[];
+elapsed=s.elapsed||0;
+extraUsed=!!s.extraUsed;
+}
+}catch(e){}
 }
 
-function makeLevel(){
-const n=countColors();
-const solved=Array.from({length:n},(_,i)=>Array(4).fill(i));
-let arr=[...solved,[]];
+function colorsCount(){
+return Math.min(10,3+Math.floor((level-1)/3));
+}
+
+function createLevel(){
+const n=colorsCount();
+let arr=Array.from({length:n},(_,i)=>[i,i,i,i]);
+arr.push([]);
 let last=-1;
 
-// إنشاء مرحلة قابلة للحل عن طريق خلط عكسي للحركات الصحيحة
+// خلط عكسي لضمان وجود حل للمرحلة
 for(let k=0;k<Math.min(70+n*level*2,450);k++){
-const candidates=[];
-
-for(let from=0;from<arr.length;from++){
-if(!arr[from].length)continue;
-
-for(let to=0;to<arr.length;to++){
-if(from===to||arr[to].length>=4)continue;
-
-const c=arr[from][arr[from].length-1];
-const below=arr[from].length>1?
-arr[from][arr[from].length-2]:null;
-
+let choices=[];
+for(let a=0;a<arr.length;a++){
+if(!arr[a].length)continue;
+for(let b=0;b<arr.length;b++){
+if(a===b||arr[b].length>=4)continue;
+let c=arr[a][arr[a].length-1];
+let below=arr[a].length>1?arr[a][arr[a].length-2]:null;
 if(below!==null&&below!==c)continue;
-if(from===last&&Math.random()<.8)continue;
-
-candidates.push([from,to]);
+if(a===last&&Math.random()<.8)continue;
+choices.push([a,b]);
 }
 }
-
-if(!candidates.length)continue;
-
-const [from,to]=candidates[Math.floor(Math.random()*candidates.length)];
-arr[to].push(arr[from].pop());
-last=to;
+if(!choices.length)continue;
+let [a,b]=choices[Math.floor(Math.random()*choices.length)];
+arr[b].push(arr[a].pop());
+last=b;
 }
 
 tubes=arr;
@@ -321,18 +433,22 @@ extraUsed=false;
 won=false;
 elapsed=0;
 startedAt=Date.now();
-
 $('nextBtn').style.display='none';
-$('instruction').textContent='رتّب كل لون في أنبوب مستقل';
+$('instruction').textContent='رتّب كل لون في قارورة مستقلة ✨';
 render();
 save();
 startClock();
 }
 
-function validState(){
+function valid(){
 return Array.isArray(tubes)&&tubes.length>1&&
 tubes.every(t=>Array.isArray(t)&&t.length<=4&&
-t.every(c=>Number.isInteger(c)&&c>=0&&c<colors.length));
+t.every(c=>Number.isInteger(c)&&c>=0&&c<palette.length));
+}
+
+function formatTime(s){
+return String(Math.floor(s/60)).padStart(2,'0')+':'+
+String(s%60).padStart(2,'0');
 }
 
 function startClock(){
@@ -345,32 +461,40 @@ $('timer').textContent=formatTime(elapsed);
 },500);
 }
 
-function formatTime(s){
-return String(Math.floor(s/60)).padStart(2,'0')+':'+
-String(s%60).padStart(2,'0');
+function lighten(hex){
+let n=parseInt(hex.slice(1),16);
+return `rgb(${Math.min(255,((n>>16)&255)+55)},${Math.min(255,((n>>8)&255)+55)},${Math.min(255,(n&255)+55)})`;
+}
+
+function darken(hex){
+let n=parseInt(hex.slice(1),16);
+return `rgb(${Math.floor(((n>>16)&255)*.6)},${Math.floor(((n>>8)&255)*.6)},${Math.floor((n&255)*.6)})`;
 }
 
 function render(){
-const board=$('board');
+let board=$('board');
 board.innerHTML='';
 
-const cols=Math.min(6,Math.max(2,Math.ceil(Math.sqrt(tubes.length*1.25))));
+let cols=Math.min(6,Math.max(2,Math.ceil(Math.sqrt(tubes.length*1.25))));
 board.style.setProperty('--cols',cols);
 
 tubes.forEach((tube,i)=>{
-const el=document.createElement('button');
+let el=document.createElement('button');
 el.className='tube'+(selected===i?' selected':'');
-el.setAttribute('aria-label','أنبوب '+(i+1)+', '+tube.length+' كرات');
-el.onclick=()=>tapTube(i);
+el.setAttribute('aria-label','قارورة '+(i+1));
+el.onclick=()=>tap(i);
 
 tube.forEach(c=>{
-const b=document.createElement('span');
-b.className='ball';
-b.style.background=
-`radial-gradient(circle at 30% 22%,${lighten(colors[c])},${colors[c]} 54%,${darken(colors[c])})`;
-el.appendChild(b);
+let ball=document.createElement('span');
+ball.className='ball';
+ball.style.background=
+`radial-gradient(circle at 30% 22%,${lighten(palette[c])},${palette[c]} 53%,${darken(palette[c])})`;
+el.appendChild(ball);
 });
 
+let shine=document.createElement('span');
+shine.className='glass-shine';
+el.appendChild(shine);
 board.appendChild(el);
 });
 
@@ -380,35 +504,25 @@ $('moves').textContent=moves;
 $('timer').textContent=formatTime(elapsed);
 $('best').textContent=best[level]||'—';
 
-const completed=tubes.filter(t=>t.length===4&&t.every(c=>c===t[0])).length;
-$('progress').style.width=(completed/countColors()*100)+'%';
+let complete=tubes.filter(t=>t.length===4&&t.every(c=>c===t[0])).length;
+$('progress').style.width=(complete/colorsCount()*100)+'%';
 
 $('undoBtn').disabled=!history.length||won;
 $('hintBtn').disabled=won;
 $('extraBtn').disabled=extraUsed||won;
 
 $('difficulty').textContent=
-level<4?'• بداية الرحلة':
-level<10?'• تركيز أعلى':
-level<20?'• خبير الألوان':'• تحدّي المحترفين';
+level<4?'بداية الرحلة':
+level<10?'تركيز أعلى':
+level<20?'خبير الألوان':'تحدي المحترفين';
 }
 
-function lighten(hex){
-let n=parseInt(hex.slice(1),16);
-return `rgb(${Math.min(255,((n>>16)&255)+55)},${Math.min(255,((n>>8)&255)+55)},${Math.min(255,(n&255)+55)})`;
-}
-
-function darken(hex){
-let n=parseInt(hex.slice(1),16);
-return `rgb(${Math.floor(((n>>16)&255)*.65)},${Math.floor(((n>>8)&255)*.65)},${Math.floor((n&255)*.65)})`;
-}
-
-function tapTube(i){
+function tap(i){
 if(won)return;
 
 if(selected===-1){
 if(!tubes[i].length){
-toast('الأنبوب فارغ');
+toast('القارورة فارغة');
 return;
 }
 selected=i;
@@ -422,9 +536,8 @@ render();
 return;
 }
 
-const from=tubes[selected];
-const to=tubes[i];
-const ball=from[from.length-1];
+let from=tubes[selected],to=tubes[i];
+let ball=from[from.length-1];
 
 if(!from.length){
 selected=i;
@@ -434,213 +547,159 @@ return;
 
 if(to.length>=4){
 shake(i);
-toast('الأنبوب ممتلئ');
+toast('القارورة ممتلئة');
 return;
 }
 
 if(to.length&&to[to.length-1]!==ball){
 shake(i);
-toast('اختر لوناً مطابقاً أو أنبوباً فارغاً');
+toast('اختر قارورة بلون مطابق');
 return;
 }
 
-history.push({
-tubes:tubes.map(t=>[...t]),
-moves
-});
-
+history.push({tubes:tubes.map(t=>[...t]),moves});
 if(history.length>40)history.shift();
 
 to.push(from.pop());
 moves++;
 selected=-1;
-
-playTone(520,.045);
+tone(520,.05);
 render();
 save();
 checkWin();
 }
 
 function shake(i){
-const el=$('board').children[i];
-if(el){
+let el=$('board').children[i];
+if(!el)return;
 el.classList.remove('shake');
 void el.offsetWidth;
 el.classList.add('shake');
 }
-}
 
 function undo(){
 if(!history.length||won)return;
-
-const s=history.pop();
+let s=history.pop();
 tubes=s.tubes;
 moves=s.moves;
 selected=-1;
-
 render();
 save();
-playTone(330,.05);
+tone(330,.05);
 }
 
 function findHint(){
 let opts=[];
-
 for(let a=0;a<tubes.length;a++){
-const A=tubes[a];
+let A=tubes[a];
 if(!A.length)continue;
-
-const c=A[A.length-1];
-const pure=A.every(x=>x===c);
+let c=A[A.length-1];
+let pure=A.every(x=>x===c);
 
 for(let b=0;b<tubes.length;b++){
 if(a===b||tubes[b].length>=4)continue;
-
-const B=tubes[b];
+let B=tubes[b];
 if(B.length&&B[B.length-1]!==c)continue;
-
-const completes=B.length===3&&B.every(x=>x===c)?100:0;
-const empties=B.length===0?1:0;
-const exposes=A.length>1&&A[A.length-2]!==c?3:0;
-const clears=A.length===1?5:0;
-const waste=pure&&B.length===0?2:0;
-
-opts.push({
-a,b,
-score:completes+exposes+clears+empties-waste
-});
+let score=0;
+if(B.length===3&&B.every(x=>x===c))score+=100;
+if(A.length>1&&A[A.length-2]!==c)score+=3;
+if(A.length===1)score+=5;
+if(B.length===0)score+=1;
+if(pure&&B.length===0)score-=2;
+opts.push({a,b,score});
 }
 }
-
 opts.sort((x,y)=>y.score-x.score);
 return opts.length?[opts[0].a,opts[0].b]:null;
 }
 
-function getHint(){
+function hint(){
 if(won)return;
-
-if(coins<10){
-toast('رصيدك لا يكفي للتلميح');
-return;
-}
-
-const move=findHint();
-
-if(!move){
-toast('لا يوجد تلميح واضح — جرّب التراجع');
-return;
-}
-
+if(coins<10){toast('لا تملك عملات كافية');return;}
+let m=findHint();
+if(!m){toast('لا يوجد تلميح واضح');return;}
 coins-=10;
-selected=move[0];
+selected=m[0];
 render();
-
-const target=$('board').children[move[1]];
+let target=$('board').children[m[1]];
 if(target)target.classList.add('target');
-
 $('instruction').textContent=
-`التلميح: انقل الكرة من الأنبوب ${move[0]+1} إلى الأنبوب ${move[1]+1}`;
-
-toast('تم كشف حركة مقترحة');
+`جرّب نقل الكرة من القارورة ${m[0]+1} إلى ${m[1]+1}`;
 save();
 }
 
-function addTube(){
-if(extraUsed||won)return;
-
-if(coins<35){
-toast('تحتاج 35 عملة');
-return;
-}
-
+function extra(){
+if(won||extraUsed)return;
+if(coins<35){toast('تحتاج 35 عملة');return;}
 coins-=35;
 tubes.push([]);
 extraUsed=true;
-
 render();
 save();
-toast('أُضيف أنبوب مساعد!');
+toast('تمت إضافة قارورة جديدة');
 }
 
 function checkWin(){
-const complete=tubes.every(t=>
-!t.length||(t.length===4&&t.every(c=>c===t[0]))
-);
-
-if(!complete)return;
+let done=tubes.every(t=>!t.length||(t.length===4&&t.every(c=>c===t[0])));
+if(!done)return;
 
 won=true;
 clearInterval(tick);
 
-if(!best[level]||moves<best[level]){
-best[level]=moves;
-}
+if(!best[level]||moves<best[level])best[level]=moves;
 
-const reward=20+Math.min(30,Math.floor(level/2));
+let reward=20+Math.min(30,Math.floor(level/2));
 coins+=reward;
-
 render();
+
 $('nextBtn').style.display='block';
-$('instruction').textContent='ممتاز! رتّبت كل الألوان بنجاح 🎉';
+$('instruction').textContent='رائع! أنهيت المرحلة بنجاح 🏆';
 
-playWin();
 confetti();
+winSound();
 
-showModal(
+modal(
 '🏆 أحسنت!',
-'أنهيت المستوى '+level+
-' في '+moves+' حركة ووقت '+formatTime(elapsed)+
-'.<br>مكافأتك: <b style="color:#ffd166">+'+reward+' 🪙</b>',
+`أنهيت المستوى ${level} في ${moves} حركة.
+<br>مكافأتك: <b style="color:#ffd45c">+${reward} 🪙</b>`,
 'المستوى التالي',
 nextLevel,
-'متابعة اللعب'
+'إغلاق'
 );
-
 save();
 }
 
 function nextLevel(){
 closeModal();
 level++;
-makeLevel();
+createLevel();
 }
 
 function restart(){
-showModal(
-'إعادة المستوى؟',
-'سيتم إنشاء ترتيب جديد للمستوى الحالي.',
-'ابدأ من جديد',
-()=>{
+modal('إعادة المرحلة؟','هل تريد إعادة ترتيب الألوان؟','إعادة',()=>{
 closeModal();
-makeLevel();
-},
-'إلغاء'
-);
+createLevel();
+},'إلغاء');
 }
 
 function toast(msg){
-const t=$('toast');
+let t=$('toast');
 t.textContent=msg;
 t.classList.add('show');
 clearTimeout(toast.timer);
 toast.timer=setTimeout(()=>t.classList.remove('show'),1900);
 }
 
-function showModal(title,body,ok,action,cancel){
+function modal(title,body,ok,action,cancel){
 $('dialog').innerHTML=`
-<div style="font-size:34px">${title.split(' ')[0]}</div>
-<h2>${title.split(' ').slice(1).join(' ')||title}</h2>
+<h2>${title}</h2>
 <p>${body}</p>
-<button class="primary" id="modalOk">${ok}</button>
+<button class="primary" id="modalOK">${ok}</button>
 ${cancel?'<button class="secondary" id="modalCancel">'+cancel+'</button>':''}
 `;
-
 $('modal').classList.add('show');
-$('modalOk').onclick=action;
-
-if(cancel){
-$('modalCancel').onclick=closeModal;
-}
+$('modalOK').onclick=action;
+if(cancel)$('modalCancel').onclick=closeModal;
 }
 
 function closeModal(){
@@ -650,38 +709,32 @@ $('modal').classList.remove('show');
 function settings(){
 $('dialog').innerHTML=`
 <h2>⚙️ الإعدادات</h2>
-<div class="settings-row">
-<span>المؤثرات الصوتية</span>
-<button class="toggle ${sound?'on':''}" id="soundToggle"><i></i></button>
-</div>
-<p>تقدمك محفوظ على هذا الجهاز تلقائياً.</p>
-<button class="primary" id="closeSettings">حفظ وإغلاق</button>
-<button class="secondary" id="resetAll">مسح التقدم بالكامل</button>
+<p>الصوت والمؤثرات</p>
+<button class="primary" id="soundToggle">${sound?'🔊 الصوت يعمل':'🔇 الصوت مكتوم'}</button>
+<button class="secondary" id="closeSettings">إغلاق</button>
+<button class="secondary" id="resetAll">مسح جميع البيانات</button>
 `;
-
 $('modal').classList.add('show');
 
 $('soundToggle').onclick=()=>{
 sound=!sound;
-$('soundToggle').classList.toggle('on',sound);
+$('soundToggle').textContent=sound?'🔊 الصوت يعمل':'🔇 الصوت مكتوم';
 $('soundBtn').textContent=sound?'🔊':'🔇';
 save();
 };
-
 $('closeSettings').onclick=closeModal;
-
 $('resetAll').onclick=()=>{
-localStorage.removeItem(saveKey);
+localStorage.removeItem(KEY);
 location.reload();
 };
 }
 
 function confetti(){
 for(let i=0;i<65;i++){
-const e=document.createElement('i');
+let e=document.createElement('i');
 e.className='confetti';
 e.style.left=Math.random()*100+'vw';
-e.style.background=colors[Math.floor(Math.random()*colors.length)];
+e.style.background=palette[Math.floor(Math.random()*palette.length)];
 e.style.animationDelay=Math.random()*.7+'s';
 document.body.appendChild(e);
 setTimeout(()=>e.remove(),2600);
@@ -689,40 +742,32 @@ setTimeout(()=>e.remove(),2600);
 }
 
 let audioCtx;
-
-function playTone(freq,duration){
+function tone(freq,duration){
 if(!sound)return;
-
 try{
 audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();
-
-const o=audioCtx.createOscillator();
-const g=audioCtx.createGain();
-
+let o=audioCtx.createOscillator();
+let g=audioCtx.createGain();
 o.type='sine';
 o.frequency.value=freq;
-
-g.gain.setValueAtTime(.045,audioCtx.currentTime);
+g.gain.setValueAtTime(.04,audioCtx.currentTime);
 g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+duration);
-
 o.connect(g);
 g.connect(audioCtx.destination);
-
 o.start();
 o.stop(audioCtx.currentTime+duration);
 }catch(e){}
 }
 
-function playWin(){
-playTone(660,.12);
-setTimeout(()=>playTone(880,.16),130);
-setTimeout(()=>playTone(1100,.22),290);
+function winSound(){
+tone(660,.12);
+setTimeout(()=>tone(880,.16),130);
+setTimeout(()=>tone(1100,.22),290);
 }
 
-// ربط الأزرار
 $('undoBtn').onclick=undo;
-$('hintBtn').onclick=getHint;
-$('extraBtn').onclick=addTube;
+$('hintBtn').onclick=hint;
+$('extraBtn').onclick=extra;
 $('restartBtn').onclick=restart;
 $('nextBtn').onclick=nextLevel;
 $('settingsBtn').onclick=settings;
@@ -738,13 +783,11 @@ $('modal').addEventListener('click',e=>{
 if(e.target===$('modal'))closeModal();
 });
 
-// تشغيل اللعبة واستعادة الحفظ
 load();
-
 $('soundBtn').textContent=sound?'🔊':'🔇';
 
-if(!validState()){
-makeLevel();
+if(!valid()){
+createLevel();
 }else{
 startedAt=Date.now()-elapsed*1000;
 render();
