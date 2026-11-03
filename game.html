@@ -1,573 +1,206 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مغامرة الكرات السحرية - Zuma Style</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            user-select: none;
-        }
-        body {
-            background: #0d0f18;
-            color: #fff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow: hidden;
-        }
-        #game-container {
-            position: relative;
-            width: 800px;
-            height: 600px;
-            box-shadow: 0 0 30px rgba(0, 255, 200, 0.2), 0 0 10px rgba(0,0,0,0.8);
-            border-radius: 15px;
-            overflow: hidden;
-            border: 2px solid #2a354d;
-        }
-        canvas {
-            background: radial-gradient(circle at center, #1a233a 0%, #0a0d14 100%);
-            display: block;
-        }
-        .ui-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 20px;
-        }
-        .stats-bar {
-            display: flex;
-            justify-content: space-between;
-            font-size: 20px;
-            font-weight: bold;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-            background: rgba(0, 0, 0, 0.4);
-            padding: 10px 20px;
-            border-radius: 30px;
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(10, 13, 20, 0.85);
-            backdrop-filter: blur(8px);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-        }
-        .screen h1 {
-            font-size: 48px;
-            margin-bottom: 10px;
-            color: #00ffcc;
-            text-shadow: 0 0 20px rgba(0,255,204,0.5);
-        }
-        .screen p {
-            font-size: 18px;
-            margin-bottom: 30px;
-            color: #a0aec0;
-        }
-        .btn {
-            padding: 12px 35px;
-            font-size: 22px;
-            font-weight: bold;
-            background: linear-gradient(45deg, #00ffcc, #0099ff);
-            border: none;
-            color: #050b14;
-            border-radius: 50px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0, 255, 204, 0.4);
-            transition: all 0.2s ease;
-            pointer-events: auto;
-        }
-        .btn:hover {
-            transform: scale(1.08);
-            box-shadow: 0 6px 20px rgba(0, 255, 204, 0.6);
-        }
-        .hidden {
-            display: none !important;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0a0d1c">
+<title>الكرات السحرية | OS GAMES</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#06080f;color:#fff;font-family:system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+button{font:inherit;color:inherit;border:0;cursor:pointer}
+#app{position:relative;height:100dvh;width:100%;max-width:520px;margin:0 auto;overflow:hidden;background:#0a0d1c}
+canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+#hud{position:absolute;z-index:2;top:calc(env(safe-area-inset-top) + 10px);left:10px;right:10px;display:flex;gap:6px;align-items:center;pointer-events:none}
+.pill{background:#141a3add;border:1px solid #3a4780;border-radius:20px;padding:6px 12px;font-weight:800;font-size:14px;white-space:nowrap}
+.sp{flex:1}
+.ib{pointer-events:auto;width:38px;height:38px;border-radius:50%;background:#1c2450;border:1px solid #4a5aa8;font-size:16px}
+.screen{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;background:rgba(6,8,18,.72)}
+.hidden{display:none!important}
+h1{margin:0 0 6px;font-size:clamp(34px,10vw,52px);color:#5df2d0;text-shadow:0 0 24px #1ee6b866}
+p{color:#b3b8d8;font-size:14px;line-height:1.8;margin:6px 0 20px;max-width:320px}
+.btn{padding:15px 44px;border-radius:40px;font-size:19px;font-weight:900;background:linear-gradient(110deg,#5df2d0,#3d8bff);color:#04101c;box-shadow:0 6px 24px #3d8bff55;margin:5px}
+.btn.s{background:#232c5c;color:#fff;box-shadow:none;font-size:15px;padding:12px 30px}
+.big{font-size:56px;font-weight:900;color:#5df2d0}
+#toast{position:absolute;z-index:6;top:14%;left:50%;transform:translateX(-50%);background:#232c5cee;padding:10px 18px;border-radius:14px;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;font-weight:800}
+</style>
 </head>
 <body>
-
-<div id="game-container">
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
-
-    <div class="ui-overlay">
-        <div class="stats-bar">
-            <div>النقاط: <span id="scoreDisplay">0</span></div>
-            <div>المرحلة: <span id="levelDisplay">1</span></div>
-            <div>المحاولات: <span id="livesDisplay">❤️❤️❤️</span></div>
-        </div>
-    </div>
-
-    <!-- شاشة البداية -->
-    <div id="startScreen" class="screen">
-        <h1>الكرات السحرية</h1>
-        <p>طابق 3 كرات أو أكثر من نفس اللون لتدميرها قبل أن تصل للنهاية!</p>
-        <button class="btn" onclick="startGame()">ابدأ اللعب</button>
-    </div>
-
-    <!-- شاشة الخسارة -->
-    <div id="gameOverScreen" class="screen hidden">
-        <h1 style="color: #ff4757; text-shadow: 0 0 20px rgba(255,71,87,0.5);">انتهت اللعبة!</h1>
-        <p>النقاط النهائية: <span id="finalScore">0</span></p>
-        <button class="btn" onclick="restartGame()">محاولة جديدة</button>
-    </div>
+<div id="app">
+<canvas id="c"></canvas>
+<div id="hud" class="hidden">
+ <div class="pill">⭐ <span id="sc">0</span></div>
+ <div class="pill">🌀 <span id="lv">1</span></div>
+ <div class="pill" id="lf">❤️❤️❤️</div>
+ <div class="sp"></div>
+ <button class="ib" id="snd">🔊</button><button class="ib" id="pz">Ⅱ</button>
+</div>
+<div id="toast"></div>
+<section id="start" class="screen">
+ <h1>الكرات السحرية</h1>
+ <p>صوّب بالمس أو بالماوس وأطلق الكرة. طابق 3 كرات أو أكثر بنفس اللون قبل أن تصل للجمجمة 💀<br>المس المدفع لتبديل الكرة.</p>
+ <div style="color:#ffe36b;font-weight:800;margin-bottom:12px">🏆 أفضل نتيجة: <span id="bst">0</span></div>
+ <button class="btn" id="play">ابدأ اللعب ⚡</button>
+</section>
+<section id="pauseS" class="screen hidden">
+ <h1>⏸️ متوقفة</h1>
+ <button class="btn" id="resume">استمرار</button>
+ <button class="btn s" id="quit">الرئيسية</button>
+</section>
+<section id="overS" class="screen hidden">
+ <h1 style="color:#ff5d7a;text-shadow:0 0 24px #ff3b5c66">انتهت اللعبة!</h1>
+ <div class="big" id="fs">0</div>
+ <p id="fm"></p>
+ <button class="btn" id="again">محاولة جديدة 🔥</button>
+ <button class="btn s" id="quit2">الرئيسية</button>
+</section>
 </div>
 
 <script>
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
+(()=>{
+"use strict";
+const $=i=>document.getElementById(i),cv=$("c"),ctx=cv.getContext("2d");
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const LS={get(k,f){try{const v=localStorage.getItem("os_zuma_"+k);return v===null?f:JSON.parse(v)}catch(e){return f}},set(k,v){try{localStorage.setItem("os_zuma_"+k,JSON.stringify(v))}catch(e){}}};
+const COL=[["#ff4d6d","#ffd0d9"],["#3d8bff","#cfe2ff"],["#2fdc7c","#d0ffe4"],["#ffb020","#fff0c4"],["#a45cff","#ead6ff"],["#19d3da","#c9fbff"]];
+let W=0,H=0,DPR=1,R=17,D=33,CX=0,CY=0,U=[],PL=0,bgc=null,spr=[];
+let state="start",score=0,level=1,lives=3,best=LS.get("best",0),combo=0,slowT=0,shake=0,flash=0,t=0,last=0,shootCd=0,aimA=-1.2,tt,au=null,soundOn=LS.get("sound",true);
+let chain=[],bullets=[],parts=[],rings=[],ft=[],cur=0,nxt=1;
+const aim={x:0,y:0};
 
-// إعدادات اللعبة
-const COLORS = [
-    { name: 'red', hex: '#ff4757', glow: '#ff6b81' },
-    { name: 'blue', hex: '#1e90ff', glow: '#70a1ff' },
-    { name: 'green', hex: '#2ed573', glow: '#7bed9f' },
-    { name: 'yellow', hex: '#ffa502', glow: '#eccc68' },
-    { name: 'purple', hex: '#9b59b6', glow: '#be2edd' }
-];
+function path(){
+ const f=[[-.1,.12],[.86,.12],[.86,.8],[.14,.8],[.14,.3],[.66,.3],[.66,.58],[.4,.58]].map(([x,y])=>({x:x*W,y:y*H})),RAD=Math.min(W,H)*.13,d=[f[0]];
+ for(let i=1;i<f.length-1;i++){const p=f[i],a=f[i-1],b=f[i+1],la=Math.hypot(a.x-p.x,a.y-p.y),lb=Math.hypot(b.x-p.x,b.y-p.y),r=Math.min(RAD,la*.45,lb*.45);
+  const A={x:p.x+(a.x-p.x)/la*r,y:p.y+(a.y-p.y)/la*r},C={x:p.x+(b.x-p.x)/lb*r,y:p.y+(b.y-p.y)/lb*r};d.push(A);
+  for(let k=1;k<=12;k++){const u=k/12,v=1-u;d.push({x:v*v*A.x+2*v*u*p.x+u*u*C.x,y:v*v*A.y+2*v*u*p.y+u*u*C.y})}}
+ d.push(f[f.length-1]);
+ const acc=[0];for(let i=1;i<d.length;i++)acc[i]=acc[i-1]+Math.hypot(d[i].x-d[i-1].x,d[i].y-d[i-1].y);
+ const tot=acc[acc.length-1];U=[];let j=0;
+ for(let s=0;s<=tot;s++){while(j<d.length-2&&acc[j+1]<s)j++;const u=(s-acc[j])/((acc[j+1]-acc[j])||1);U.push({x:d[j].x+(d[j+1].x-d[j].x)*u,y:d[j].y+(d[j+1].y-d[j].y)*u})}
+ PL=U.length-2;
+ bgc=document.createElement("canvas");bgc.width=cv.width;bgc.height=cv.height;const g=bgc.getContext("2d");g.setTransform(DPR,0,0,DPR,0,0);
+ let gr=g.createRadialGradient(W/2,H*.4,10,W/2,H*.5,H*.8);gr.addColorStop(0,"#1b2552");gr.addColorStop(1,"#070a16");g.fillStyle=gr;g.fillRect(0,0,W,H);
+ for(let i=0;i<90;i++){g.globalAlpha=Math.random()*.6+.1;g.fillStyle="#fff";g.beginPath();g.arc(Math.random()*W,Math.random()*H,Math.random()*1.4+.3,0,7);g.fill()}g.globalAlpha=1;
+ g.lineCap=g.lineJoin="round";
+ const tr=()=>{g.beginPath();for(let i=0;i<=PL;i+=4)i?g.lineTo(U[i].x,U[i].y):g.moveTo(U[i].x,U[i].y)};
+ for(const[w,c]of[[2*R+18,"#3b4a92"],[2*R+12,"#0b1024"],[2*R+2,"#10173a"]]){tr();g.lineWidth=w;g.strokeStyle=c;g.stroke()}
+ tr();g.lineWidth=2;g.setLineDash([2,12]);g.strokeStyle="rgba(120,150,255,.25)";g.stroke()}
 
-const BALL_RADIUS = 15;
-const SHOOTER_CENTER = { x: 400, y: 300 };
+function sprites(){const sw=R*2+6;spr=COL.map(([c,l])=>{const o=document.createElement("canvas");o.width=o.height=Math.ceil(sw*DPR);const g=o.getContext("2d");g.scale(DPR,DPR);g.translate(sw/2,sw/2);
+ let gr=g.createRadialGradient(-R*.3,-R*.35,R*.1,0,0,R);gr.addColorStop(0,l);gr.addColorStop(.4,c);gr.addColorStop(1,c);g.fillStyle=gr;g.beginPath();g.arc(0,0,R,0,7);g.fill();
+ gr=g.createRadialGradient(0,0,R*.45,0,0,R);gr.addColorStop(0,"rgba(0,0,0,0)");gr.addColorStop(1,"rgba(0,0,0,.45)");g.fillStyle=gr;g.fill();
+ g.strokeStyle="rgba(255,255,255,.35)";g.lineWidth=R*.16;g.lineCap="round";g.beginPath();g.arc(0,0,R*.55,.4,2.1);g.stroke();g.beginPath();g.arc(0,0,R*.55,3.5,5.2);g.stroke();
+ g.strokeStyle="rgba(0,0,0,.35)";g.lineWidth=1.5;g.beginPath();g.arc(0,0,R-.7,0,7);g.stroke();return o})}
 
-let score = 0;
-let level = 1;
-let lives = 3;
-let gameState = 'START'; // START, PLAYING, GAMEOVER
+function resize(){const b=$("app").getBoundingClientRect();W=b.width;H=b.height;DPR=Math.min(devicePixelRatio||1,2);cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);ctx.setTransform(DPR,0,0,DPR,0,0);
+ R=clamp(Math.min(W,H)*.045,14,21);D=R*2-1.5;CX=W*.4;CY=H*.44;aim.x=CX;aim.y=CY-100;sprites();const old=PL;path();if(old&&chain.length){const k=PL/old;for(const x of chain)x.s*=k}}
 
-let pathPoints = [];
-let pathLength = 0;
-let balls = [];
-let bullets = [];
-let particles = [];
+const pos=s=>{const i=clamp(Math.floor(s),0,PL-1),f=clamp(s-i,0,1),a=U[i],b=U[i+1];return{x:a.x+(b.x-a.x)*f,y:a.y+(b.y-a.y)*f,a:Math.atan2(b.y-a.y,b.x-a.x)}};
+const avail=()=>{const s=[...new Set(chain.map(b=>b.c))];return s.length?s:[0,1,2]};
+const pick=()=>{const a=avail();return a[Math.floor(Math.random()*a.length)]};
+function snd(f=500,d=.08,ty="sine",v=.05){if(!soundOn)return;try{au=au||new(window.AudioContext||window.webkitAudioContext)();if(au.state==="suspended")au.resume();const o=au.createOscillator(),g=au.createGain(),n=au.currentTime;o.type=ty;o.frequency.setValueAtTime(f,n);g.gain.setValueAtTime(v,n);g.gain.exponentialRampToValueAtTime(.001,n+d);o.connect(g);g.connect(au.destination);o.start();o.stop(n+d)}catch(e){}}
+const vib=m=>{if(soundOn&&navigator.vibrate)navigator.vibrate(m)};
+function toast(m){const e=$("toast");e.textContent=m;e.style.opacity=1;clearTimeout(tt);tt=setTimeout(()=>e.style.opacity=0,1500)}
+function hud(){$("sc").textContent=score;$("lv").textContent=level;$("lf").textContent="❤️".repeat(Math.max(0,lives));$("snd").textContent=soundOn?"🔊":"🔇";$("bst").textContent=best}
+function show(id){["start","pauseS","overS"].forEach(x=>$(x).classList.toggle("hidden",x!==id));$("hud").classList.toggle("hidden",!(state==="play"||state==="pause"))}
+const boom=(x,y,c,n=14)=>{for(let i=0;i<n;i++){const a=Math.random()*6.28,v=60+Math.random()*240;parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,l:.4+Math.random()*.5,sz:2+Math.random()*3.5,c})}};
+const pop=(x,y,s,c="#ffe36b")=>ft.push({x,y,s,c,l:1});
 
-let currentBulletColor = null;
-let nextBulletColor = null;
-let mousePos = { x: 400, y: 0 };
+function wave(){const n=Math.min(70,20+level*3),nc=Math.min(3+Math.floor((level-1)/2),6);chain=[];let a=-1,b=-1;
+ for(let i=0;i<n;i++){let c;do c=Math.floor(Math.random()*nc);while(c===a&&c===b);b=a;a=c;chain.push({s:-(i+2)*D,c,g:false,vo:0,sc:1})}
+ bullets=[];cur=pick();nxt=pick()}
+function begin(){score=0;level=1;lives=3;combo=0;slowT=0;parts=[];rings=[];ft=[];wave();state="play";show("play");hud();last=performance.now();snd(650,.12)}
+function home(){state="start";wave();show("start");hud()}
+function pause(){if(state==="play"){state="pause";show("pauseS")}}
+function resume(){if(state==="pause"){state="play";show("play");last=performance.now()}}
+function lose(){const E=U[PL];lives--;shake=16;flash=.7;boom(E.x,E.y,"#ff3b5c",30);snd(110,.4,"sawtooth",.09);vib(120);hud();
+ if(lives<=0){state="over";if(score>best){best=score;LS.set("best",best);$("fm").textContent="🎉 رقم قياسي جديد!"}else $("fm").textContent="أفضل نتيجة: "+best;$("fs").textContent=score;show("overS");hud()}
+ else{toast("💔 وصلت الكرات للجمجمة!");combo=0;wave()}}
+function levelUp(){level++;score+=level*200;toast("🌀 المرحلة "+level+"  +"+level*200);snd(900,.3,"triangle");vib(40);wave();hud()}
 
-// إنشاء مسار منحني (Bezier Curve)
-function generatePath() {
-    pathPoints = [];
-    pathLength = 0;
-    
-    // نقاط المسار الحلزوني
-    const controlPoints = [
-        { x: -20, y: 80 },
-        { x: 750, y: 80 },
-        { x: 750, y: 520 },
-        { x: 100, y: 520 },
-        { x: 100, y: 220 },
-        { x: 600, y: 220 },
-        { x: 600, y: 380 },
-        { x: 300, y: 380 }
-    ];
+function insertAt(k,c){const n=chain.length;let s;
+ if(k<n){s=chain[k].s+D;for(let i=0;i<k;i++){chain[i].s+=D;chain[i].vo-=D}}else s=chain[n-1].s-D;
+ const nb={s,c,g:false,vo:0,sc:.2};chain.splice(k,0,nb);return nb}
+function checkRun(k){const c=chain[k].c;let l=k,r=k;while(l>0&&chain[l-1].c===c)l--;while(r<chain.length-1&&chain[r+1].c===c)r++;const cnt=r-l+1;if(cnt<3)return false;
+ let mx=0,my=0,m=0;for(let i=l;i<=r;i++)if(chain[i].s>0){const p=pos(chain[i].s);boom(p.x,p.y,COL[c][0]);mx+=p.x;my+=p.y;m++}
+ chain.splice(l,cnt);if(l>0&&l<chain.length)chain[l].g=true;
+ combo++;const pts=cnt*100+(combo-1)*150;score+=pts;
+ if(m){pop(mx/m,my/m-10,"+"+pts);if(combo>1)pop(mx/m,my/m-34,"كومبو ×"+combo,"#ff9f43");rings.push({x:mx/m,y:my/m,r:6,l:.5,c:COL[c][1]})}
+ shake=Math.max(shake,3+cnt);if(cnt>=5||combo>=3){slowT=3;toast("⏳ إبطاء الوقت!")}
+ snd(480+cnt*60+combo*40,.18,"triangle",.06);vib(20);
+ if(!avail().includes(cur))cur=pick();if(!avail().includes(nxt))nxt=pick();hud();return true}
 
-    for (let i = 0; i < controlPoints.length - 1; i++) {
-        const p0 = controlPoints[i];
-        const p1 = controlPoints[i + 1];
-        const dist = Math.hypot(p1.x - p0.x, p1.y - p0.y);
-        const steps = Math.floor(dist / 2);
+function shoot(){if(state!=="play"||shootCd>0)return;const sp=Math.hypot(aim.x-CX,aim.y-CY);if(sp>8)aimA=Math.atan2(aim.y-CY,aim.x-CX);
+ const x=CX+Math.cos(aimA)*R*1.5,y=CY+Math.sin(aimA)*R*1.5;bullets.push({x,y,vx:Math.cos(aimA)*900,vy:Math.sin(aimA)*900,c:cur});
+ boom(x+Math.cos(aimA)*R,y+Math.sin(aimA)*R,"#fff",6);cur=nxt;nxt=pick();shootCd=.17;snd(320,.08,"square",.03)}
+function swap(){if(state!=="play")return;[cur,nxt]=[nxt,cur];snd(520,.05)}
 
-        for (let t = 0; t <= steps; t++) {
-            const factor = t / steps;
-            const x = p0.x + (p1.x - p0.x) * factor;
-            const y = p0.y + (p1.y - p0.y) * factor;
-            pathPoints.push({ x, y });
-        }
-    }
-    pathLength = pathPoints.length;
-}
+function update(dt){
+ shootCd=Math.max(0,shootCd-dt);slowT=Math.max(0,slowT-dt);shake=Math.max(0,shake-dt*28);flash=Math.max(0,flash-dt*2);
+ const n=chain.length;
+ if(n){const k=slowT>0?.35:1,tail=chain[n-1],v=(tail.s<0?300:30+level*4)*k;
+  if(!chain.some(b=>b.g))chain[0].s+=v*dt;
+  let join=-1;
+  for(let i=1;i<n;i++){const b=chain[i],p=chain[i-1];if(b.g){b.s+=520*dt;if(b.s>=p.s-D){b.s=p.s-D;b.g=false;join=i}}else b.s=p.s-D}
+  for(const b of chain){if(b.vo<0)b.vo=Math.min(0,b.vo+520*dt);if(b.sc<1)b.sc=Math.min(1,b.sc+dt*6)}
+  if(join>0&&chain[join]&&chain[join-1]&&chain[join].c===chain[join-1].c)checkRun(join);
+  if(chain.length&&chain[0].s>=PL-R*.5){lose();return}
+ }else{levelUp();return}
+ for(let bi=bullets.length-1;bi>=0;bi--){const b=bullets[bi];let hit=-1;const steps=Math.ceil(900*dt/6);
+  for(let st=0;st<steps&&hit<0;st++){b.x+=b.vx*dt/steps;b.y+=b.vy*dt/steps;let bd=D*.95;
+   for(let j=0;j<chain.length;j++){const s=chain[j].s+chain[j].vo;if(s<0||s>PL)continue;const p=pos(s),d=Math.hypot(b.x-p.x,b.y-p.y);if(d<bd){bd=d;hit=j}}}
+  if(hit>=0){const s=chain[hit].s+chain[hit].vo,p=pos(s),pr=(b.x-p.x)*Math.cos(p.a)+(b.y-p.y)*Math.sin(p.a),k=pr>0?hit:hit+1;
+   const nb=insertAt(k,b.c);bullets.splice(bi,1);snd(260,.06,"triangle",.05);if(!checkRun(k)){combo=0}else{}}
+  else if(b.x<-30||b.x>W+30||b.y<-30||b.y>H+30)bullets.splice(bi,1)}
+ for(const p of parts){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.97;p.vy*=.97;p.l-=dt}parts=parts.filter(p=>p.l>0);
+ for(const r of rings){r.r+=220*dt;r.l-=dt}rings=rings.filter(r=>r.l>0);
+ for(const f of ft){f.y-=36*dt;f.l-=dt*.8}ft=ft.filter(f=>f.l>0)}
 
-// إنشاء الكرات للمستوى
-function spawnLevelBalls() {
-    balls = [];
-    const count = 25 + level * 5;
-    const activeColors = COLORS.slice(0, Math.min(3 + Math.floor(level / 2), COLORS.length));
+function ball(x,y,c,rot,sc=1){const sw=(R*2+6)*sc;ctx.save();ctx.translate(x,y);ctx.rotate(rot);ctx.drawImage(spr[c],-sw/2,-sw/2,sw,sw);ctx.rotate(-rot);
+ ctx.fillStyle="rgba(255,255,255,.7)";ctx.beginPath();ctx.ellipse(-R*.32*sc,-R*.38*sc,R*.28*sc,R*.17*sc,-.6,0,7);ctx.fill();ctx.restore()}
 
-    for (let i = 0; i < count; i++) {
-        const randomColor = activeColors[Math.floor(Math.random() * activeColors.length)];
-        balls.push({
-            distance: -i * (BALL_RADIUS * 2.2), // مسافة بين الكرات
-            color: randomColor,
-            id: Math.random()
-        });
-    }
-}
+function cannon(){const a=aimA;ctx.save();ctx.translate(CX,CY);
+ let g=ctx.createRadialGradient(0,-R*.6,R*.3,0,0,R*2.4);g.addColorStop(0,"#56649e");g.addColorStop(1,"#1a2147");
+ ctx.shadowColor="#5df2d0";ctx.shadowBlur=16;ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,R*2.1,0,7);ctx.fill();ctx.shadowBlur=0;ctx.strokeStyle="#5df2d0";ctx.lineWidth=2.5;ctx.stroke();
+ for(let i=0;i<8;i++){const q=i*Math.PI/4+t*.4;ctx.fillStyle=i%2?"#5df2d0":"#3d8bff";ctx.beginPath();ctx.arc(Math.cos(q)*R*1.75,Math.sin(q)*R*1.75,2.6,0,7);ctx.fill()}
+ ctx.rotate(a);g=ctx.createLinearGradient(0,-R*.7,0,R*.7);g.addColorStop(0,"#a9b5e6");g.addColorStop(.5,"#5a679f");g.addColorStop(1,"#2a3466");
+ ctx.fillStyle=g;ctx.fillRect(R*.3,-R*.72,R*2.2,R*1.44);ctx.fillStyle="#5df2d0";ctx.fillRect(R*2.35,-R*.88,R*.35,R*1.76);ctx.restore();
+ ball(CX+Math.cos(a)*R*1.5,CY+Math.sin(a)*R*1.5,cur,t*2);
+ const nx=CX-Math.cos(a)*R*2.9,ny=CY-Math.sin(a)*R*2.9;ctx.strokeStyle="rgba(255,255,255,.4)";ctx.lineWidth=2;ctx.beginPath();ctx.arc(nx,ny,R*.72,0,7);ctx.stroke();ball(nx,ny,nxt,0,.62)}
 
-function getAvailableColors() {
-    const presentColors = new Set(balls.map(b => b.color.hex));
-    const activeColors = COLORS.filter(c => presentColors.has(c.hex));
-    return activeColors.length > 0 ? activeColors : COLORS.slice(0, 3);
-}
+function draw(){ctx.save();if(shake>0)ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
+ ctx.drawImage(bgc,0,0,W,H);
+ const E=U[PL],danger=chain.length&&chain[0].s>PL-350,pul=.5+.5*Math.sin(t*(danger?10:3));
+ ctx.save();ctx.fillStyle="#04060c";ctx.shadowColor="#ff3b5c";ctx.shadowBlur=10+pul*14*(danger?2:1);ctx.strokeStyle="#ff3b5c";ctx.lineWidth=3;ctx.beginPath();ctx.arc(E.x,E.y,R*1.5,0,7);ctx.fill();ctx.stroke();ctx.shadowBlur=0;
+ ctx.font=(R*1.5)+"px serif";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("💀",E.x,E.y+1);ctx.restore();
+ for(let i=chain.length-1;i>=0;i--){const b=chain[i],s=b.s+b.vo;if(s<-R||s>PL)continue;const p=pos(Math.max(0,s));ball(p.x,p.y,b.c,s/R,b.sc)}
+ if(state==="play"){ctx.save();ctx.setLineDash([4,11]);ctx.strokeStyle="rgba(255,255,255,.32)";ctx.lineWidth=2.5;ctx.lineCap="round";ctx.beginPath();ctx.moveTo(CX+Math.cos(aimA)*R*2.8,CY+Math.sin(aimA)*R*2.8);ctx.lineTo(CX+Math.cos(aimA)*(R*2.8+260),CY+Math.sin(aimA)*(R*2.8+260));ctx.stroke();ctx.restore()}
+ for(const b of bullets){ctx.strokeStyle=COL[b.c][0];ctx.globalAlpha=.4;ctx.lineWidth=R*.9;ctx.lineCap="round";ctx.beginPath();ctx.moveTo(b.x,b.y);ctx.lineTo(b.x-b.vx*.035,b.y-b.vy*.035);ctx.stroke();ctx.globalAlpha=1;ctx.save();ctx.shadowColor=COL[b.c][0];ctx.shadowBlur=14;ball(b.x,b.y,b.c,t*10);ctx.restore()}
+ cannon();
+ for(const p of parts){ctx.globalAlpha=clamp(p.l/.6,0,1);ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.sz,0,7);ctx.fill()}
+ for(const r of rings){ctx.globalAlpha=clamp(r.l/.5,0,1);ctx.strokeStyle=r.c;ctx.lineWidth=3;ctx.beginPath();ctx.arc(r.x,r.y,r.r,0,7);ctx.stroke()}ctx.globalAlpha=1;
+ ctx.font="bold 18px system-ui";ctx.textAlign="center";ctx.lineWidth=4;ctx.strokeStyle="rgba(0,0,0,.6)";for(const f of ft){ctx.globalAlpha=clamp(f.l,0,1);ctx.strokeText(f.s,f.x,f.y);ctx.fillStyle=f.c;ctx.fillText(f.s,f.x,f.y)}ctx.globalAlpha=1;
+ if(slowT>0){ctx.fillStyle="rgba(93,242,208,"+Math.min(.12,slowT*.05)+")";ctx.fillRect(0,0,W,H)}
+ if(danger&&state==="play"){ctx.fillStyle="rgba(255,40,80,"+(.05+pul*.08)+")";ctx.fillRect(0,0,W,H)}
+ if(flash>0){ctx.fillStyle="rgba(255,60,100,"+flash*.4+")";ctx.fillRect(0,0,W,H)}
+ ctx.restore()}
 
-function prepareNextBullet() {
-    const avail = getAvailableColors();
-    if (!currentBulletColor) {
-        currentBulletColor = avail[Math.floor(Math.random() * avail.length)];
-    } else {
-        currentBulletColor = nextBulletColor;
-    }
-    nextBulletColor = avail[Math.floor(Math.random() * avail.length)];
-}
+function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-last)/1000||0,.033);last=now;t+=dt;
+ if(state==="play")update(dt);
+ if(state==="start"||state==="over"){aimA+=Math.sin(t)*.003}
+ try{draw()}catch(e){ctx.restore()}}
 
-// إطلاق قذيفة
-function shoot() {
-    if (gameState !== 'PLAYING') return;
-
-    const angle = Math.atan2(mousePos.y - SHOOTER_CENTER.y, mousePos.x - SHOOTER_CENTER.x);
-    const speed = 14;
-
-    bullets.push({
-        x: SHOOTER_CENTER.x + Math.cos(angle) * 35,
-        y: SHOOTER_CENTER.y + Math.sin(angle) * 35,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        color: currentBulletColor
-    });
-
-    prepareNextBullet();
-}
-
-// نظام الجسيمات للانفجارات
-function createParticles(x, y, colorHex) {
-    for (let i = 0; i < 15; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const speed = Math.random() * 4 + 1;
-        particles.push({
-            x, y,
-            vx: Math.cos(angle) * speed,
-            vy: Math.sin(angle) * speed,
-            radius: Math.random() * 4 + 2,
-            color: colorHex,
-            alpha: 1
-        });
-    }
-}
-
-// التحقق من تدمير 3 كرات أو أكثر
-function checkMatches() {
-    if (balls.length === 0) return;
-
-    let matchLength = 1;
-    let matchStart = 0;
-
-    for (let i = 0; i < balls.length - 1; i++) {
-        if (balls[i].color.hex === balls[i + 1].color.hex) {
-            matchLength++;
-        } else {
-            if (matchLength >= 3) {
-                destroyBalls(matchStart, matchLength);
-                return;
-            }
-            matchLength = 1;
-            matchStart = i + 1;
-        }
-    }
-
-    if (matchLength >= 3) {
-        destroyBalls(matchStart, matchLength);
-    }
-}
-
-function destroyBalls(startIndex, count) {
-    for (let i = startIndex; i < startIndex + count; i++) {
-        const posIndex = Math.max(0, Math.floor(balls[i].distance));
-        const pos = pathPoints[Math.min(posIndex, pathLength - 1)] || SHOOTER_CENTER;
-        createParticles(pos.x, pos.y, balls[i].color.hex);
-    }
-
-    balls.splice(startIndex, count);
-    score += count * 100;
-    document.getElementById('scoreDisplay').innerText = score;
-
-    // إعادة ضبط الألوان المتاحة للمدفع
-    const avail = getAvailableColors();
-    if (!avail.includes(currentBulletColor)) currentBulletColor = avail[0];
-    if (!avail.includes(nextBulletColor)) nextBulletColor = avail[0];
-}
-
-// التحديث والفيزياء
-function update() {
-    if (gameState !== 'PLAYING') return;
-
-    const baseSpeed = 0.8 + (level * 0.15);
-
-    // تحريك كرات المسار
-    for (let i = 0; i < balls.length; i++) {
-        if (i === 0) {
-            balls[i].distance += baseSpeed;
-        } else {
-            const targetDist = balls[i - 1].distance - (BALL_RADIUS * 2);
-            if (balls[i].distance < targetDist) {
-                balls[i].distance += baseSpeed * 2.5; // تسريع للالتحام بالصف
-                if (balls[i].distance > targetDist) balls[i].distance = targetDist;
-            } else {
-                balls[i].distance += baseSpeed;
-            }
-        }
-    }
-
-    // التحقق من وصول الكرات للنهاية (الخسارة)
-    if (balls.length > 0 && balls[0].distance >= pathLength - 1) {
-        lives--;
-        document.getElementById('livesDisplay').innerText = '❤️'.repeat(lives);
-        if (lives <= 0) {
-            endGame();
-            return;
-        } else {
-            spawnLevelBalls();
-        }
-    }
-
-    // التحقق من الفوز بالفصل/المرحلة
-    if (balls.length === 0) {
-        level++;
-        document.getElementById('levelDisplay').innerText = level;
-        spawnLevelBalls();
-        prepareNextBullet();
-    }
-
-    // تحريك القذائف
-    for (let bIndex = bullets.length - 1; bIndex >= 0; bIndex--) {
-        const b = bullets[bIndex];
-        b.x += b.vx;
-        b.y += b.vy;
-
-        // خروج القذيفة من الشاشة
-        if (b.x < 0 || b.x > canvas.width || b.y < 0 || b.y > canvas.height) {
-            bullets.splice(bIndex, 1);
-            continue;
-        }
-
-        // الاصطدام مع كرات المسار
-        for (let i = 0; i < balls.length; i++) {
-            const ballPosIndex = Math.max(0, Math.floor(balls[i].distance));
-            const ballPos = pathPoints[Math.min(ballPosIndex, pathLength - 1)];
-
-            if (!ballPos) continue;
-
-            const dist = Math.hypot(b.x - ballPos.x, b.y - ballPos.y);
-
-            if (dist < BALL_RADIUS * 1.8) {
-                // إدراج الكرة القادمة في الصف
-                balls.splice(i, 0, {
-                    distance: balls[i].distance - BALL_RADIUS,
-                    color: b.color,
-                    id: Math.random()
-                });
-
-                bullets.splice(bIndex, 1);
-                checkMatches();
-                break;
-            }
-        }
-    }
-
-    // تحديث الجسيمات
-    for (let pIndex = particles.length - 1; pIndex >= 0; pIndex--) {
-        const p = particles[pIndex];
-        p.x += p.vx;
-        p.y += p.vy;
-        p.alpha -= 0.03;
-        if (p.alpha <= 0) particles.splice(pIndex, 1);
-    }
-}
-
-// الرسم والرندر
-function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // 1. رسم مسار الكرات
-    ctx.beginPath();
-    for (let i = 0; i < pathPoints.length; i++) {
-        const p = pathPoints[i];
-        if (i === 0) ctx.moveTo(p.x, p.y);
-        else ctx.lineTo(p.x, p.y);
-    }
-    ctx.lineWidth = BALL_RADIUS * 2.2;
-    ctx.strokeStyle = '#151c2e';
-    ctx.stroke();
-
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = '#2a354d';
-    ctx.stroke();
-
-    // رسم ثقب النهاية (الجمجمة/الحفرة)
-    if (pathPoints.length > 0) {
-        const endPt = pathPoints[pathPoints.length - 1];
-        ctx.beginPath();
-        ctx.arc(endPt.x, endPt.y, BALL_RADIUS * 1.5, 0, Math.PI * 2);
-        ctx.fillStyle = '#05070a';
-        ctx.fill();
-        ctx.strokeStyle = '#ff4757';
-        ctx.lineWidth = 3;
-        ctx.stroke();
-    }
-
-    // 2. رسم كرات المسار مع لمعان 3D
-    for (let ball of balls) {
-        if (ball.distance < 0) continue;
-        const posIndex = Math.floor(ball.distance);
-        if (posIndex >= pathPoints.length) continue;
-
-        const pos = pathPoints[posIndex];
-
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(pos.x, pos.y, BALL_RADIUS, 0, Math.PI * 2);
-
-        // التدرج اللوني إيعازاً بمظهر ثنائي أبعاد احترافي
-        const grad = ctx.createRadialGradient(
-            pos.x - 4, pos.y - 4, 2,
-            pos.x, pos.y, BALL_RADIUS
-        );
-        grad.addColorStop(0, '#ffffff');
-        grad.addColorStop(0.3, ball.color.glow);
-        grad.addColorStop(1, ball.color.hex);
-
-        ctx.fillStyle = grad;
-        ctx.shadowColor = ball.color.glow;
-        ctx.shadowBlur = 8;
-        ctx.fill();
-        ctx.restore();
-    }
-
-    // 3. رسم القذائف المنطلقة
-    for (let b of bullets) {
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(b.x, b.y, BALL_RADIUS, 0, Math.PI * 2);
-        ctx.fillStyle = b.color.hex;
-        ctx.shadowColor = b.color.glow;
-        ctx.shadowBlur = 10;
-        ctx.fill();
-        ctx.restore();
-    }
-
-    // 4. رسم مدفع الإطلاق والتوجيه
-    ctx.save();
-    ctx.translate(SHOOTER_CENTER.x, SHOOTER_CENTER.y);
-    const angle = Math.atan2(mousePos.y - SHOOTER_CENTER.y, mousePos.x - SHOOTER_CENTER.x);
-    ctx.rotate(angle);
-
-    // جسم المدفع
-    ctx.fillStyle = '#2ed573';
-    ctx.beginPath();
-    ctx.arc(0, 0, 30, 0, Math.PI * 2);
-    ctx.fillStyle = '#1e272e';
-    ctx.fill();
-    ctx.strokeStyle = '#00ffcc';
-    ctx.lineWidth = 4;
-    ctx.stroke();
-
-    // فوهة المدفع
-    ctx.fillStyle = '#485460';
-    ctx.fillRect(15, -8, 25, 16);
-
-    ctx.restore();
-
-    // الكرة الحالية داخل المدفع
-    if (currentBulletColor) {
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(SHOOTER_CENTER.x, SHOOTER_CENTER.y, BALL_RADIUS, 0, Math.PI * 2);
-        ctx.fillStyle = currentBulletColor.hex;
-        ctx.shadowColor = currentBulletColor.glow;
-        ctx.shadowBlur = 10;
-        ctx.fill();
-        ctx.restore();
-    }
-
-    // الكرة التالية (الاحتياطية)
-    if (nextBulletColor) {
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(SHOOTER_CENTER.x - 45, SHOOTER_CENTER.y, BALL_RADIUS * 0.7, 0, Math.PI * 2);
-        ctx.fillStyle = nextBulletColor.hex;
-        ctx.globalAlpha = 0.7;
-        ctx.fill();
-        ctx.restore();
-    }
-
-    // 5. رسم الجسيمات المتفجرة
-    for (let p of particles) {
-        ctx.save();
-        ctx.globalAlpha = p.alpha;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = p.color;
-        ctx.fill();
-        ctx.restore();
-    }
-}
-
-// دالة الدورة الرئيسية للعبة Loop
-function gameLoop() {
-    update();
-    draw();
-    requestAnimationFrame(gameLoop);
-}
-
-// أحداث التحكم والمدخلات
-canvas.addEventListener('mousemove', (e) => {
-    const rect = canvas.getBoundingClientRect();
-    mousePos.x = e.clientX - rect.left;
-    mousePos.y = e.clientY - rect.top;
-});
-
-canvas.addEventListener('click', shoot);
-
-function startGame() {
-    score = 0;
-    level = 1;
-    lives = 3;
-    document.getElementById('scoreDisplay').innerText = score;
-    document.getElementById('levelDisplay').innerText = level;
-    document.getElementById('livesDisplay').innerText = '❤️❤️❤️';
-    
-    document.getElementById('startScreen').classList.add('hidden');
-    document.getElementById('gameOverScreen').classList.add('hidden');
-    
-    generatePath();
-    spawnLevelBalls();
-    prepareNextBullet();
-    
-    gameState = 'PLAYING';
-}
-
-function endGame() {
-    gameState = 'GAMEOVER';
-    document.getElementById('finalScore').innerText = score;
-    document.getElementById('gameOverScreen').classList.remove('hidden');
-}
-
-function restartGame() {
-    startGame();
-}
-
-// بدء حلقة الرسم والتجهيز
-generatePath();
-gameLoop();
+const setAim=e=>{const b=cv.getBoundingClientRect();aim.x=e.clientX-b.left;aim.y=e.clientY-b.top;if(Math.hypot(aim.x-CX,aim.y-CY)>8)aimA=Math.atan2(aim.y-CY,aim.x-CX)};
+cv.addEventListener("pointerdown",e=>{e.preventDefault();setAim(e)},{passive:false});
+cv.addEventListener("pointermove",e=>{if(state==="play")setAim(e)});
+cv.addEventListener("pointerup",e=>{e.preventDefault();if(state!=="play")return;setAim(e);if(Math.hypot(aim.x-CX,aim.y-CY)<R*1.8)swap();else shoot()},{passive:false});
+addEventListener("keydown",e=>{if(e.code==="Space"){e.preventDefault();shoot()}if(e.code==="KeyX")swap();if(e.code==="Escape")pause()});
+document.addEventListener("visibilitychange",()=>{if(document.hidden)pause()});
+addEventListener("resize",resize);
+$("play").onclick=begin;$("again").onclick=begin;$("pz").onclick=pause;$("resume").onclick=resume;$("quit").onclick=home;$("quit2").onclick=home;
+$("snd").onclick=()=>{soundOn=!soundOn;LS.set("sound",soundOn);hud()};
+resize();wave();hud();show("start");requestAnimationFrame(loop);
+})();
 </script>
-
 </body>
 </html>
